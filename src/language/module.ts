@@ -3,11 +3,12 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 
-import type { LangiumSharedCoreServices, LangiumCoreServices, LangiumGeneratedSharedCoreServices, LanguageMetaData, Module } from 'langium';
+import type { LangiumSharedCoreServices, LangiumGeneratedSharedCoreServices, LanguageMetaData, Module } from 'langium';
 import { C64BasicAstReflection } from './generated/ast.js';
 import { C64BasicGrammar } from './generated/grammar.js';
 import { C64BasicScopeProvider } from './scope-provider.js';
-import { PartialLangiumServices } from 'langium/lsp';
+import { LangiumServices, PartialLangiumServices } from 'langium/lsp';
+import { C64BasicFormatter } from './lsp/formatter.js';
 
 export const C64BasicLanguageMetaData = {
     languageId: 'c-64-basic',
@@ -23,12 +24,17 @@ export type C64BasicAddedServices = {
     
 }
 
+export type C64Services = LangiumServices & C64BasicAddedServices
 
-export const C64BasicGeneratedModule: Module<LangiumCoreServices, PartialLangiumServices & C64BasicAddedServices> = {
+
+export const C64BasicGeneratedModule: Module<C64Services, PartialLangiumServices & C64BasicAddedServices> = {
     Grammar: () => C64BasicGrammar(),
     LanguageMetaData: () => C64BasicLanguageMetaData,
     parser: {},
     references: {
         ScopeProvider: (services) => new C64BasicScopeProvider(services)
+    },
+    lsp: {
+        Formatter: () => new C64BasicFormatter(),
     }
 };
