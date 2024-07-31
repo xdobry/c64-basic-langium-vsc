@@ -1,0 +1,2 @@
+A$="HALLO"
+PRINT A$+2

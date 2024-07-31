@@ -1,0 +1,6 @@
+loop:
+  LET A=10
+  PRINT A
+  IF A<10 THEN GOTO loop
+  IF A<10 THEN loop
+PRINT "END"

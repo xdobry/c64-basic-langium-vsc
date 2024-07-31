@@ -1,0 +1,9 @@
+READ A%
+READ A
+READ A$
+READ B$
+PRINT A%, A, A$, B$
+RESTORE
+READ A%, A, A$, B$
+PRINT A%, A, A$, B$
+DATA 3,3.0,"Message",Message

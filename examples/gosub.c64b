@@ -1,0 +1,7 @@
+LET A=2
+GOSUB add2
+PRINT A
+END
+add2:
+LET A=A+2
+RETURN

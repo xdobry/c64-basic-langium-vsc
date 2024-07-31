@@ -1,0 +1,13 @@
+start:
+  INPUT A
+  ON A GOTO first, second
+  PRINT "ERROR"
+GOTO start
+END
+
+first:
+  PRINT "FIRST"
+END
+second:
+  PRINT "SECOND"
+END

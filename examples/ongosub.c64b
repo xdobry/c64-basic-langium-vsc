@@ -1,0 +1,17 @@
+start:
+  INPUT A
+  IF A<1 OR A>2 THEN PRINT "ERROR":GOTO start
+  ON A GOSUB first, second
+  PRINT "RETURN"
+END
+
+first:
+  PRINT "FIRST"
+  RETURN
+
+second:
+  PRINT "SECOND"
+  RETURN
+
+GOTO second
+GOTO first

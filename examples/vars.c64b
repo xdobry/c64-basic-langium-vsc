@@ -1,0 +1,4 @@
+X%=1
+REM Uninitialized variable is 0
+IF X%>2 THEN Y%=1
+PRINT Y%

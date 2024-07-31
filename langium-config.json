@@ -1,0 +1,15 @@
+{
+    "projectName": "C64Basic",
+    "languages": [{
+        "id": "c-64-basic",
+        "grammar": "src/language/c-64-basic.langium",
+        "fileExtensions": [".c64b"],
+        "textMate": {
+            "out": "syntaxes/c-64-basic.tmLanguage.json"
+        },
+        "monarch": {
+            "out": "src/syntaxes/c-64-basic.monarch.ts"
+        }
+    }],
+    "out": "src/language/generated"
+}

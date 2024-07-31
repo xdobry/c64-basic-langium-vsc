@@ -1,0 +1,2 @@
+DEF FN F1(X)=X+1
+PRINT FN F2(2)
