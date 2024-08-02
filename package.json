@@ -22,11 +22,11 @@
         "dev:debug": "vite --debug --force",
         "serve": "npm run dev",
         "test": "vitest run",
-        "clitest": "node ./bin/cli.js generate ./examples/helloworld.c64b",
-        "gcc": "C:\\devsoft\\mingw64win\\mingw64\\bin\\gcc .\\generated\\helloworld.s -o .\\generated\\helloworld.exe",
-        "testexe": ".\\generated\\helloworld.exe",
+        "clitest": "node ./bin/cli.js generate ./examples_compile/compile.c64b",
+        "gcc": "gcc .\\generated\\compile.s -o .\\generated\\compile.exe",
+        "testexe": ".\\generated\\compile.exe",
         "devtrip": "npm run build && npm run clitest && npm run gcc && npm run testexe",
-        "cliast": "node ./bin/cli.js ast ./examples/helloworld.c64b"
+        "cliast": "node ./bin/cli.js ast ./examples/compile.c64b"
     },
     "dependencies": {
         "langium": "~3.1.0",

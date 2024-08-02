@@ -1,0 +1,4 @@
+L%=0
+PRINT "Hallo ",L%
+PRINT "HALLO"
+PRINT L%

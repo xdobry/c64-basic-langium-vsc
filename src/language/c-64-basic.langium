@@ -99,9 +99,9 @@ Add  infers Expr:
 Mult infers Expr: 
     Logical ({infer BinExpr.e1=current} op=('*'|'/') e2=Logical)*;
 Logical infers Exprs:
-    Comparison ({infer BinExpr.e1=current} operator=('AND' | 'OR') e2=Comparison)*;
+    Comparison ({infer BinExpr.e1=current} op=('AND' | 'OR') e2=Comparison)*;
 Comparison infers Exprs:
-    PrimExpr ({infer BinExpr.e1=current} operator=('<' | '<=' | '>' | '>=' | '=' | '<>') e2=PrimExpr)*;
+    PrimExpr ({infer BinExpr.e1=current} op=('<' | '<=' | '>' | '>=' | '=' | '<>') e2=PrimExpr)*;
 
 
 PrimExpr: VarRef | IntNumber | FloatNumber | GroupExpr | NegExpr | NotExpr | NumFunc | PiConst | Asc | Len | Val | StrComparision | FnCall;

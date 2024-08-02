@@ -7,7 +7,12 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     isSBinExpr,
     SBinExpr,
     SPrimExpr,
-    Stmt} from '../language/generated/ast.js';
+    Stmt,
+    isStrLabel,
+    StrLabel,
+    GoSub,
+    isGoSub,
+    isReturn} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
@@ -21,7 +26,10 @@ interface ProgContext {
     ifLabelCounter: number
     forLabelCounter: number
     copyLabelCounter: number
+    goSubLabelCounter: number
     forStack: ForEntry[]
+    usedLines: string[]
+    goSubLabels: string[]
 }
 
 interface ForEntry {
@@ -67,12 +75,18 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         ifLabelCounter: 0,
         forLabelCounter: 0,
         copyLabelCounter: 0,
-        forStack: []
+        goSubLabelCounter: 0,
+        forStack: [],
+        usedLines: [],
+        goSubLabels: [],
     }
     generateVariables(model, progContext)
 
     let programmCode = ""
     for (const line of model.lines) {
+        if (line.linenum && progContext.usedLines.includes(line.linenum)) {
+            programmCode += `.line${line.linenum}:\n`;
+        }
         programmCode += generateStmts(line.stmts, progContext);
     }
 
@@ -109,20 +123,67 @@ interface LabeledNode  extends AstNode {
 function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
     let code = ""
     for (const node of stmts) {
-        if (isCmd(node)) {
+        if (isStrLabel(node)) {
+            const lNode : StrLabel = node;
+            const name : string = lNode.name.substring(0,lNode.name.length-1)
+            if (progContext.goSubLabels.includes(name)) {
+                const jumpOverLabel : string = ".jumpover"+progContext.goSubLabelCounter++
+                code += genOpCode("jmp", jumpOverLabel);
+                code += `.${name}:\n`;
+                // Allocate stack space needed because otherwise the ret address will be overwritten
+                // by caller (see windows ABI for details)
+                // 32 is the value that gcc c compiler uses
+                code += genOpCode("subq","$32","%rsp");
+                code += `${jumpOverLabel}:\n`;
+            } else {
+                code += `.${lNode.name}\n`;
+            }
+        } else if (isCmd(node)) {
             code += `\t# ${node.$cstNode?.text}\n`;
             if (isLabel(node)) {
                 const lNode : Label = node;
                 code += `.${lNode.name}:\n`;
             } else if (isPrint(node)) {
                 const print : Print = node;
-                progContext.usedRegisters.push("%rcx")
                 code += exprArrayToStringPointer(print.exprs, "%rcx",progContext);
-                freeRegister(progContext, "%rcx")
                 code += genOpCode("call", "puts");
+                freeRegister(progContext, "%rcx")
+            } else if (isGoSub(node)) {
+                const goto : GoSub = node;
+                const labelRef = goto.label?.ref
+                if (labelRef) {
+                    const name = labelRef.name
+                    if (name.endsWith(":")) {
+                        code += genOpCode("call", "."+labelRef.name.substring(0,name.length-1));
+                    } else {
+                        code += genOpCode("call", "."+labelRef.name);
+                    }
+                } else {
+                    const lineRef = goto.lineNumber?.ref
+                    if (lineRef) {
+                        code += genOpCode("call", `.line${lineRef.linenum}`);
+                    }
+                }
             } else if (isGoTo(node)) {
                 const goto : GoTo = node;
-                code += genOpCode("jmp", "."+goto.label!.ref?.name!);
+                const labelRef = goto.label?.ref
+                if (labelRef) {
+                    const name = labelRef.name
+                    if (name.endsWith(":")) {
+                        code += genOpCode("jmp", "."+labelRef.name.substring(0,name.length-1));
+                    } else {
+                        code += genOpCode("jmp", "."+labelRef.name);
+                    }
+                } else {
+                    const lineRef = goto.lineNumber?.ref
+                    if (lineRef) {
+                        code += genOpCode("jmp", `.line${lineRef.linenum}`);
+                    }
+                }
+            } else if (isReturn(node)) {
+                // RETURN without GOSUB will break the program
+                code += genOpCode("addq","$32","%rsp");
+                code += genOpCode("ret");
             } else if (isLetNum(node)) {
                 const letNode : LetNum = node;
                 const lNode : LabeledNode = letNode.name;
@@ -137,7 +198,23 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 const ifNode : If = node;
                 const notIfLabel = `.ifnot${progContext.ifLabelCounter++}`
                 code += conditionToAssembler(ifNode.cond, progContext, notIfLabel);
-                code += generateStmts(ifNode.stmts,progContext);
+                if (ifNode.label) {
+                    const name = ifNode.label.ref?.name
+                    if (name) {
+                        if (name.endsWith(":")) {
+                            code += genOpCode("jmp", "."+name.substring(0,name.length-1));
+                        } else {
+                            code += genOpCode("jmp", "."+name);
+                        }
+                    } else {
+                        throw "unsupported goto without name"
+                    }
+                    code += genOpCode("jmp", "."+ifNode.label.ref?.name);
+                } else if (ifNode.lineNumber) {
+                    code += genOpCode("jmp", `.line${ifNode.lineNumber.ref?.linenum}`);
+                } else {
+                    code += generateStmts(ifNode.stmts,progContext);
+                }
                 code += `${notIfLabel}:\n`
             } else if (isFor(node)) {
                 const forNode : For = node;
@@ -230,7 +307,8 @@ function conditionToAssembler(cond: Expr, progContext: ProgContext, notIfLabel: 
     const reg = allocateRegister(progContext)
     code += exprToInt(cond, reg, progContext);
     code += genOpCode("cmpq", "$0", reg);
-    code += genOpCode("jne", notIfLabel);
+    code += genOpCode("je", notIfLabel);
+    freeRegister(progContext,reg)
     return code
 }
 
@@ -411,6 +489,26 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         } else if (binExpr.op === "/") {
             // stmts += genOpCode("cqto");
             stmts += genOpCode("idivq", reg2);
+        } else if (binExpr.op === "<") {
+            stmts += genOpCode("cmpq", reg2,reg);
+            stmts += genOpCode("setl", "%al");
+            stmts += genOpCode("movzbq", "%al", reg);
+        } else if (binExpr.op === ">") {
+            stmts += genOpCode("cmpq", reg2,reg);
+            stmts += genOpCode("setg", "%al");
+            stmts += genOpCode("movzbq", "%al", reg);
+        } else if (binExpr.op === "=") {
+            stmts += genOpCode("cmpq", reg2,reg);
+            stmts += genOpCode("sete", "%al");
+            stmts += genOpCode("movzbq", "%al", reg);
+        } else if (binExpr.op === "<=") {
+            stmts += genOpCode("cmpq", reg2,reg);
+            stmts += genOpCode("setle", "%al");
+            stmts += genOpCode("movzbq", "%al", reg);
+        } else if (binExpr.op === ">=") {
+            stmts += genOpCode("cmpq", reg2,reg);
+            stmts += genOpCode("setge", "%al");
+            stmts += genOpCode("movzbq", "%al", reg);
         } else {
             throw "unknown binary operator: "+binExpr.op
         }
@@ -433,6 +531,7 @@ function exprArrayToStringPointer(exprs: SExprt[], reg: string, progContext: Pro
     if (exprs.length == 1) {
         return exprToStringPointer(exprs[0], reg, progContext);
     }
+    progContext.usedRegisters.push("%rcx")
     const pointerSourceReg = allocateRegister(progContext)
     stmts += genOpCode("leaq", `.buffer(%rip)`, reg);
     for (const expr of exprs) {
@@ -452,8 +551,12 @@ function exprArrayToStringPointer(exprs: SExprt[], reg: string, progContext: Pro
     return stmts;
 }
 
-function genOpCode(cmd: string, arg1: string, arg2?: string) {
-    return `\t${cmd}\t${arg1}${arg2 ? `, ${arg2}` : ""}\n`;
+function genOpCode(cmd: string, arg1?: string, arg2?: string) {
+    if (arg1) {
+        return `\t${cmd}\t${arg1}${arg2 ? `, ${arg2}` : ""}\n`;
+    } else {
+        return `\t${cmd}\n`;
+    }
 }
 
 function generateVariables(model: Model, progContext: ProgContext) {
@@ -470,8 +573,7 @@ function generateVariables(model: Model, progContext: ProgContext) {
                 variableOffset -= 8;
                 //console.log("setting offset", node)
             }
-        }
-        if (isFor(node)) {
+        } else if (isFor(node)) {
             const forNode : For = node;
             const lNode : LabeledNode = node;
             if (forNode.step && !isIntNumber(forNode.step)) {
@@ -481,6 +583,43 @@ function generateVariables(model: Model, progContext: ProgContext) {
             if (forNode.end && !isIntNumber(forNode.end)) {
                 variableOffset -= 8;
                 lNode._toOffset = variableOffset
+            }
+        } else if (isGoTo(node)) {
+            const goto : GoTo = node;
+            if (goto.lineNumber) {
+                const linenum = goto.lineNumber.ref?.linenum
+                if (linenum && !progContext.usedLines.includes(linenum)) {
+                    progContext.usedLines.push(linenum)
+                }
+
+            }
+        } else if (isGoSub(node)) {
+            const gosub : GoSub = node;
+            if (gosub.lineNumber) {
+                const linenum = gosub.lineNumber.ref?.linenum
+                if (linenum && !progContext.usedLines.includes(linenum)) {
+                    progContext.usedLines.push(linenum)
+                }
+                if (linenum && !progContext.goSubLabels.includes(linenum)) {
+                    progContext.goSubLabels.push(linenum)
+                }
+            }
+            if (gosub.label) {
+                let name = gosub.label.ref?.name
+                if (name?.endsWith(":")) {
+                    name = name.substring(0,name.length-1)
+                }
+                if (name && !progContext.goSubLabels.includes(name)) {
+                    progContext.goSubLabels.push(name)
+                }
+            }
+        } else if (isIf(node)) {
+            const ifNode : If = node;
+            if (ifNode.lineNumber) {
+                const linenum = ifNode.lineNumber.ref?.linenum
+                if (linenum && !progContext.usedLines.includes(linenum)) {
+                    progContext.usedLines.push(linenum)
+                }
             }
         }
     }
