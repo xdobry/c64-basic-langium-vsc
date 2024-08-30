@@ -23,7 +23,7 @@
         "serve": "npm run dev",
         "test": "vitest run",
         "clitest": "node ./bin/cli.js generate ./examples_compile/compile.c64b",
-        "gcc": "gcc .\\generated\\compile.s -o .\\generated\\compile.exe",
+        "gcc": "gcc .\\generated\\compile.s .\\ccode\\rtlib.c -o .\\generated\\compile.exe",
         "testexe": ".\\generated\\compile.exe",
         "devtrip": "npm run build && npm run clitest && npm run gcc && npm run testexe",
         "cliast": "node ./bin/cli.js ast ./examples/compile.c64b"

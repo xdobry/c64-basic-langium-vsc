@@ -81,11 +81,10 @@ From visual studion code
 
 ## String Implementierung
 
-* Bei Variable zuweisung muss neues speicher zugewiesen werden
-  * Speicher nie freigeben
-  * Sonst immer freigeben
-  * Besser Referenz Zähler
-* Lokalen Buffer für concat benutzen bcc data bloc
+* reimplement str to use BString and rtlib 
+* compute and allocate memory for str tmp variables
+* 
+
 
 ## Compile Features to implement
 
@@ -94,8 +93,8 @@ The compiler will break with error if some unsupported keyword is used
 * float arithmetics and functions
 * ON GOTO, ON GOSUB
 * STRING FUNCTIONS: 
-    STRIING -> INT: LEN, ASC, VAL (itoa)
-    INT -> STRING: STR$, CHR$
+    STRING -> INT: VAL (itoa)
+    INT -> STRING: STR$
     STRING -> STRING: RIGHT$, LEFT$, MID$
 * MATH functions
     SIG, ABS, RND, SIG, TAN, EXP, SQR, LOG, ATN, COS, SIN, ABS

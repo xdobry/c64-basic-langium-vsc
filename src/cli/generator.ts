@@ -6,13 +6,22 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     SExpr,
     isSBinExpr,
     SBinExpr,
-    SPrimExpr,
     Stmt,
     isStrLabel,
     StrLabel,
     GoSub,
     isGoSub,
-    isReturn} from '../language/generated/ast.js';
+    isReturn,
+    isLen,
+    Len,
+    isAsc,
+    Asc,
+    isChrs,
+    Chrs,
+    isStringFunction2,
+    StringFunction2,
+    isStringFunction3,
+    StringFunction3} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
@@ -20,7 +29,6 @@ import { AstNode, AstUtils } from 'langium';
 
 interface ProgContext {
     stackAllocation: number
-    atoiBuffer: number
     usedRegisters: string[]
     variables: Map<string, number>
     ifLabelCounter: number
@@ -30,6 +38,7 @@ interface ProgContext {
     forStack: ForEntry[]
     usedLines: string[]
     goSubLabels: string[]
+    stringTmpCount : number
 }
 
 interface ForEntry {
@@ -48,13 +57,16 @@ interface ForEntry {
 // Calling Convention
 // RDI, RSI, RDX, RCX, R8 und R9 
 // Windows
-// RCX, RDX, R8, R9
+// RCX, RDX, R8, R9, Stack
 
 // Register to be used (beside %rax)
 const registers : string[] = ["%rbx","%rcx","%rdx","%rsi","%rdi","%r8","%r9","%r10","%r11","%r12","%r13","%r14","%r15"]
 
 // Register that must be preserved during c-call
-const preservedRegister : string[] = ["%rbx","%rbp","%rsp","%r12","%r13","%r14","%r15"]
+// const preservedRegister : string[] = ["%rbx","%rbp","%rsp","%r12","%r13","%r14","%r15"]
+// Special Registers
+// %rbp - data pointer on stack
+// %rsp - stack pointer
 
 export function generateAssemblerCode(model: Model, filePath: string, destination: string | undefined): string {
     const data = extractDestinationAndName(filePath, destination);
@@ -69,7 +81,6 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
     let stringLiterals = generateStringLiterals(model);
     const progContext: ProgContext = {
         stackAllocation: 0,
-        atoiBuffer: 0,
         usedRegisters: [],
         variables: new Map(),
         ifLabelCounter: 0,
@@ -79,10 +90,23 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         forStack: [],
         usedLines: [],
         goSubLabels: [],
+        stringTmpCount: 0
     }
     generateVariables(model, progContext)
+    // TODO compute how many tmp str variables are needed
+    // Generate 5 str tmp variables
+    
 
     let programmCode = ""
+    progContext.variables.forEach((value, key) => {
+        if (isStrVariable(key)) {
+            programmCode += `\t# init variable ${key}\n`;
+            programmCode += genOpCode("movq","$0",`${value}(%rbp)`);
+            programmCode += genOpCode("movq","$0",`${value+8}(%rbp)`);
+            programmCode += genOpCode("movq","$0",`${value+16}(%rbp)`);
+        }
+    })
+
     for (const line of model.lines) {
         if (line.linenum && progContext.usedLines.includes(line.linenum)) {
             programmCode += `.line${line.linenum}:\n`;
@@ -145,9 +169,24 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 code += `.${lNode.name}:\n`;
             } else if (isPrint(node)) {
                 const print : Print = node;
-                code += exprArrayToStringPointer(print.exprs, "%rcx",progContext);
+                const tmpVarOffset = allocateStrTmp(progContext);
+                let isFirst : boolean = true
+                for (const expr of print.exprs) {
+                    if (isFirst) {
+                        code += exprToBString(expr, tmpVarOffset, progContext);
+                        isFirst = false;
+                    } else {
+                        const tmpVarOffset2 = allocateStrTmp(progContext);
+                        code += exprToBString(expr, tmpVarOffset2, progContext);
+                        code += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rcx");
+                        code += genOpCode("leaq", `${tmpVarOffset2}(%rbp)`, "%rdx");
+                        code += genOpCode("call", "appendBString");
+                        code += freeStrTmp(progContext, tmpVarOffset2);
+                    }
+                }
+                code += genOpCode("movq", `${tmpVarOffset}(%rbp)`, "%rcx");
                 code += genOpCode("call", "puts");
-                freeRegister(progContext, "%rcx")
+                code += freeStrTmp(progContext, tmpVarOffset);
             } else if (isGoSub(node)) {
                 const goto : GoSub = node;
                 const labelRef = goto.label?.ref
@@ -192,8 +231,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
             } else  if (isLetStr(node)) {
                 const letNode : LetStr = node;
                 const lNode : LabeledNode = letNode.name;
-                code += exprToStringPointer(letNode.expr, "%rax",progContext);
-                code += genOpCode("movq", "%rax", `${lNode._variableOffset}(%rbp)`);
+                code += exprToBString(letNode.expr,lNode._variableOffset!,progContext);
             } else if (isIf(node)) {
                 const ifNode : If = node;
                 const notIfLabel = `.ifnot${progContext.ifLabelCounter++}`
@@ -313,11 +351,13 @@ function conditionToAssembler(cond: Expr, progContext: ProgContext, notIfLabel: 
 }
 
 
-function exprToStringPointer(expr: SExprt | SExpr, reg: string, progContext: ProgContext) : string {
+function exprToBString(expr: SExprt | SExpr, varOffset: number, progContext: ProgContext) : string {
     let stmts = ""
     if (isStringLiteral(expr)) {
         const lNode : LabeledNode = expr;
-        stmts += genOpCode("leaq", `${lNode._label}(%rip)`, reg);
+        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+        stmts += genOpCode("leaq", `${lNode._label}(%rip)`, "%rdx");
+        stmts += genOpCode("call", "assignFromConst");
     } else if (isStringVarRef(expr)) {
         const stringVarRef : StringVarRef = expr;
         const lNode : AstNode = stringVarRef.var.ref!;
@@ -325,90 +365,98 @@ function exprToStringPointer(expr: SExprt | SExpr, reg: string, progContext: Pro
         if (isLetStr(lNode)) {
             const letNode : LetStr = lNode;
             const lNode2 : LabeledNode = letNode.name
-            stmts += genOpCode("movq", `${lNode2._variableOffset}(%rbp)`, reg);
+            stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+            stmts += genOpCode("leaq", `${lNode2._variableOffset}(%rbp)`, "%rdx");
+            stmts += genOpCode("call", "assignBString");
         } else {
-            console.log("error: expecting Let node as string reference")
+            throw "error: expecting Let node as string reference: "+lNode.$type
         }
     } else if (isIntVarRef(expr)) {
-        const intVarRef : IntVarRef = expr;
-        const lNode : AstNode = intVarRef.var.ref!;
-        // the reference should be StringVariable but is Let
-        if (isLetNum(lNode)) {
-            const letNode : LetNum = lNode;
-            const lNode2 : LabeledNode = letNode.name
-            stmts += genOpCode("movq", `${lNode2._variableOffset}(%rbp)`, reg);
-            stmts += atoi(reg, reg, progContext);
+        const varName = nameForVarRef(expr, progContext)
+        const intVarOffset = progContext.variables.get(varName)
+        if (intVarOffset) {
+            stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+            stmts += genOpCode("movq", `${intVarOffset}(%rbp)`, "%rdx");
+            stmts += genOpCode("call", "assignInt");
         } else {
-            console.log("error: expecting Let node as int reference")
+            throw "error: can get int var offset for "+varName
         }
     } else if (isExpr(expr)) {
         const exprNode : Expr = expr;
-        stmts += exprToInt(exprNode, reg, progContext);
-        stmts += atoi(reg, reg, progContext);
+        stmts += exprToInt(exprNode, "%rdx", progContext);
+        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+        stmts += genOpCode("call", "assignInt");
     } else if (isSBinExpr(expr)) {
         const sBinExpr : SBinExpr = expr;
-        console.log("sbin",sBinExpr.$type)
-        stmts += preserveRegister(progContext)
-        stmts += genOpCode("movq", "$2048", "%rax");
-        stmts += genOpCode("call","malloc");
-        stmts += restoreRegister(progContext)
-        stmts += genOpCode("movb", "$0","(%rax)");
-        stmts += genOpCode("pushq", "%rax");
-        const targetStrPtr = allocateRegister(progContext)
-        stmts += genOpCode("movq", "%rax", targetStrPtr);
-        stmts += copyStrings([sBinExpr.e1,sBinExpr.e2],progContext,targetStrPtr)
-        freeRegister(progContext,targetStrPtr)
-        stmts += genOpCode("popq", reg);
+        const tmpVarOffset = allocateStrTmp(progContext);
+        stmts += exprToBString(sBinExpr.e1, tmpVarOffset, progContext);
+        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+        stmts += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rdx");
+        stmts += genOpCode("call", "assignBString");
+        stmts += freeStrTmp(progContext, tmpVarOffset);
+        const tmpVarOffset2 = allocateStrTmp(progContext);
+        stmts += exprToBString(sBinExpr.e2, tmpVarOffset2, progContext);
+        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+        stmts += genOpCode("leaq", `${tmpVarOffset2}(%rbp)`, "%rdx");
+        stmts += genOpCode("call", "appendBString");
+        stmts += freeStrTmp(progContext, tmpVarOffset2);
+    } else if (isChrs(expr)) {
+        const chrs : Chrs = expr;
+        stmts += exprToInt(chrs.param, "%rdx", progContext);
+        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+        stmts += genOpCode("call", "assignChar");
+    } else if (isStringFunction2(expr)) {
+        const stringFunction2 : StringFunction2 = expr;
+        const tmpVarOffset = allocateStrTmp(progContext)
+        stmts += exprToBString(stringFunction2.str, tmpVarOffset, progContext);
+        stmts += exprToInt(stringFunction2.param, "%r8", progContext);
+        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+        stmts += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rdx");
+        if (stringFunction2.func === "LEFT$") {
+            stmts += genOpCode("call", "bstrLeft");
+        } else if (stringFunction2.func === "RIGHT$") {
+            stmts += genOpCode("call", "bstrRight");
+        } else {
+            throw "unknown string function2 expression: "+stringFunction2.func
+        }
+        stmts += freeStrTmp(progContext, tmpVarOffset);
+    } else if (isStringFunction3(expr)) {
+        const stringFunction3 : StringFunction3 = expr;
+        const tmpVarOffset = allocateStrTmp(progContext)
+        stmts += exprToBString(stringFunction3.str, tmpVarOffset, progContext);
+        stmts += exprToInt(stringFunction3.param, "%r8", progContext);
+        if (stringFunction3.len) {
+            stmts += exprToInt(stringFunction3.len, "%r9", progContext);
+        } else {
+            stmts += genOpCode("movq", "$0", "%r9");
+        }
+        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+        stmts += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rdx");
+        if (stringFunction3.func === "MID$") {
+            stmts += genOpCode("call", "bstrMid");
+        } else {
+            throw "unknown string function2 expression: "+stringFunction3.func
+        }
+        stmts += freeStrTmp(progContext, tmpVarOffset);
     } else {
-        throw "unknown string expression: "+expr
+        throw "unknown string expression: "+expr.$type
     }
     return stmts;
 }
 
-function copyStrings(exprs: SPrimExpr[], progContext: ProgContext, targetStrPtr: string) : string {
-    let code = ""
-    for (const expr of exprs) {
-        if (isStringLiteral(expr)) {
-            const lNode : LabeledNode = expr;
-            const sourceStrPtr = allocateRegister(progContext)
-            code += genOpCode("leaq", `${lNode._label}(%rip)`, sourceStrPtr);
-            const copyLabel = ".copy"+progContext.copyLabelCounter++
-            code += `${copyLabel}:\n`
-            code += genOpCode("movb", `(${sourceStrPtr}), %al`);
-            code += genOpCode("movb", "%al", `(${targetStrPtr})`);
-            code += genOpCode("incq", sourceStrPtr);
-            code += genOpCode("incq", targetStrPtr);
-            code += genOpCode("cmpb", "$0", "%al");
-            code += genOpCode("jne", `${copyLabel}`);
-            code += genOpCode("decq", targetStrPtr); 
-            freeRegister(progContext, sourceStrPtr)
-        } else if (isStringVarRef(expr)) {
-            const stringVarRef : StringVarRef = expr;
-            const lNode : AstNode = stringVarRef.var.ref!;
-            // the reference should be StringVariable but is Let
-            if (isLetStr(lNode)) {
-                const letNode : LetStr = lNode;
-                const lNode2 : LabeledNode = letNode.name
-                const sourceStrPtr = allocateRegister(progContext)
-                code += genOpCode("movq", `${lNode2._variableOffset}(%rbp)`, sourceStrPtr);
-                const copyLabel = ".copy"+progContext.copyLabelCounter++
-                code += `${copyLabel}:\n`
-                code += genOpCode("movb", `(${sourceStrPtr}), %al`);
-                code += genOpCode("movb", "%al", `(${targetStrPtr})`);
-                code += genOpCode("incq", sourceStrPtr);
-                code += genOpCode("incq", targetStrPtr);
-                code += genOpCode("cmpb", "$0", "%al");
-                code += genOpCode("jne", `${copyLabel}`);
-                code += genOpCode("decq", targetStrPtr); 
-                freeRegister(progContext, sourceStrPtr)
-            } else {
-                throw "error: expecting Let node as string reference"
-            }
-        } else {
-            throw "unsupported SPringExpr: "+expr.$type
-        }
-    }
-    return code;
+function allocateStrTmp(progContext: ProgContext) : number {
+    const tmpNum = progContext.stringTmpCount
+    progContext.stringTmpCount++
+    const varName = `strtmp${tmpNum}$`
+    return progContext.variables.get(varName)!
+}
+
+function freeStrTmp(progContext: ProgContext, tmpOffset: number) : string {
+    progContext.stringTmpCount--
+    let stmts = ""
+    stmts += genOpCode("leaq", `${tmpOffset}(%rbp)`, "%rcx");
+    stmts += genOpCode("call", "freeBString");
+    return stmts;
 }
 
 function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
@@ -419,25 +467,15 @@ function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
     } if (isLetStr(lNode)) {
         const letNode : LetStr = lNode;
         return letNode.name.name
+    } if (isFor(lNode)) {
+        const forNode : For = lNode;
+        return forNode.name.name
     } else {
-        throw "error: expecting Let node as string reference"
+        throw "error: expecting Let node as string reference: " + lNode.$type
     }
 }
 
-function atoi(intReg: string, targetReg: string, progContext: ProgContext) : string {
-    let stmts = ""
-    stmts += preserveRegister(progContext)
-    if (intReg!=="%rcx") {
-        stmts += genOpCode("movq", intReg, "%rcx");
-    }
-    stmts += genOpCode("leaq", `${progContext.atoiBuffer}(%rbp)`, "%rdx");
-    stmts += genOpCode("movl", "$10", "%r8d");
-    stmts += genOpCode("call", "itoa");
-    stmts += genOpCode("leaq", `${progContext.atoiBuffer}(%rbp)`,targetReg);
-    stmts += restoreRegister(progContext)
-    return stmts
-}
-
+/*
 function preserveRegister(progContext: ProgContext) : string {
     let stmts = ""
     for (const reg of progContext.usedRegisters) {
@@ -457,6 +495,7 @@ function restoreRegister(progContext: ProgContext) : string {
     }
     return stmts
 }
+*/
 
 
 function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
@@ -472,8 +511,12 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
             const letNode : LetNum = lNode;
             const lNode2 : LabeledNode = letNode.name
             stmts += genOpCode("movq", `${lNode2._variableOffset}(%rbp)`, reg);
+        } else if (isFor(lNode)) {
+            const forNode : For = lNode;
+            const lNode2 : LabeledNode = forNode.name
+            stmts += genOpCode("movq", `${lNode2._variableOffset}(%rbp)`, reg);
         } else {
-            console.log("error: expecting Let node as int reference")
+            throw  "error: expecting Let node as int reference: "+lNode.$type
         }
     } else if (isBinExpr(expr)) {
         const binExpr : BinExpr = expr;
@@ -520,36 +563,29 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
     } else if (isGroupExpr(expr)) {
         const groupExpr : GroupExpr = expr
         stmts += exprToInt(groupExpr.ge,reg,progContext)
+    } else if (isLen(expr)) {
+        const lenExpr : Len = expr
+        const tmpVarOffset = allocateStrTmp(progContext);
+        stmts += exprToBString(lenExpr.param, tmpVarOffset, progContext);
+        // Access length of BString structure
+        // TODO we need to preserver register because of the call to freeStrTmp
+        stmts += genOpCode("movq", `${tmpVarOffset+8}(%rbp)`,reg);
+        stmts += freeStrTmp(progContext, tmpVarOffset);
+    }  else if (isAsc(expr)) {  
+        const ascExpr : Asc = expr
+        const tmpVarOffset = allocateStrTmp(progContext);
+        stmts += exprToBString(ascExpr.param, tmpVarOffset, progContext);
+        // Access length of BString structure
+        // TODO we need to preserver register because of the call to freeStrTmp
+        stmts += genOpCode("movq", `${tmpVarOffset}(%rbp)`,reg);
+        stmts += genOpCode("movzbl", `(${reg})`, reg);
+        stmts += freeStrTmp(progContext, tmpVarOffset);
     } else {
         throw "unknown expression: "+expr.$type
     }
     return stmts;
 }
 
-function exprArrayToStringPointer(exprs: SExprt[], reg: string, progContext: ProgContext) : string {
-    let stmts = ""
-    if (exprs.length == 1) {
-        return exprToStringPointer(exprs[0], reg, progContext);
-    }
-    progContext.usedRegisters.push("%rcx")
-    const pointerSourceReg = allocateRegister(progContext)
-    stmts += genOpCode("leaq", `.buffer(%rip)`, reg);
-    for (const expr of exprs) {
-        stmts += exprToStringPointer(expr, pointerSourceReg, progContext);
-        const copyLabel = ".copy"+progContext.copyLabelCounter++
-        stmts += `${copyLabel}:\n`
-        stmts += genOpCode("movb", `(${pointerSourceReg}), %al`);
-        stmts += genOpCode("movb", "%al", `(${reg})`);
-        stmts += genOpCode("incq", pointerSourceReg);
-        stmts += genOpCode("incq", reg);
-        stmts += genOpCode("cmpb", "$0", "%al");
-        stmts += genOpCode("jne", `${copyLabel}`);
-        stmts += genOpCode("decq", reg);        
-    }
-    stmts += genOpCode("leaq", `.buffer(%rip)`, reg);
-    freeRegister(progContext, pointerSourceReg)
-    return stmts;
-}
 
 function genOpCode(cmd: string, arg1?: string, arg2?: string) {
     if (arg1) {
@@ -557,6 +593,10 @@ function genOpCode(cmd: string, arg1?: string, arg2?: string) {
     } else {
         return `\t${cmd}\n`;
     }
+}
+
+function isStrVariable(varname: string) : boolean {
+    return varname.endsWith("$");
 }
 
 function generateVariables(model: Model, progContext: ProgContext) {
@@ -568,6 +608,10 @@ function generateVariables(model: Model, progContext: ProgContext) {
             if (progContext.variables.has(varName)) {
                 lNode._variableOffset = progContext.variables.get(varName)!;
             } else {
+                if (isStrVariable(varName)) {
+                    // We need addition 2 t_size for BString structure
+                    variableOffset -= 16;
+                } 
                 progContext.variables.set(varName, variableOffset)
                 lNode._variableOffset = variableOffset
                 variableOffset -= 8;
@@ -623,9 +667,12 @@ function generateVariables(model: Model, progContext: ProgContext) {
             }
         }
     }
-    // create 24 bytes lenght buffer for atoi and pad to 16 bytes
-    variableOffset -= 24
-    progContext.atoiBuffer = variableOffset-(-variableOffset)%16
+    for (let i=0; i<5; i++) {
+        const varName = `strtmp${i}$`
+        variableOffset -= 16;
+        progContext.variables.set(varName, variableOffset)
+        variableOffset -= 16
+    }
     // allocate stack size pad to 16 and add 32 bytes for the stack frame
     progContext.stackAllocation = -variableOffset+(-variableOffset)%16 + 32
 }

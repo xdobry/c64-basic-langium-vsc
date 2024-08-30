@@ -4,22 +4,7 @@
 	.def	__main;	.scl	2;	.type	32;	.endef
 	.section .rdata,"dr"
 .LC0:
-	.ascii "HALLO "
-	.byte 0
-.LC1:
-	.ascii "WORLD "
-	.byte 0
-.LC2:
-	.ascii "TEST"
-	.byte 0
-.LC3:
-	.ascii "HALLO"
-	.byte 0
-.LC4:
-	.ascii "WORLD"
-	.byte 0
-.LC5:
-	.ascii "IF LOOP "
+	.ascii "HALLO WORLD"
 	.byte 0
 
     .section .bss
@@ -30,167 +15,101 @@
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$112, %rsp
-	# LET A$="HALLO "
-	leaq	.LC0(%rip), %rax
-	movq	%rax, -8(%rbp)
-	# LET B$="WORLD "
-	leaq	.LC1(%rip), %rax
-	movq	%rax, -16(%rbp)
-	# LET C%=4711
-	movq	$4711, %rax
-	movq	%rax, -24(%rbp)
-	# PRINT A$ B$ C%
-	leaq	.buffer(%rip), %rcx
-	movq	-8(%rbp), %rbx
-.copy0:
-	movb	(%rbx), %al
-	movb	%al, (%rcx)
-	incq	%rbx
-	incq	%rcx
-	cmpb	$0, %al
-	jne	.copy0
-	decq	%rcx
-	movq	-16(%rbp), %rbx
-.copy1:
-	movb	(%rbx), %al
-	movb	%al, (%rcx)
-	incq	%rbx
-	incq	%rcx
-	cmpb	$0, %al
-	jne	.copy1
-	decq	%rcx
-	movq	-24(%rbp), %rbx
-	pushq	%rcx
-	movq	%rbx, %rcx
+	subq	$224, %rsp
+	# init variable A$
+	movq	$0, -24(%rbp)
+	movq	$0, -16(%rbp)
+	movq	$0, -8(%rbp)
+	# init variable strtmp0$
+	movq	$0, -48(%rbp)
+	movq	$0, -40(%rbp)
+	movq	$0, -32(%rbp)
+	# init variable strtmp1$
+	movq	$0, -80(%rbp)
+	movq	$0, -72(%rbp)
+	movq	$0, -64(%rbp)
+	# init variable strtmp2$
+	movq	$0, -112(%rbp)
+	movq	$0, -104(%rbp)
+	movq	$0, -96(%rbp)
+	# init variable strtmp3$
+	movq	$0, -144(%rbp)
+	movq	$0, -136(%rbp)
+	movq	$0, -128(%rbp)
+	# init variable strtmp4$
+	movq	$0, -176(%rbp)
+	movq	$0, -168(%rbp)
+	movq	$0, -160(%rbp)
+	# LET A$="HALLO WORLD"
+	leaq	-24(%rbp), %rcx
+	leaq	.LC0(%rip), %rdx
+	call	assignFromConst
+	# PRINT A$
+	leaq	-48(%rbp), %rcx
+	leaq	-24(%rbp), %rdx
+	call	assignBString
+	movq	-48(%rbp), %rcx
+	call	puts
+	leaq	-48(%rbp), %rcx
+	call	freeBString
+	# PRINT RIGHT$(A$,4)
+	leaq	-80(%rbp), %rcx
+	leaq	-24(%rbp), %rdx
+	call	assignBString
+	movq	$4, %r8
+	leaq	-48(%rbp), %rcx
 	leaq	-80(%rbp), %rdx
-	movl	$10, %r8d
-	call	itoa
-	leaq	-80(%rbp), %rbx
-	popq	%rcx
-.copy2:
-	movb	(%rbx), %al
-	movb	%al, (%rcx)
-	incq	%rbx
-	incq	%rcx
-	cmpb	$0, %al
-	jne	.copy2
-	decq	%rcx
-	leaq	.buffer(%rip), %rcx
+	call	bstrRight
+	leaq	-80(%rbp), %rcx
+	call	freeBString
+	movq	-48(%rbp), %rcx
 	call	puts
-	# LET MSG$=A$+B$
-	movq	$2048, %rax
-	call	malloc
-	movb	$0, (%rax)
-	pushq	%rax
-	movq	%rax, %rbx
-	movq	-8(%rbp), %rcx
-.copy3:
-	movb	(%rcx), %al
-	movb	%al, (%rbx)
-	incq	%rcx
-	incq	%rbx
-	cmpb	$0, %al
-	jne	.copy3
-	decq	%rbx
-	movq	-16(%rbp), %rcx
-.copy4:
-	movb	(%rcx), %al
-	movb	%al, (%rbx)
-	incq	%rcx
-	incq	%rbx
-	cmpb	$0, %al
-	jne	.copy4
-	decq	%rbx
-	popq	%rax
-	movq	%rax, -32(%rbp)
-	# PRINT MSG$
-	movq	-32(%rbp), %rcx
-	call	puts
-	# LET MSG2$=A$+"TEST"
-	movq	$2048, %rax
-	call	malloc
-	movb	$0, (%rax)
-	pushq	%rax
-	movq	%rax, %rbx
-	movq	-8(%rbp), %rcx
-.copy5:
-	movb	(%rcx), %al
-	movb	%al, (%rbx)
-	incq	%rcx
-	incq	%rbx
-	cmpb	$0, %al
-	jne	.copy5
-	decq	%rbx
-	leaq	.LC2(%rip), %rcx
-.copy6:
-	movb	(%rcx), %al
-	movb	%al, (%rbx)
-	incq	%rcx
-	incq	%rbx
-	cmpb	$0, %al
-	jne	.copy6
-	decq	%rbx
-	popq	%rax
-	movq	%rax, -40(%rbp)
-	# PRINT MSG2$
-	movq	-40(%rbp), %rcx
-	call	puts
-	# PRINT "HALLO"
-	leaq	.LC3(%rip), %rcx
-	call	puts
-	# PRINT "WORLD"
-	leaq	.LC4(%rip), %rcx
-	call	puts
-	# LET C%=0
-	movq	$0, %rax
-	movq	%rax, -24(%rbp)
-.loop:
-	# PRINT "IF LOOP ",C%
-	leaq	.buffer(%rip), %rcx
-	leaq	.LC5(%rip), %rbx
-.copy7:
-	movb	(%rbx), %al
-	movb	%al, (%rcx)
-	incq	%rbx
-	incq	%rcx
-	cmpb	$0, %al
-	jne	.copy7
-	decq	%rcx
-	movq	-24(%rbp), %rbx
-	pushq	%rcx
-	movq	%rbx, %rcx
+	leaq	-48(%rbp), %rcx
+	call	freeBString
+	# PRINT LEFT$(A$,4)
+	leaq	-80(%rbp), %rcx
+	leaq	-24(%rbp), %rdx
+	call	assignBString
+	movq	$4, %r8
+	leaq	-48(%rbp), %rcx
 	leaq	-80(%rbp), %rdx
-	movl	$10, %r8d
-	call	itoa
-	leaq	-80(%rbp), %rbx
-	popq	%rcx
-.copy8:
-	movb	(%rbx), %al
-	movb	%al, (%rcx)
-	incq	%rbx
-	incq	%rcx
-	cmpb	$0, %al
-	jne	.copy8
-	decq	%rcx
-	leaq	.buffer(%rip), %rcx
+	call	bstrLeft
+	leaq	-80(%rbp), %rcx
+	call	freeBString
+	movq	-48(%rbp), %rcx
 	call	puts
-	# C%=C%+1
-	movq	-24(%rbp), %rax
-	movq	$1, %rbx
-	addq	%rbx, %rax
-	movq	%rax, -24(%rbp)
-	# IF C%<5 THEN GOTO loop
-	movq	-24(%rbp), %rbx
-	movq	$5, %rcx
-	cmpq	%rcx, %rbx
-	setl	%al
-	movzbq	%al, %rbx
-	cmpq	$0, %rbx
-	je	.ifnot0
-	# GOTO loop
-	jmp	.loop
-.ifnot0:
+	leaq	-48(%rbp), %rcx
+	call	freeBString
+	# PRINT MID$(A$,4)
+	leaq	-80(%rbp), %rcx
+	leaq	-24(%rbp), %rdx
+	call	assignBString
+	movq	$4, %r8
+	movq	$0, %r9
+	leaq	-48(%rbp), %rcx
+	leaq	-80(%rbp), %rdx
+	call	bstrMid
+	leaq	-80(%rbp), %rcx
+	call	freeBString
+	movq	-48(%rbp), %rcx
+	call	puts
+	leaq	-48(%rbp), %rcx
+	call	freeBString
+	# PRINT MID$(A$,4,3)
+	leaq	-80(%rbp), %rcx
+	leaq	-24(%rbp), %rdx
+	call	assignBString
+	movq	$4, %r8
+	movq	$3, %r9
+	leaq	-48(%rbp), %rcx
+	leaq	-80(%rbp), %rdx
+	call	bstrMid
+	leaq	-80(%rbp), %rcx
+	call	freeBString
+	movq	-48(%rbp), %rcx
+	call	puts
+	leaq	-48(%rbp), %rcx
+	call	freeBString
 
 .basicend:
     movl	$0, %eax
