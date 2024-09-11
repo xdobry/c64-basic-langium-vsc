@@ -91,11 +91,8 @@ From visual studion code
 The compiler will break with error if some unsupported keyword is used
 
 * float arithmetics and functions
+* DIM arrays
 * ON GOTO, ON GOSUB
-* STRING FUNCTIONS: 
-    STRING -> INT: VAL (itoa)
-    INT -> STRING: STR$
-    STRING -> STRING: RIGHT$, LEFT$, MID$
 * MATH functions
     SIG, ABS, RND, SIG, TAN, EXP, SQR, LOG, ATN, COS, SIN, ABS
 * GET

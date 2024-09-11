@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include "rtlib.h"
 
-
+/**
+ * Just test the runtime library
+ */
 int main() {
     struct BString a;
     struct BString b;
@@ -44,7 +46,12 @@ int main() {
 
     assignFromConst(&a,"Get 2 values seperated by ,");
     inputData(&a,"ss",&b,&c);
+    printf("b=%s c=%s\n",b.data,c.data);
 
+    long long l;
+    assignFromConst(&a,"Get int value");
+    inputData(&a,"i",&l);
+    printf("int %lld\n",l);
     return 0;
 }
 

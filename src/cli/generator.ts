@@ -39,6 +39,7 @@ interface ProgContext {
     usedLines: string[]
     goSubLabels: string[]
     stringTmpCount : number
+    tmpOffset: number
 }
 
 interface ForEntry {
@@ -90,7 +91,8 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         forStack: [],
         usedLines: [],
         goSubLabels: [],
-        stringTmpCount: 0
+        stringTmpCount: 0,
+        tmpOffset: 0
     }
     generateVariables(model, progContext)
     // TODO compute how many tmp str variables are needed
@@ -106,6 +108,8 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
             programmCode += genOpCode("movq","$0",`${value+16}(%rbp)`);
         }
     })
+
+    programmCode += initStringConstants(model, progContext)
 
     for (const line of model.lines) {
         if (line.linenum && progContext.usedLines.includes(line.linenum)) {
@@ -169,24 +173,38 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 code += `.${lNode.name}:\n`;
             } else if (isPrint(node)) {
                 const print : Print = node;
-                const tmpVarOffset = allocateStrTmp(progContext);
-                let isFirst : boolean = true
-                for (const expr of print.exprs) {
-                    if (isFirst) {
-                        code += exprToBString(expr, tmpVarOffset, progContext);
-                        isFirst = false;
-                    } else {
-                        const tmpVarOffset2 = allocateStrTmp(progContext);
-                        code += exprToBString(expr, tmpVarOffset2, progContext);
-                        code += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rcx");
-                        code += genOpCode("leaq", `${tmpVarOffset2}(%rbp)`, "%rdx");
-                        code += genOpCode("call", "appendBString");
-                        code += freeStrTmp(progContext, tmpVarOffset2);
+                if (print.exprs.length==1) {
+                    const expr = print.exprs[0];
+                    const stringResult = exprAsBString(expr,progContext);
+                    code += stringResult.code;
+                    code += genOpCode("movq", `${stringResult.varOffset}(%rbp)`, "%rcx");
+                    code += genOpCode("call", "puts");
+                    code += freeStrTmp(progContext, stringResult.tmpOffset);
+                } else {
+                    const tmpVarOffset = allocateStrTmp(progContext);
+                    let isFirst : boolean = true
+                    for (const expr of print.exprs) {
+                        if (isFirst) {
+                            const stringResult = exprAsBString(expr,progContext);
+                            code += stringResult.code;
+                            code += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rcx");
+                            code += genOpCode("leaq", `${stringResult.varOffset}(%rbp)`, "%rdx");
+                            code += genOpCode("call", "assignBString");
+                            code += freeStrTmp(progContext, stringResult.tmpOffset);
+                            isFirst = false;
+                        } else {
+                            const stringResult = exprAsBString(expr,progContext);
+                            code += stringResult.code;
+                            code += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rcx");
+                            code += genOpCode("leaq", `${stringResult.varOffset}(%rbp)`, "%rdx");
+                            code += genOpCode("call", "appendBString");
+                            code += freeStrTmp(progContext, stringResult.tmpOffset);
+                        }
                     }
+                    code += genOpCode("movq", `${tmpVarOffset}(%rbp)`, "%rcx");
+                    code += genOpCode("call", "puts");
+                    code += freeStrTmp(progContext, tmpVarOffset);
                 }
-                code += genOpCode("movq", `${tmpVarOffset}(%rbp)`, "%rcx");
-                code += genOpCode("call", "puts");
-                code += freeStrTmp(progContext, tmpVarOffset);
             } else if (isGoSub(node)) {
                 const goto : GoSub = node;
                 const labelRef = goto.label?.ref
@@ -231,7 +249,12 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
             } else  if (isLetStr(node)) {
                 const letNode : LetStr = node;
                 const lNode : LabeledNode = letNode.name;
-                code += exprToBString(letNode.expr,lNode._variableOffset!,progContext);
+                const strResult = exprAsBString(letNode.expr,progContext);
+                code += strResult.code;
+                code += genOpCode("leaq", `${lNode._variableOffset}(%rbp)`, "%rcx");
+                code += genOpCode("leaq", `${strResult.varOffset}(%rbp)`, "%rdx");
+                code += genOpCode("call", "assignBString");
+                code += freeStrTmp(progContext, strResult.tmpOffset);
             } else if (isIf(node)) {
                 const ifNode : If = node;
                 const notIfLabel = `.ifnot${progContext.ifLabelCounter++}`
@@ -350,14 +373,19 @@ function conditionToAssembler(cond: Expr, progContext: ProgContext, notIfLabel: 
     return code
 }
 
+interface BStringResult {
+    varOffset: number
+    code: string
+    tmpOffset?: number
+}
 
-function exprToBString(expr: SExprt | SExpr, varOffset: number, progContext: ProgContext) : string {
-    let stmts = ""
+function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BStringResult {
+    let code = ""
+    let variableOffset = 0
+    let tmpOffset : number | undefined = undefined
     if (isStringLiteral(expr)) {
         const lNode : LabeledNode = expr;
-        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
-        stmts += genOpCode("leaq", `${lNode._label}(%rip)`, "%rdx");
-        stmts += genOpCode("call", "assignFromConst");
+        variableOffset = lNode._variableOffset!
     } else if (isStringVarRef(expr)) {
         const stringVarRef : StringVarRef = expr;
         const lNode : AstNode = stringVarRef.var.ref!;
@@ -365,84 +393,95 @@ function exprToBString(expr: SExprt | SExpr, varOffset: number, progContext: Pro
         if (isLetStr(lNode)) {
             const letNode : LetStr = lNode;
             const lNode2 : LabeledNode = letNode.name
-            stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
-            stmts += genOpCode("leaq", `${lNode2._variableOffset}(%rbp)`, "%rdx");
-            stmts += genOpCode("call", "assignBString");
+            variableOffset = lNode2._variableOffset!
         } else {
             throw "error: expecting Let node as string reference: "+lNode.$type
         }
     } else if (isIntVarRef(expr)) {
         const varName = nameForVarRef(expr, progContext)
         const intVarOffset = progContext.variables.get(varName)
+        variableOffset = allocateStrTmp(progContext);
+        tmpOffset = variableOffset
         if (intVarOffset) {
-            stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
-            stmts += genOpCode("movq", `${intVarOffset}(%rbp)`, "%rdx");
-            stmts += genOpCode("call", "assignInt");
+            code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+            code += genOpCode("movq", `${intVarOffset}(%rbp)`, "%rdx");
+            code += genOpCode("call", "assignInt");
         } else {
             throw "error: can get int var offset for "+varName
         }
     } else if (isExpr(expr)) {
         const exprNode : Expr = expr;
-        stmts += exprToInt(exprNode, "%rdx", progContext);
-        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
-        stmts += genOpCode("call", "assignInt");
+        variableOffset = allocateStrTmp(progContext);
+        tmpOffset = variableOffset
+        code += exprToInt(exprNode, "%rdx", progContext);
+        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+        code += genOpCode("call", "assignInt");
     } else if (isSBinExpr(expr)) {
         const sBinExpr : SBinExpr = expr;
-        const tmpVarOffset = allocateStrTmp(progContext);
-        stmts += exprToBString(sBinExpr.e1, tmpVarOffset, progContext);
-        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
-        stmts += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rdx");
-        stmts += genOpCode("call", "assignBString");
-        stmts += freeStrTmp(progContext, tmpVarOffset);
-        const tmpVarOffset2 = allocateStrTmp(progContext);
-        stmts += exprToBString(sBinExpr.e2, tmpVarOffset2, progContext);
-        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
-        stmts += genOpCode("leaq", `${tmpVarOffset2}(%rbp)`, "%rdx");
-        stmts += genOpCode("call", "appendBString");
-        stmts += freeStrTmp(progContext, tmpVarOffset2);
+        variableOffset = allocateStrTmp(progContext);
+        tmpOffset = variableOffset
+        const strResult1 =  exprAsBString(sBinExpr.e1, progContext);
+        code += strResult1.code;
+        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+        code += genOpCode("leaq", `${strResult1.varOffset}(%rbp)`, "%rdx");
+        code += genOpCode("call", "assignBString");
+        code += freeStrTmp(progContext, strResult1.tmpOffset);
+        const strResult2 =  exprAsBString(sBinExpr.e2, progContext);
+        code += strResult2.code;
+        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+        code += genOpCode("leaq", `${strResult2.varOffset}(%rbp)`, "%rdx");
+        code += genOpCode("call", "appendBString");
+        code += freeStrTmp(progContext, strResult2.tmpOffset);
     } else if (isChrs(expr)) {
         const chrs : Chrs = expr;
-        stmts += exprToInt(chrs.param, "%rdx", progContext);
-        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
-        stmts += genOpCode("call", "assignChar");
+        variableOffset = allocateStrTmp(progContext);
+        tmpOffset = variableOffset
+        code += exprToInt(chrs.param, "%rdx", progContext);
+        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+        code += genOpCode("call", "assignChar");
     } else if (isStringFunction2(expr)) {
         const stringFunction2 : StringFunction2 = expr;
-        const tmpVarOffset = allocateStrTmp(progContext)
-        stmts += exprToBString(stringFunction2.str, tmpVarOffset, progContext);
-        stmts += exprToInt(stringFunction2.param, "%r8", progContext);
-        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
-        stmts += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rdx");
+        variableOffset = allocateStrTmp(progContext)
+        tmpOffset = variableOffset
+        const strResult = exprAsBString(stringFunction2.str, progContext);
+        code += strResult.code;
+        code += exprToInt(stringFunction2.param, "%r8", progContext);
+        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+        code += genOpCode("leaq", `${strResult.varOffset}(%rbp)`, "%rdx");
         if (stringFunction2.func === "LEFT$") {
-            stmts += genOpCode("call", "bstrLeft");
+            code += genOpCode("call", "bstrLeft");
         } else if (stringFunction2.func === "RIGHT$") {
-            stmts += genOpCode("call", "bstrRight");
+            code += genOpCode("call", "bstrRight");
         } else {
             throw "unknown string function2 expression: "+stringFunction2.func
         }
-        stmts += freeStrTmp(progContext, tmpVarOffset);
+        code += freeStrTmp(progContext, strResult.tmpOffset);
     } else if (isStringFunction3(expr)) {
         const stringFunction3 : StringFunction3 = expr;
-        const tmpVarOffset = allocateStrTmp(progContext)
-        stmts += exprToBString(stringFunction3.str, tmpVarOffset, progContext);
-        stmts += exprToInt(stringFunction3.param, "%r8", progContext);
+        variableOffset = allocateStrTmp(progContext)
+        tmpOffset = variableOffset
+        const strResult =  exprAsBString(stringFunction3.str, progContext);
+        code += strResult.code;
+        code += exprToInt(stringFunction3.param, "%r8", progContext);
         if (stringFunction3.len) {
-            stmts += exprToInt(stringFunction3.len, "%r9", progContext);
+            code += exprToInt(stringFunction3.len, "%r9", progContext);
         } else {
-            stmts += genOpCode("movq", "$0", "%r9");
+            code += genOpCode("movq", "$0", "%r9");
         }
-        stmts += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
-        stmts += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rdx");
+        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+        code += genOpCode("leaq", `${strResult.varOffset}(%rbp)`, "%rdx");
         if (stringFunction3.func === "MID$") {
-            stmts += genOpCode("call", "bstrMid");
+            code += genOpCode("call", "bstrMid");
         } else {
             throw "unknown string function2 expression: "+stringFunction3.func
         }
-        stmts += freeStrTmp(progContext, tmpVarOffset);
+        code += freeStrTmp(progContext, strResult.tmpOffset);
     } else {
         throw "unknown string expression: "+expr.$type
     }
-    return stmts;
+    return {varOffset: variableOffset, code, tmpOffset};
 }
+
 
 function allocateStrTmp(progContext: ProgContext) : number {
     const tmpNum = progContext.stringTmpCount
@@ -451,11 +490,13 @@ function allocateStrTmp(progContext: ProgContext) : number {
     return progContext.variables.get(varName)!
 }
 
-function freeStrTmp(progContext: ProgContext, tmpOffset: number) : string {
-    progContext.stringTmpCount--
+function freeStrTmp(progContext: ProgContext, tmpOffset?: number) : string {
     let stmts = ""
-    stmts += genOpCode("leaq", `${tmpOffset}(%rbp)`, "%rcx");
-    stmts += genOpCode("call", "freeBString");
+    if (tmpOffset) {
+        progContext.stringTmpCount--
+        stmts += genOpCode("leaq", `${tmpOffset}(%rbp)`, "%rcx");
+        stmts += genOpCode("call", "freeBString");
+    }
     return stmts;
 }
 
@@ -565,21 +606,21 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         stmts += exprToInt(groupExpr.ge,reg,progContext)
     } else if (isLen(expr)) {
         const lenExpr : Len = expr
-        const tmpVarOffset = allocateStrTmp(progContext);
-        stmts += exprToBString(lenExpr.param, tmpVarOffset, progContext);
+        const strResult = exprAsBString(lenExpr.param, progContext);
         // Access length of BString structure
-        // TODO we need to preserver register because of the call to freeStrTmp
-        stmts += genOpCode("movq", `${tmpVarOffset+8}(%rbp)`,reg);
-        stmts += freeStrTmp(progContext, tmpVarOffset);
+        stmts += genOpCode("movq", `${strResult.varOffset+8}(%rbp)`,"%rax");
+        stmts += genOpCode("movq", "%rax",`${progContext.tmpOffset}(%rbp)`);
+        stmts += freeStrTmp(progContext, strResult.tmpOffset);
+        stmts += genOpCode("movq", `${progContext.tmpOffset}(%rbp)`,reg);
     }  else if (isAsc(expr)) {  
         const ascExpr : Asc = expr
-        const tmpVarOffset = allocateStrTmp(progContext);
-        stmts += exprToBString(ascExpr.param, tmpVarOffset, progContext);
-        // Access length of BString structure
-        // TODO we need to preserver register because of the call to freeStrTmp
-        stmts += genOpCode("movq", `${tmpVarOffset}(%rbp)`,reg);
-        stmts += genOpCode("movzbl", `(${reg})`, reg);
-        stmts += freeStrTmp(progContext, tmpVarOffset);
+        const strResult = exprAsBString(ascExpr.param, progContext);
+        // Get first byte of BString as int
+        stmts += genOpCode("movq", `${strResult.varOffset}(%rbp)`,"%rax");
+        stmts += genOpCode("movzbl", "(%eax)", "%rax");
+        stmts += genOpCode("movq", "%rax",`${progContext.tmpOffset}(%rbp)`);
+        stmts += freeStrTmp(progContext, strResult.tmpOffset);
+        stmts += genOpCode("movq", `${progContext.tmpOffset}(%rbp)`,reg);
     } else {
         throw "unknown expression: "+expr.$type
     }
@@ -665,14 +706,23 @@ function generateVariables(model: Model, progContext: ProgContext) {
                     progContext.usedLines.push(linenum)
                 }
             }
+        } else if (isStringLiteral(node)) {
+            // We need addition 2 t_size for BString structure
+            variableOffset -= 16
+            const lNode : LabeledNode = node;
+            lNode._variableOffset = variableOffset;
+            variableOffset -= 8
         }
     }
+    // create temporaty variables for bstring
     for (let i=0; i<5; i++) {
         const varName = `strtmp${i}$`
         variableOffset -= 16;
         progContext.variables.set(varName, variableOffset)
-        variableOffset -= 16
+        variableOffset -= 8
     }
+    progContext.tmpOffset = variableOffset
+    variableOffset -= 8
     // allocate stack size pad to 16 and add 32 bytes for the stack frame
     progContext.stackAllocation = -variableOffset+(-variableOffset)%16 + 32
 }
@@ -690,6 +740,19 @@ function generateStringLiterals(model: Model): string {
         }
     }
     return literals;
+}
+
+function initStringConstants(model: Model, progContext: ProgContext) : string {
+    let stmts = "\t # init bstring constants\n";
+    for (const node of AstUtils.streamAllContents(model)) {
+        if (isStringLiteral(node)) {
+            const lNode : LabeledNode = node;
+            stmts += genOpCode("leaq", `${lNode._variableOffset}(%rbp)`,"%rcx");
+            stmts += genOpCode("leaq", `${lNode._label}(%rip)`, "%rdx");
+            stmts += genOpCode("call", "assignFromConst");
+        }
+    }
+    return stmts;
 }
 
 function allocateRegister(progContext: ProgContext) : string {

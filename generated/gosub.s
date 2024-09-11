@@ -24,39 +24,74 @@
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$80, %rsp
+	subq	$272, %rsp
+	# init variable strtmp0$
+	movq	$0, -128(%rbp)
+	movq	$0, -120(%rbp)
+	movq	$0, -112(%rbp)
+	# init variable strtmp1$
+	movq	$0, -152(%rbp)
+	movq	$0, -144(%rbp)
+	movq	$0, -136(%rbp)
+	# init variable strtmp2$
+	movq	$0, -176(%rbp)
+	movq	$0, -168(%rbp)
+	movq	$0, -160(%rbp)
+	# init variable strtmp3$
+	movq	$0, -200(%rbp)
+	movq	$0, -192(%rbp)
+	movq	$0, -184(%rbp)
+	# init variable strtmp4$
+	movq	$0, -224(%rbp)
+	movq	$0, -216(%rbp)
+	movq	$0, -208(%rbp)
+	 # init bstring constants
+	leaq	-24(%rbp), %rcx
+	leaq	.LC0(%rip), %rdx
+	call	assignFromConst
+	leaq	-56(%rbp), %rcx
+	leaq	.LC1(%rip), %rdx
+	call	assignFromConst
+	leaq	-80(%rbp), %rcx
+	leaq	.LC2(%rip), %rdx
+	call	assignFromConst
+	leaq	-104(%rbp), %rcx
+	leaq	.LC3(%rip), %rdx
+	call	assignFromConst
 	# PRINT "ENTER1"
-	leaq	.LC0(%rip), %rcx
+	movq	-24(%rbp), %rcx
 	call	puts
 	# A%=0
 	movq	$0, %rax
-	movq	%rax, -8(%rbp)
+	movq	%rax, -32(%rbp)
 	# GOSUB mysub
 	call	.mysub
 	# PRINT "ENTER2"
-	leaq	.LC1(%rip), %rcx
+	movq	-56(%rbp), %rcx
 	call	puts
 	# PRINT A%
-	movq	-8(%rbp), %rcx
-	leaq	-48(%rbp), %rdx
-	movl	$10, %r8d
-	call	itoa
-	leaq	-48(%rbp), %rcx
+	leaq	-128(%rbp), %rcx
+	movq	-32(%rbp), %rdx
+	call	assignInt
+	movq	-128(%rbp), %rcx
 	call	puts
+	leaq	-128(%rbp), %rcx
+	call	freeBString
 	# A%=1
 	movq	$1, %rax
-	movq	%rax, -8(%rbp)
+	movq	%rax, -32(%rbp)
 	# GOSUB mysub
 	call	.mysub
 	# PRINT A%
-	movq	-8(%rbp), %rcx
-	leaq	-48(%rbp), %rdx
-	movl	$10, %r8d
-	call	itoa
-	leaq	-48(%rbp), %rcx
+	leaq	-128(%rbp), %rcx
+	movq	-32(%rbp), %rdx
+	call	assignInt
+	movq	-128(%rbp), %rcx
 	call	puts
+	leaq	-128(%rbp), %rcx
+	call	freeBString
 	# PRINT "END"
-	leaq	.LC2(%rip), %rcx
+	movq	-80(%rbp), %rcx
 	call	puts
 	# END
 	jmp	.basicend
@@ -65,12 +100,12 @@ main:
 	subq	$32, %rsp
 .jumpover0:
 	# A%=A%+10
-	movq	-8(%rbp), %rax
+	movq	-32(%rbp), %rax
 	movq	$10, %rbx
 	addq	%rbx, %rax
-	movq	%rax, -8(%rbp)
+	movq	%rax, -32(%rbp)
 	# PRINT "HA"
-	leaq	.LC3(%rip), %rcx
+	movq	-104(%rbp), %rcx
 	call	puts
 	# RETURN
 	addq	$32, %rsp

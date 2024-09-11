@@ -18,40 +18,54 @@
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$80, %rsp
+	subq	$224, %rsp
+	# init variable strtmp0$
+	movq	$0, -80(%rbp)
+	movq	$0, -72(%rbp)
+	movq	$0, -64(%rbp)
+	# init variable strtmp1$
+	movq	$0, -104(%rbp)
+	movq	$0, -96(%rbp)
+	movq	$0, -88(%rbp)
+	# init variable strtmp2$
+	movq	$0, -128(%rbp)
+	movq	$0, -120(%rbp)
+	movq	$0, -112(%rbp)
+	# init variable strtmp3$
+	movq	$0, -152(%rbp)
+	movq	$0, -144(%rbp)
+	movq	$0, -136(%rbp)
+	# init variable strtmp4$
+	movq	$0, -176(%rbp)
+	movq	$0, -168(%rbp)
+	movq	$0, -160(%rbp)
+	 # init bstring constants
+	leaq	-32(%rbp), %rcx
+	leaq	.LC0(%rip), %rdx
+	call	assignFromConst
+	leaq	-56(%rbp), %rcx
+	leaq	.LC1(%rip), %rdx
+	call	assignFromConst
 	# L%=0
 	movq	$0, %rax
 	movq	%rax, -8(%rbp)
 .line20:
 	# PRINT "Hallo ",L%
-	leaq	.buffer(%rip), %rcx
-	leaq	.LC0(%rip), %rbx
-.copy0:
-	movb	(%rbx), %al
-	movb	%al, (%rcx)
-	incq	%rbx
-	incq	%rcx
-	cmpb	$0, %al
-	jne	.copy0
-	decq	%rcx
-	movq	-8(%rbp), %rbx
-	pushq	%rcx
-	movq	%rbx, %rcx
-	leaq	-48(%rbp), %rdx
-	movl	$10, %r8d
-	call	itoa
-	leaq	-48(%rbp), %rbx
-	popq	%rcx
-.copy1:
-	movb	(%rbx), %al
-	movb	%al, (%rcx)
-	incq	%rbx
-	incq	%rcx
-	cmpb	$0, %al
-	jne	.copy1
-	decq	%rcx
-	leaq	.buffer(%rip), %rcx
+	leaq	-80(%rbp), %rcx
+	leaq	-32(%rbp), %rdx
+	call	assignBString
+	leaq	-104(%rbp), %rcx
+	movq	-8(%rbp), %rdx
+	call	assignInt
+	leaq	-80(%rbp), %rcx
+	leaq	-104(%rbp), %rdx
+	call	appendBString
+	leaq	-104(%rbp), %rcx
+	call	freeBString
+	movq	-80(%rbp), %rcx
 	call	puts
+	leaq	-80(%rbp), %rcx
+	call	freeBString
 	# L%=L%+1
 	movq	-8(%rbp), %rax
 	movq	$1, %rbx
@@ -73,15 +87,16 @@ main:
 	movq	%rax, -8(%rbp)
 .line55:
 	# PRINT "HALLO"
-	leaq	.LC1(%rip), %rcx
+	movq	-56(%rbp), %rcx
 	call	puts
 	# PRINT L%
-	movq	-8(%rbp), %rcx
-	leaq	-48(%rbp), %rdx
-	movl	$10, %r8d
-	call	itoa
-	leaq	-48(%rbp), %rcx
+	leaq	-80(%rbp), %rcx
+	movq	-8(%rbp), %rdx
+	call	assignInt
+	movq	-80(%rbp), %rcx
 	call	puts
+	leaq	-80(%rbp), %rcx
+	call	freeBString
 	# L%=L%+1
 	movq	-8(%rbp), %rax
 	movq	$1, %rbx

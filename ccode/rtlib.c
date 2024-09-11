@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <conio.h>
+#include <stdarg.h>
+#include <stdbool.h>
 
 #include "rtlib.h"
 
@@ -53,6 +55,20 @@ void assignCString(struct BString* str, const char* data) {
     str->data = malloc(str->length+1);
     str->capacity = str->length+1;
     strcpy(str->data, data);
+}
+
+void assignCStringLen(struct BString* str, const char* data, size_t length) {
+    freeBString(str);
+    str->length = length;
+    if (length==0) {
+        str->data = NULL;
+        str->capacity = 0;
+    } else {
+        str->data = malloc(str->length+1);
+        str->capacity = str->length+1;
+        strncpy(str->data, data, length);
+        str->data[length] = '\0';
+    }
 }
 
 void assignBString(struct BString* target, const struct BString* str) {
@@ -189,6 +205,96 @@ void readChar(struct BString* str) {
     assignChar(str, mc);
 }
 
+/**
+ * Reimplementation (without error handling and redo) of the INPUT Basic function
+ * 
+ * format are simple chars 
+ *   - s: Bstring pointer
+ *   - i: int pointer (long 64 bit)
+ *   - d: double pointer
+ */
 void inputData(struct BString* message,const char *format, ...) {
-    
+    char buffer[100];
+    while (1) {
+        if (message && message->data) {
+            printf("%s? ", message->data);
+        } else {
+            printf("? ");
+        }
+        fgets(buffer, 100, stdin);
+        int len = strlen(buffer);
+        if (len>0) {
+            buffer[len - 1] = '\0';
+            break;
+        }
+    }
+    va_list args;
+    va_start(args, format);
+    char *ptr=buffer;
+    char *start;
+    char *next_start=ptr;
+    bool isQuoted=false;
+    bool isFinished = false;
+    for (int i=0; format[i]; i++) {
+        if (isFinished) {
+            printf("?? ");
+            fgets(buffer, 100, stdin);
+            int len = strlen(buffer);
+            if (len>0) {
+                buffer[len - 1] = '\0';
+            }
+            ptr = buffer;
+            next_start = ptr;
+            isFinished = false;
+        }
+        start = next_start;
+        while (*start==' ') {
+            start++;
+        }
+        if (start[0]=='"') {
+            isQuoted=true;
+            start++;
+        }
+        ptr=start;
+        while (1) {
+            if (ptr[0]=='\0') {
+                isFinished = true;
+                break;
+            } else if (isQuoted) {
+                if (*ptr=='"') {
+                    next_start = ptr+1;
+                    while (1) {
+                        if (*next_start=='\0') {
+                            isFinished = true;
+                            break;
+                        }
+                        if (*next_start==',') {
+                            next_start++;
+                            break;
+                        }
+                        next_start++;                        
+                    }
+                    isQuoted = false;
+                    break;
+                }
+            } else {
+                if (*ptr==',') {
+                    next_start = ptr+1;
+                    break;
+                }
+            }
+            ptr++;
+        }
+        if (format[i] == 's') {
+            struct BString *bstring = va_arg(args, struct BString *);
+            assignCStringLen(bstring, start, ptr-start);
+        } else if (format[i]=='i') {
+            long long *val = va_arg(args, long long*);
+            *val = atoi(start);
+        } else if (format[i]=='d') {
+            double *val = va_arg(args, double*);
+            *val = atof(start);
+        }
+    }
+    va_end(args);  
 }

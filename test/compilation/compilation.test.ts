@@ -40,8 +40,8 @@ describe('Compilation', () => {
                 const sFile = path.join('generated',baseName+".s");
                 const outFile = path.join('generated',baseName+".exe");  
                 generateAssemblerCode(document.parseResult.value,filePath,"generated");
-                console.log(`gcc ${sFile} -o ${outFile}`)
-                const stdout = execSync(`gcc ${sFile} -o ${outFile}`);
+                console.log(`gcc ${sFile} .\\ccode\\rtlib.c -o ${outFile}`)
+                const stdout = execSync(`gcc ${sFile} .\\ccode\\rtlib.c -o ${outFile}`);
                 console.log("gcc output: " + stdout.toString());
                 const stdout2 = execSync(outFile);
                 console.log("exe output: " + stdout2.toString());
