@@ -16,5 +16,12 @@ int main() {
     test2();
     test(12);
     test(23);
+
+    double d1=10.0,d2=2.0;
+    double r = d1/d2;
+    double s = d1+d2;
+    double p = (d1*d2)-s;
+    printf("r=%f s=%f p=%f\n",r,s,p);
+
     return 0;
 }

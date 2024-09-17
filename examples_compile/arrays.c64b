@@ -1,0 +1,12 @@
+A(5)=5.0
+PRINT A(5)
+B% = 5
+PRINT A(B%)
+PRINT A(A)
+DIM STR$(20)
+FOR I%=0 TO 20
+  STR$(I%)=CHR$(65+1)
+NEXT I%
+FOR I%=0 TO 20
+  PRINT STR$(I%)
+NEXT I%

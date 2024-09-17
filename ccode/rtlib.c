@@ -298,3 +298,16 @@ void inputData(struct BString* message,const char *format, ...) {
     }
     va_end(args);  
 }
+
+double signd(double d) {
+    if (d<0) return -1.0;
+    if (d>0) return 1.0;
+    return 0.0;
+}
+
+double c64rnd(double d) {
+    if (d<0.0) {
+        srand(d);
+    }
+    return (double) rand() / (double) RAND_MAX;
+}

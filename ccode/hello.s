@@ -51,6 +51,8 @@ test2:
 	.section .rdata,"dr"
 .LC1:
 	.ascii "Hello, World!\0"
+.LC4:
+	.ascii "r=%f s=%f p=%f\12\0"
 	.text
 	.globl	main
 	.def	main;	.scl	2;	.type	32;	.endef
@@ -60,8 +62,8 @@ main:
 	.seh_pushreg	%rbp
 	movq	%rsp, %rbp
 	.seh_setframe	%rbp, 0
-	subq	$32, %rsp
-	.seh_stackalloc	32
+	subq	$80, %rsp
+	.seh_stackalloc	80
 	.seh_endprologue
 	call	__main
 	leaq	.LC1(%rip), %rcx
@@ -71,12 +73,47 @@ main:
 	call	test
 	movl	$23, %ecx
 	call	test
+	movsd	.LC2(%rip), %xmm0
+	movsd	%xmm0, -8(%rbp)
+	movsd	.LC3(%rip), %xmm0
+	movsd	%xmm0, -16(%rbp)
+	movsd	-8(%rbp), %xmm0
+	divsd	-16(%rbp), %xmm0
+	movsd	%xmm0, -24(%rbp)
+	movsd	-8(%rbp), %xmm0
+	addsd	-16(%rbp), %xmm0
+	movsd	%xmm0, -32(%rbp)
+	movsd	-8(%rbp), %xmm0
+	mulsd	-16(%rbp), %xmm0
+	subsd	-32(%rbp), %xmm0
+	movsd	%xmm0, -40(%rbp)
+	movsd	-40(%rbp), %xmm3
+	movsd	-40(%rbp), %xmm2
+	movsd	-32(%rbp), %xmm5
+	movsd	-32(%rbp), %xmm1
+	movsd	-24(%rbp), %xmm4
+	movsd	-24(%rbp), %xmm0
+	movq	%xmm2, %r9
+	movapd	%xmm5, %xmm2
+	movq	%xmm1, %r8
+	movapd	%xmm4, %xmm1
+	movq	%xmm0, %rdx
+	leaq	.LC4(%rip), %rcx
+	call	printf
 	movl	$0, %eax
-	addq	$32, %rsp
+	addq	$80, %rsp
 	popq	%rbp
 	ret
 	.seh_endproc
+	.section .rdata,"dr"
+	.align 8
+.LC2:
+	.double 12.0
+	.align 8
+.LC3:
+	.double 5.0
 	.ident	"GCC: (x86_64-win32-sjlj-rev0, Built by MinGW-W64 project) 8.1.0"
 	.def	itoa;	.scl	2;	.type	32;	.endef
 	.def	puts;	.scl	2;	.type	32;	.endef
 	.def	puts;	.scl	2;	.type	32;	.endef
+	.def	printf;	.scl	2;	.type	32;	.endef

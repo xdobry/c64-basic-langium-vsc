@@ -1,6 +1,6 @@
 import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Print, SExprt, isVar, isGoTo, GoTo, 
-    isLetStr, LetStr, isLetNum, LetNum, isStringVarRef, StringVarRef, isIntVarRef, 
-    IntVarRef, isIntNumber, IntNumber, isExpr, Expr, isBinExpr, BinExpr, isNegExpr, NegExpr, isGroupExpr, 
+    isLetStr, LetStr, isLetNum, LetNum, isStringVarRef, isIntVarRef, 
+    isIntNumber, IntNumber, isExpr, Expr, isBinExpr, BinExpr, isNegExpr, NegExpr, isGroupExpr, 
     GroupExpr, Label, isIf, If, isFor, For, isNext, Next, isEnd, 
     AllVarRef,
     SExpr,
@@ -21,7 +21,17 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     isStringFunction2,
     StringFunction2,
     isStringFunction3,
-    StringFunction3} from '../language/generated/ast.js';
+    StringFunction3,
+    isFloatVar,
+    isFloatNumber,
+    FloatNumber,
+    isFloatVarRef,
+    isNumFunc,
+    NumFunc,
+    isGet,
+    Get,
+    isInput,
+    Input} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
@@ -30,6 +40,7 @@ import { AstNode, AstUtils } from 'langium';
 interface ProgContext {
     stackAllocation: number
     usedRegisters: string[]
+    usedXmmRegisters: string[]
     variables: Map<string, number>
     ifLabelCounter: number
     forLabelCounter: number
@@ -39,6 +50,7 @@ interface ProgContext {
     usedLines: string[]
     goSubLabels: string[]
     stringTmpCount : number
+    floatTmpCount : number
     tmpOffset: number
 }
 
@@ -63,11 +75,19 @@ interface ForEntry {
 // Register to be used (beside %rax)
 const registers : string[] = ["%rbx","%rcx","%rdx","%rsi","%rdi","%r8","%r9","%r10","%r11","%r12","%r13","%r14","%r15"]
 
+const xmmRegisters : string[] = ["%xmm0","%xmm1","%xmm2","%xmm3","%xmm4","%xmm5","%xmm6","%xmm7"]
+
+const regParameters = ["%rcx", "%rdx", "%r8", "%r9"]
+
+
 // Register that must be preserved during c-call
 // const preservedRegister : string[] = ["%rbx","%rbp","%rsp","%r12","%r13","%r14","%r15"]
 // Special Registers
 // %rbp - data pointer on stack
 // %rsp - stack pointer
+
+const stringTmpVarCount = 5
+const floatTmpVarCount = 5
 
 export function generateAssemblerCode(model: Model, filePath: string, destination: string | undefined): string {
     const data = extractDestinationAndName(filePath, destination);
@@ -80,9 +100,12 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
 	.section .rdata,"dr"
 `
     let stringLiterals = generateStringLiterals(model);
+    let floatLiterals = generateFloatLiterals(model);
+
     const progContext: ProgContext = {
         stackAllocation: 0,
         usedRegisters: [],
+        usedXmmRegisters: [],
         variables: new Map(),
         ifLabelCounter: 0,
         forLabelCounter: 0,
@@ -92,7 +115,8 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         usedLines: [],
         goSubLabels: [],
         stringTmpCount: 0,
-        tmpOffset: 0
+        floatTmpCount: 0,
+        tmpOffset: 0,
     }
     generateVariables(model, progContext)
     // TODO compute how many tmp str variables are needed
@@ -136,7 +160,7 @@ ${programmCode}
 	ret
     `
 
-    const all = preamble + stringLiterals + code;
+    const all = preamble + stringLiterals + floatLiterals + code;
     fs.writeFileSync(generatedFilePath, all);
     return generatedFilePath;
 }
@@ -177,8 +201,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                     const expr = print.exprs[0];
                     const stringResult = exprAsBString(expr,progContext);
                     code += stringResult.code;
-                    code += genOpCode("movq", `${stringResult.varOffset}(%rbp)`, "%rcx");
-                    code += genOpCode("call", "puts");
+                    code += genCall("puts", {cmd: "movq", source: `${stringResult.varOffset}(%rbp)`});
                     code += freeStrTmp(progContext, stringResult.tmpOffset);
                 } else {
                     const tmpVarOffset = allocateStrTmp(progContext);
@@ -187,22 +210,21 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                         if (isFirst) {
                             const stringResult = exprAsBString(expr,progContext);
                             code += stringResult.code;
-                            code += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rcx");
-                            code += genOpCode("leaq", `${stringResult.varOffset}(%rbp)`, "%rdx");
-                            code += genOpCode("call", "assignBString");
+                            code += genCall("assignBString",
+                                {cmd: "leaq", source: `${tmpVarOffset}(%rbp)`}, 
+                                {cmd: "leaq", source: `${stringResult.varOffset}(%rbp)`});
                             code += freeStrTmp(progContext, stringResult.tmpOffset);
                             isFirst = false;
                         } else {
                             const stringResult = exprAsBString(expr,progContext);
                             code += stringResult.code;
-                            code += genOpCode("leaq", `${tmpVarOffset}(%rbp)`, "%rcx");
-                            code += genOpCode("leaq", `${stringResult.varOffset}(%rbp)`, "%rdx");
-                            code += genOpCode("call", "appendBString");
+                            code += genCall("appendBString",
+                                {cmd: "leaq", source: `${tmpVarOffset}(%rbp)`}, 
+                                {cmd: "leaq", source: `${stringResult.varOffset}(%rbp)`});
                             code += freeStrTmp(progContext, stringResult.tmpOffset);
                         }
                     }
-                    code += genOpCode("movq", `${tmpVarOffset}(%rbp)`, "%rcx");
-                    code += genOpCode("call", "puts");
+                    code += genCall("puts", {cmd: "movq", source: `${tmpVarOffset}(%rbp)`});
                     code += freeStrTmp(progContext, tmpVarOffset);
                 }
             } else if (isGoSub(node)) {
@@ -244,16 +266,26 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
             } else if (isLetNum(node)) {
                 const letNode : LetNum = node;
                 const lNode : LabeledNode = letNode.name;
-                code += exprToInt(letNode.expr, "%rax", progContext);
-                code += genOpCode("movq", "%rax", `${lNode._variableOffset}(%rbp)`);
+                if (isFloatVar(letNode.name)) {
+                    const xmmReg = allocateXmmRegister(progContext);
+                    const floatResult = exprToFloat(letNode.expr, progContext);
+                    code += floatResult.code;
+                    code += genOpCode("movsd", floatResult.source!, xmmReg);
+                    freeFloatTmp(progContext, floatResult.tmpOffset);
+                    code += genOpCode("movsd", xmmReg, `${lNode._variableOffset}(%rbp)`);
+                    freeXmmRegister(progContext, xmmReg);
+                } else {
+                    code += exprToInt(letNode.expr, "%rax", progContext);
+                    code += genOpCode("movq", "%rax", `${lNode._variableOffset}(%rbp)`);
+                }
             } else  if (isLetStr(node)) {
                 const letNode : LetStr = node;
                 const lNode : LabeledNode = letNode.name;
                 const strResult = exprAsBString(letNode.expr,progContext);
                 code += strResult.code;
-                code += genOpCode("leaq", `${lNode._variableOffset}(%rbp)`, "%rcx");
-                code += genOpCode("leaq", `${strResult.varOffset}(%rbp)`, "%rdx");
-                code += genOpCode("call", "assignBString");
+                code += genCall("assignBString", 
+                    {cmd: "leaq", source: `${lNode._variableOffset}(%rbp)`}, 
+                    {cmd: "leaq", source: `${strResult.varOffset}(%rbp)`});
                 code += freeStrTmp(progContext, strResult.tmpOffset);
             } else if (isIf(node)) {
                 const ifNode : If = node;
@@ -278,83 +310,67 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 }
                 code += `${notIfLabel}:\n`
             } else if (isFor(node)) {
-                const forNode : For = node;
-                const labelNode : LabeledNode = node;
-                const condLabel = `.forNext${progContext.forLabelCounter}`
-                const codeLabel = `.for${progContext.forLabelCounter}`
-                const condContinue = `.forCont${progContext.forLabelCounter++}`
-                const varName = forNode.name.name
-                const forEntry : ForEntry = {label: condLabel, variable: varName}
-                progContext.forStack.push(forEntry)
-                code += exprToInt(forNode.start, "%rax", progContext)
-                const varOffset = progContext.variables.get(varName)
-                if (varOffset) {
-                    code += genOpCode("movq", "%rax", `${varOffset}(%rbp)`);
-                } else {
-                    throw "can not find for variable offset: " + varName
-                }
-                let stepConstant = undefined
-                if (labelNode._stepOffset) {
-                    code += exprToInt(forNode.step!, "%rax", progContext)
-                    code += genOpCode("movq", "%rax", `${labelNode._stepOffset}(%rbp)`);
-                } else {
-                    if (forNode.step) {
-                        if (isIntNumber(forNode.step)) {
-                            stepConstant = forNode.step.val.toString()
-                        }
-                    } else {
-                        stepConstant = "1"
-                    }
-                }
-                let toConstant = undefined
-                if (labelNode._toOffset) {
-                    code += exprToInt(forNode.end, "%rax", progContext)
-                    code += genOpCode("movq", "%rax", `${labelNode._toOffset}(%rbp)`);
-                } else {
-                    if (forNode.end) {
-                        if (isIntNumber(forNode.end)) {
-                            toConstant = forNode.end.val.toString()
-                        }
-                    } else {
-                        throw "for loop without to"
-                    }
-                }
-                code +=  genOpCode("jmp", codeLabel);
-                code += `${condLabel}:\n`
-                code +=  genOpCode("movq", `${varOffset}(%rbp)`, "%rax");
-                if (labelNode._stepOffset) {
-                    code +=  genOpCode("addq", `${labelNode._stepOffset}(%rbp)`, "%rax");
-                } else {
-                    code +=  genOpCode("addq", `$${stepConstant}`, "%rax");
-                }
-                if (labelNode._toOffset) {
-                    code +=  genOpCode("cmpq", `${labelNode._toOffset}(%rbp)`, "%rax");
-                } else {
-                    code +=  genOpCode("cmpq", `$${toConstant}`, "%rax");
-                }
-                code +=  genOpCode("jle", condContinue);
-                code +=  "\tret\n";
-                code += `${condContinue}:\n`                
-                code +=  genOpCode("movq", "%rax", `${varOffset}(%rbp)`);
-                // Reset the return address from next
-                code +=  genOpCode("pop", "%rax");
-                code += `${codeLabel}:\n`
+                code += genFor(node, progContext);
             } else if (isNext(node)) {
                 const nextNode : Next = node;
-                if (!nextNode.name) {
-                    throw "unsupported next without name"
-                }
-                const varName = nameForVarRef(nextNode.name, progContext)
-                const forEntries = progContext.forStack.filter(e => e.variable === varName);
-                // We try to get the last for entry for the variable
-                // Unfortunatelly in basic the end of the for loop is not clear
-                if (forEntries.length>0) {
-                    code +=  genOpCode("call", forEntries[forEntries.length-1].label);
+                if (nextNode.vars.length==0) {
+                    if (progContext.forStack.length==0) {
+                        throw "no for loop to exit"
+                    }
+                    const forEntry = progContext.forStack[progContext.forStack.length-1];
+                    code +=  genOpCode("call", forEntry.label);
                 } else {
-                    throw "can not find next for entry: " + varName
+                    for (const fvar of nextNode.vars) {
+                        const varName = nameForVarRef(fvar, progContext)
+                        const forEntries = progContext.forStack.filter(e => e.variable === varName);
+                        // We try to get the last for entry for the variable
+                        // Unfortunatelly in basic the end of the for loop is not clear
+                        if (forEntries.length>0) {
+                            code +=  genOpCode("call", forEntries[forEntries.length-1].label);
+                        } else {
+                            throw "can not find next for entry: " + varName
+                        }
+                    }
                 }
             } else if (isEnd(node)) {
                 code += genOpCode("jmp", ".basicend");
+            } else if (isGet(node)) {
+                const getNode : Get = node;
+                const varName = getNode.var.name
+                const varOffset = progContext.variables.get(varName)
+                if (varOffset) {
+                    code += genOpCode("leaq", `${varOffset}(%rbp)`, "%rcx");
+                    code += genOpCode("call", "readChar");
+                } else {
+                    throw "can not find variable offset for: "+varName
+                }
+            } else if (isInput(node)) {
+                const inputNode : Input = node;
+                if (inputNode.msg) {
+                    const labeledNode : LabeledNode = inputNode.msg;
+                    code += genOpCode("leaq", `${labeledNode._variableOffset}(%rbp)`, "%rcx");
+                } else {
+                    code += genOpCode("xort", "%rcx", "%rcx");
+                }
+                const labeledNode : LabeledNode = inputNode;
+                code += genOpCode("leaq", `${labeledNode._label}(%rip)`, "%rdx");
+                let parNum = 2
+                for (const ivar of inputNode.vars) {
+                    const varName = ivar.name
+                    const varOffset = progContext.variables.get(varName)
+                    if (varOffset) {
+                        const parReg = regParameters[parNum]
+                        if (parReg) {
+                            code += genOpCode("leaq", `${varOffset}(%rbp)`, parReg);
+                        } else {
+                            code += genOpCode("push", `${varOffset}(%rbp)`, parReg);
+                        }
+                    } else {
+                        throw "can not find variable offset for: "+varName
+                    }
+                    parNum++
+                }
+                code += genOpCode("call", "inputData");
             } else {
                 throw "unsupported command: "+node.$type
             }
@@ -373,6 +389,10 @@ function conditionToAssembler(cond: Expr, progContext: ProgContext, notIfLabel: 
     return code
 }
 
+function genFor(forNode: For, progContext: ProgContext) : string {
+    return new ForGenerator(forNode, progContext).generate()
+}
+
 interface BStringResult {
     varOffset: number
     code: string
@@ -387,16 +407,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         const lNode : LabeledNode = expr;
         variableOffset = lNode._variableOffset!
     } else if (isStringVarRef(expr)) {
-        const stringVarRef : StringVarRef = expr;
-        const lNode : AstNode = stringVarRef.var.ref!;
-        // the reference should be StringVariable but is Let
-        if (isLetStr(lNode)) {
-            const letNode : LetStr = lNode;
-            const lNode2 : LabeledNode = letNode.name
-            variableOffset = lNode2._variableOffset!
-        } else {
-            throw "error: expecting Let node as string reference: "+lNode.$type
-        }
+        variableOffset = offsetForVarRef(expr, progContext)
     } else if (isIntVarRef(expr)) {
         const varName = nameForVarRef(expr, progContext)
         const intVarOffset = progContext.variables.get(varName)
@@ -409,28 +420,47 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         } else {
             throw "error: can get int var offset for "+varName
         }
+    } else if (isFloatVarRef(expr)) {
+        const varName = nameForVarRef(expr, progContext)
+        const intVarOffset = progContext.variables.get(varName)
+        variableOffset = allocateStrTmp(progContext);
+        tmpOffset = variableOffset
+        if (intVarOffset) {
+            code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+            code += genOpCode("movsd", `${intVarOffset}(%rbp)`, "%xmm1");
+            code += genOpCode("call", "assignDouble");
+        } else {
+            throw "error: can get int var offset for "+varName
+        }
     } else if (isExpr(expr)) {
         const exprNode : Expr = expr;
         variableOffset = allocateStrTmp(progContext);
         tmpOffset = variableOffset
-        code += exprToInt(exprNode, "%rdx", progContext);
-        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
-        code += genOpCode("call", "assignInt");
+        if (isFloatExpr(exprNode)) {
+            console.log("str float expr")
+            const floatResult = exprToFloat(exprNode, progContext);
+            code += floatResult.code;
+            code += genOpCode("movsd", floatResult.source!, "%xmm1");
+            freeFloatTmp(progContext, floatResult.tmpOffset);
+            code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+            code += genOpCode("call", "assignDouble");
+        } else {
+            console.log("str int expr")
+            code += exprToInt(exprNode, "%rdx", progContext);
+            code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+            code += genOpCode("call", "assignInt");
+        }
     } else if (isSBinExpr(expr)) {
         const sBinExpr : SBinExpr = expr;
         variableOffset = allocateStrTmp(progContext);
         tmpOffset = variableOffset
         const strResult1 =  exprAsBString(sBinExpr.e1, progContext);
         code += strResult1.code;
-        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
-        code += genOpCode("leaq", `${strResult1.varOffset}(%rbp)`, "%rdx");
-        code += genOpCode("call", "assignBString");
+        code += genCall("assignBString",{cmd: "leaq", source: `${variableOffset}(%rbp)`}, {cmd: "leaq", source: `${strResult1.varOffset}(%rbp)`});
         code += freeStrTmp(progContext, strResult1.tmpOffset);
         const strResult2 =  exprAsBString(sBinExpr.e2, progContext);
         code += strResult2.code;
-        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
-        code += genOpCode("leaq", `${strResult2.varOffset}(%rbp)`, "%rdx");
-        code += genOpCode("call", "appendBString");
+        code += genCall("appendBString",{cmd: "leaq", source: `${variableOffset}(%rbp)`}, {cmd: "leaq", source: `${strResult2.varOffset}(%rbp)`});
         code += freeStrTmp(progContext, strResult2.tmpOffset);
     } else if (isChrs(expr)) {
         const chrs : Chrs = expr;
@@ -482,12 +512,31 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
     return {varOffset: variableOffset, code, tmpOffset};
 }
 
+function isFloatExpr(expr: Expr) : boolean {
+    return isFloatVarRef(expr) || isFloatNumber(expr) 
+        || (isNumFunc(expr) && isNumFloatFunction(expr)) 
+        || (isBinExpr(expr) && (isFloatExpr(expr.e1) || isFloatExpr(expr.e2)))
+        || (isNegExpr(expr) && isFloatExpr(expr.expr))
+        || (isGroupExpr(expr) && isFloatExpr(expr.ge));
+}
+
+function isNumFloatFunction(numFunc: NumFunc) : boolean {
+    return numFunc.func !== 'PEEK'
+}
+
 
 function allocateStrTmp(progContext: ProgContext) : number {
     const tmpNum = progContext.stringTmpCount
+    if (progContext.stringTmpCount>=stringTmpVarCount) {
+        throw "out of string tmp variables"
+    }
     progContext.stringTmpCount++
     const varName = `strtmp${tmpNum}$`
-    return progContext.variables.get(varName)!
+    const offset = progContext.variables.get(varName)!
+    if (!offset) {
+        throw "can not find string tmp variable offset for: "+varName
+    }
+    return offset
 }
 
 function freeStrTmp(progContext: ProgContext, tmpOffset?: number) : string {
@@ -496,6 +545,26 @@ function freeStrTmp(progContext: ProgContext, tmpOffset?: number) : string {
         progContext.stringTmpCount--
         stmts += genOpCode("leaq", `${tmpOffset}(%rbp)`, "%rcx");
         stmts += genOpCode("call", "freeBString");
+    }
+    return stmts;
+}
+
+function allocateFloatTmp(progContext: ProgContext) : number {
+    const tmpNum = progContext.floatTmpCount
+    if (progContext.floatTmpCount>=floatTmpVarCount) {
+        throw "out of float tmp variables"
+    }
+    progContext.floatTmpCount++
+    const varName = `floattmp${tmpNum}`
+    console.log("getting flattmp "+tmpNum + " var "+varName)
+    return progContext.variables.get(varName)!
+}
+
+function freeFloatTmp(progContext: ProgContext, tmpOffset?: number) : string {
+    let stmts = ""
+    if (tmpOffset) {
+        console.log("free float tmp")
+        progContext.floatTmpCount--
     }
     return stmts;
 }
@@ -516,27 +585,43 @@ function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
     }
 }
 
-/*
-function preserveRegister(progContext: ProgContext) : string {
-    let stmts = ""
-    for (const reg of progContext.usedRegisters) {
-        if (!preservedRegister.includes(reg)) {
-            stmts += genOpCode("pushq", reg);
+function offsetForVarRef(varRef: AllVarRef, progContext: ProgContext) : number {
+    const lNode : AstNode = varRef.var.ref!;
+    if (isLetNum(lNode)) {
+        const letNode : LetNum = lNode;
+        const lNode2 : LabeledNode = letNode.name
+        return lNode2._variableOffset!
+    } else if (isLetStr(lNode)) {
+        const letNode : LetStr = lNode;
+        const lNode2 : LabeledNode = letNode.name
+        return lNode2._variableOffset!
+    } else if (isFor(lNode)) {
+        const forNode : For = lNode;
+        const lNode2 : LabeledNode = forNode.name
+        return lNode2._variableOffset!
+    } else if (isGet(lNode)) {
+        const getNode : Get = lNode;
+        const lNode2 : LabeledNode = getNode.var
+        return lNode2._variableOffset!
+    } else if (isInput(lNode)) {
+        // The ref point to input that can have many variables,
+        // we need find the right one
+        let varName = varRef.$cstNode?.text
+        if (varName?.endsWith(",")) {
+            varName = varName.substring(0,varName.length-1)
         }
-    }
-    return stmts
-}
-
-function restoreRegister(progContext: ProgContext) : string {
-    let stmts = ""
-    for (const reg of progContext.usedRegisters.reverse()) {
-        if (!preservedRegister.includes(reg)) {
-            stmts += genOpCode("popq", reg);
+        const getNode : Input = lNode;
+        for (const ivar of getNode.vars) {
+            if (ivar.name === varName) {
+                const lNode2 : LabeledNode = ivar
+                return lNode2._variableOffset!
+            }
         }
+        throw "can not find variable offset for input var: "+varName        
+    } else {
+        throw "error: expecting Let node as var reference: " + lNode.$type
     }
-    return stmts
 }
-*/
 
 
 function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
@@ -545,20 +630,8 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         const intNumber : IntNumber = expr;
         stmts += genOpCode("movq", `$${intNumber.val.toString()}`, reg);
     } else if (isIntVarRef(expr)) {
-        const intVarRef : IntVarRef = expr;
-        const lNode : AstNode = intVarRef.var.ref!;
-        // the reference should be StringVariable but is Let
-        if (isLetNum(lNode)) {
-            const letNode : LetNum = lNode;
-            const lNode2 : LabeledNode = letNode.name
-            stmts += genOpCode("movq", `${lNode2._variableOffset}(%rbp)`, reg);
-        } else if (isFor(lNode)) {
-            const forNode : For = lNode;
-            const lNode2 : LabeledNode = forNode.name
-            stmts += genOpCode("movq", `${lNode2._variableOffset}(%rbp)`, reg);
-        } else {
-            throw  "error: expecting Let node as int reference: "+lNode.$type
-        }
+        const varOffset = offsetForVarRef(expr, progContext)
+        stmts += genOpCode("movq", `${varOffset}(%rbp)`, reg);
     } else if (isBinExpr(expr)) {
         const binExpr : BinExpr = expr;
         stmts += exprToInt(binExpr.e1, reg, progContext);
@@ -622,9 +695,109 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         stmts += freeStrTmp(progContext, strResult.tmpOffset);
         stmts += genOpCode("movq", `${progContext.tmpOffset}(%rbp)`,reg);
     } else {
-        throw "unknown expression: "+expr.$type
+        if (isFloatExpr(expr)) {
+            const floatResult = exprToFloat(expr, progContext);
+            stmts += floatResult.code;
+            stmts += genOpCode("movsd", floatResult.source!, "%xmm0");
+            freeFloatTmp(progContext, floatResult.tmpOffset);
+            stmts += genOpCode("cvtsd2siq", "%xmm0", reg);
+        } else {
+            throw "unknown int expression: "+expr.$type
+        }
     }
     return stmts;
+}
+
+interface FloatResult {
+    code: string,
+    source: string
+    tmpOffset?: number    
+}
+
+const mathFunctions = {
+    "SIN": "sin",
+    "COS": "cos",
+    "TAN": "tan",
+    "ATN": "atan",
+    "LOG": "log",
+    "EXP": "exp",
+    "SQR": "sqrt",
+    "ABS": "fabs",
+    "INT": "trunc",
+    "SGN": "signd",
+    "RND": "c64rnd"
+}
+
+function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
+    let stmts = ""
+    let source = ""
+    let tmpOffset : undefined | number = undefined
+    if (isFloatNumber(expr)) {
+        const lNode : LabeledNode = expr;
+        source = `${lNode._label}(%rip)`
+    } else if (isFloatVarRef(expr)) {
+        const varOffset = offsetForVarRef(expr, progContext)
+        source =  `${varOffset}(%rbp)`
+    } else if (isBinExpr(expr)) {
+        const binExpr : BinExpr = expr;
+        const floatResult1 = exprToFloat(binExpr.e1, progContext);
+        stmts += floatResult1.code;
+        const reg = allocateXmmRegister(progContext)
+        const reg2 = allocateXmmRegister(progContext)
+        const floatResult2 = exprToFloat(binExpr.e2, progContext);
+        stmts += floatResult2.code;
+        stmts += genOpCode("movsd", floatResult1.source, reg);
+        stmts += genOpCode("movsd", floatResult2.source, reg2);
+        if (binExpr.op === "+") {
+            stmts += genOpCode("addsd", reg2, reg);
+        } else if (binExpr.op === "-") {
+            stmts += genOpCode("subsd", reg2, reg);
+        } else if (binExpr.op === "*") {
+            stmts += genOpCode("mulsd", reg2, reg);
+        } else if (binExpr.op === "/") {
+            stmts += genOpCode("divsd", reg2, reg);
+        } else {
+            throw "unknown binary operator: "+binExpr.op
+        }
+        freeFloatTmp(progContext, floatResult1.tmpOffset);        
+        freeFloatTmp(progContext, floatResult2.tmpOffset);
+        const resTmpOffset = allocateFloatTmp(progContext)
+        stmts += genOpCode("movsd", reg, `${resTmpOffset}(%rbp)`);
+        tmpOffset = resTmpOffset
+        source = `${resTmpOffset}(%rbp)`
+        freeXmmRegister(progContext, reg)
+        freeXmmRegister(progContext, reg2)
+    } else if (isGroupExpr(expr)) {
+        const groupExpr : GroupExpr = expr
+        return exprToFloat(groupExpr.ge,progContext)
+    } else if (isNumFunc(expr)) {
+        const numFunc : NumFunc = expr;
+        const cFunc = (mathFunctions as any)[numFunc.func]
+        if (cFunc) {
+            const floatResult = exprToFloat(numFunc.param, progContext);
+            stmts += floatResult.code;
+            stmts += genOpCode("movsd", floatResult.source, "%xmm0");
+            stmts += genOpCode("call", cFunc);
+            source = "%xmm0"
+            freeFloatTmp(progContext, floatResult.tmpOffset);
+        } else {
+            throw "unsupported float function "+numFunc.func
+        }
+    } else {
+        if (!isFloatExpr(expr)) {
+            const reg2 = allocateRegister(progContext)
+            stmts += exprToInt(expr, reg2, progContext);
+            const resTmpOffset = allocateFloatTmp(progContext)
+            stmts += genOpCode("cvtsi2sdq", reg2, "%xmm0");
+            stmts += genOpCode("movsd", "%xmm0", `${resTmpOffset}(%rbp)`);
+            tmpOffset = resTmpOffset
+            source = `${resTmpOffset}(%rbp)`
+            freeRegister(progContext, reg2)
+        } else {
+            throw "unknown float expression: "+expr.$type
+        }
+    }
+    return {code: stmts, source: source, tmpOffset: tmpOffset}
 }
 
 
@@ -634,6 +807,26 @@ function genOpCode(cmd: string, arg1?: string, arg2?: string) {
     } else {
         return `\t${cmd}\n`;
     }
+}
+
+interface CallParameter {
+    cmd: string,
+    source: string,
+}
+
+function genCall(cmd: string, ...parameters: CallParameter[]) {
+    let code = ""
+    for (const [index, par] of parameters.entries()) {
+        const targetRegister = regParameters[index]
+        if (targetRegister) {
+            code += genOpCode(par.cmd, par.source, targetRegister);
+        } else {
+            code += genOpCode(par.cmd, par.source, "%rax");
+            code += genOpCode("pushq", "%rax");
+        }
+    }
+    code += genOpCode("call", cmd);
+    return code;
 }
 
 function isStrVariable(varname: string) : boolean {
@@ -662,12 +855,12 @@ function generateVariables(model: Model, progContext: ProgContext) {
             const forNode : For = node;
             const lNode : LabeledNode = node;
             if (forNode.step && !isIntNumber(forNode.step)) {
-                variableOffset -= 8;
                 lNode._stepOffset = variableOffset
+                variableOffset -= 8;
             }
             if (forNode.end && !isIntNumber(forNode.end)) {
-                variableOffset -= 8;
                 lNode._toOffset = variableOffset
+                variableOffset -= 8;
             }
         } else if (isGoTo(node)) {
             const goto : GoTo = node;
@@ -715,9 +908,15 @@ function generateVariables(model: Model, progContext: ProgContext) {
         }
     }
     // create temporaty variables for bstring
-    for (let i=0; i<5; i++) {
+    for (let i=0; i<stringTmpVarCount; i++) {
         const varName = `strtmp${i}$`
         variableOffset -= 16;
+        progContext.variables.set(varName, variableOffset)
+        variableOffset -= 8
+    }
+    // float temporaty variables
+    for (let i=0; i<floatTmpVarCount; i++) {
+        const varName = `floattmp${i}`
         progContext.variables.set(varName, variableOffset)
         variableOffset -= 8
     }
@@ -737,6 +936,61 @@ function generateStringLiterals(model: Model): string {
             literals += `${label}:\n\t.ascii "${str.val}"\n\t.byte 0\n`;
             const lNode : LabeledNode = node;
             lNode._label = label;
+        } else if (isInput(node)) {
+            const label = `.LC${labelCounter++}`;
+            const input : Input = node;
+            let iformat = ""
+            for (const ivar of input.vars) {
+                if (isStrVariable(ivar.name)) {
+                    iformat += "s"
+                } else if (ivar.name.endsWith("%")) {
+                    iformat += "i"
+                } else {
+                    iformat += "d"
+                }
+            }
+            literals += `${label}:\n\t.ascii "${iformat}"\n\t.byte 0\n`;
+            const lNode : LabeledNode = node;
+            lNode._label = label;
+        }
+    }
+    return literals;
+}
+
+function generateFloatLiterals(model: Model): string {
+    let literals = ""
+    literals += "\t.align 8\n"
+    literals += ".LONE:\n\t.double 1.0\n"
+    let labelCounter = 0;
+    for (const node of AstUtils.streamAllContents(model)) {
+        if (isFloatNumber(node)) {
+            const label = `.LF${labelCounter++}`;
+            const str : FloatNumber = node;
+            literals += `${label}:\n\t.double ${str.val}\n`;
+            const lNode : LabeledNode = node;
+            lNode._label = label;
+        } else if (isFor(node)) {
+            const forNode : For = node;
+            console.log("for node extr",node.$cstNode?.text)
+            if (isFloatVar(forNode.name)) {
+                console.log("for node extr float ",node.$cstNode?.text)
+                if (forNode.step && isIntNumber(forNode.step)) {
+                    const label = `.LF${labelCounter++}`;
+                    const lNode : LabeledNode = forNode.step;
+                    literals += `${label}:\n\t.double ${forNode.step.val}\n`;
+                    lNode._label = label;
+                    console.log("for node int label float",label)
+                }
+                if (forNode.end && isIntNumber(forNode.end)) {
+                    const label = `.LF${labelCounter++}`;
+                    const lNode : LabeledNode = forNode.end;
+                    literals += `${label}:\n\t.double ${forNode.end.val}\n`;
+                    lNode._label = label;
+                    console.log("for node int label float2",label)
+                }  else {
+                    console.log("for node int label float3",forNode.end.$type)
+                } 
+            }
         }
     }
     return literals;
@@ -747,9 +1001,9 @@ function initStringConstants(model: Model, progContext: ProgContext) : string {
     for (const node of AstUtils.streamAllContents(model)) {
         if (isStringLiteral(node)) {
             const lNode : LabeledNode = node;
-            stmts += genOpCode("leaq", `${lNode._variableOffset}(%rbp)`,"%rcx");
-            stmts += genOpCode("leaq", `${lNode._label}(%rip)`, "%rdx");
-            stmts += genOpCode("call", "assignFromConst");
+            stmts += genCall("assignFromConst",
+                {cmd:"leaq", source:`${lNode._variableOffset}(%rbp)`},
+                {cmd:"leaq", source:`${lNode._label}(%rip)`});
         }
     }
     return stmts;
@@ -767,4 +1021,201 @@ function allocateRegister(progContext: ProgContext) : string {
 
 function freeRegister(progContext: ProgContext, register: string) {
     progContext.usedRegisters = progContext.usedRegisters.filter(e => e !== register);
+}
+
+function allocateXmmRegister(progContext: ProgContext) : string {
+    const freeRegister = xmmRegisters.find(r => !progContext.usedXmmRegisters.includes(r));
+    if (freeRegister) {
+        progContext.usedXmmRegisters.push(freeRegister);
+    } else {
+        throw "no free xmm register available"
+    }
+    return freeRegister
+}
+
+function freeXmmRegister(progContext: ProgContext, register: string) {
+    progContext.usedXmmRegisters = progContext.usedXmmRegisters.filter(e => e !== register);
+}
+
+class ForGenerator {
+  forNode: For;
+  progContext: ProgContext;
+  labelNode: LabeledNode;
+  condLabel: string;
+  codeLabel: string;
+  condStepNegLabel: string;
+  condContinue: string;
+  varName: string;
+  isIntVar: boolean;
+  varOffset: number;
+  code = "";
+  stepConstant: string | undefined;
+  toConstant: string | undefined;
+  hasNegStepCond = false;
+  primaryReg = "%rax";
+  addOp = "addq";
+
+  constructor(forNode: For, progContext: ProgContext) {
+    this.forNode = forNode;
+    this.progContext = progContext;
+    this.labelNode = forNode;
+    this.condLabel = `.forNext${this.progContext.forLabelCounter}`;
+    this.codeLabel = `.for${this.progContext.forLabelCounter}`;
+    this.condStepNegLabel = `.forStepNeg${this.progContext.forLabelCounter}`;
+    this.condContinue = `.forCont${this.progContext.forLabelCounter++}`;
+    this.varName = this.forNode.name.name;
+    this.isIntVar = this.varName.endsWith("%");
+    this.varOffset = this.progContext.variables.get(this.varName)!;
+    if (!this.varOffset) {
+      throw "can not find for variable offset: " + this.varName;
+    }
+    if (!this.isIntVar) {
+      this.primaryReg = "%xmm0";
+      this.addOp = "addsd";
+    }
+  }
+
+  generate(): string {
+    const forEntry: ForEntry = {
+      label: this.condLabel,
+      variable: this.varName,
+    };
+    this.progContext.forStack.push(forEntry);
+
+    this.initForVariable();
+    this.initStepVariable();
+    this.initToVariable();
+
+    this.code += genOpCode("jmp", this.codeLabel);
+    this.code += `${this.condLabel}:\n`;
+    this.code += genOpCode("movq", `${this.varOffset}(%rbp)`, this.primaryReg);
+    if (this.isIntVar) {
+      if (this.labelNode._stepOffset) {
+        this.code += genOpCode("addq",`${this.labelNode._stepOffset}(%rbp)`,"%rax");
+        this.code += genOpCode("cmpq","$0",`${this.labelNode._stepOffset}(%rbp)`);
+        this.code += genOpCode("js", this.condStepNegLabel);
+      } else {
+        this.code += genOpCode("addq", `$${this.stepConstant}`, "%rax");
+      }
+    } else {
+      if (this.labelNode._stepOffset) {
+        this.code += genOpCode("addsd",`${this.labelNode._stepOffset}(%rbp)`,"%xmm0");
+        // Test if step var negative
+        this.code += genOpCode("xorpd","%xmm1","%xmm1");
+        this.code += genOpCode("comisd",`${this.labelNode._stepOffset}(%rbp)`, "%xmm1");
+        this.code += genOpCode("ja", this.condStepNegLabel);
+      } else {
+        if (this.stepConstant === "1") {
+          this.code += genOpCode("addsd", `.LONE(%rip)`, "%xmm0");
+        } else {
+          const lNode: LabeledNode = this.forNode.step!;
+          this.code += genOpCode("addsd", `${lNode._label}(%rip)`, "%xmm0");
+        }
+      }
+    }
+    this.genVarComp()
+    this.genCondJmp(!!this.stepConstant && parseFloat(this.stepConstant) < 0)
+    this.code += genOpCode("ret");
+    if (this.hasNegStepCond) {
+      this.code += `${this.condStepNegLabel}:\n`;
+      this.genVarComp()
+      this.genCondJmp(true);
+      this.code += genOpCode("ret");
+    }
+    this.code += `${this.condContinue}:\n`;
+    this.code += genOpCode("movq", this.primaryReg, `${this.varOffset}(%rbp)`);
+    // Reset the return address from next
+    this.code += genOpCode("pop", "%rax");
+    this.code += `${this.codeLabel}:\n`;
+    return this.code;
+  }
+  genCondJmp(isNegate = false) {
+    if (this.isIntVar) {
+        this.code += genOpCode(isNegate ? "jge" : "jle", this.condContinue);
+    } else {
+        this.code += genOpCode(isNegate ? "jnb" : "jbe", this.condContinue);
+    }
+  }
+  genVarComp() {
+    if (this.isIntVar) {
+      if (this.labelNode._toOffset) {
+        this.code += genOpCode("cmpq",`${this.labelNode._toOffset}(%rbp)`,"%rax");
+      } else {
+        this.code += genOpCode("cmpq", `$${this.toConstant}`, "%rax");
+      }
+    } else {
+      if (this.labelNode._toOffset) {
+        this.code += genOpCode("ucomisd",`${this.labelNode._toOffset}(%rbp)`,"%xmm0");
+      } else {
+        const lNode: LabeledNode = this.forNode.end;
+        this.code += genOpCode("ucomisd", `${lNode._label}(%rip)`, "%xmm0");
+      }
+    }
+  }
+
+  initForVariable() {
+    if (this.isIntVar) {
+      const register = allocateRegister(this.progContext);
+      this.code += exprToInt(this.forNode.start, register, this.progContext);
+      this.code += genOpCode("movq", register, `${this.varOffset}(%rbp)`);
+      freeRegister(this.progContext, register);
+    } else {
+      const floatResult = exprToFloat(this.forNode.start, this.progContext);
+      this.code += floatResult.code;
+      this.code += genOpCode("movsd", floatResult.source!, "%xmm0");
+      freeFloatTmp(this.progContext, floatResult.tmpOffset);
+      this.code += genOpCode("movsd", "%xmm0", `${this.varOffset}(%rbp)`);
+    }
+  }
+  initStepVariable() {
+    this.stepConstant = undefined;
+    this.code += `# stepoffset ${this.labelNode._stepOffset} tooffset ${this.labelNode._toOffset}\n`;
+    if (this.labelNode._stepOffset) {
+      if (this.isIntVar) {
+        this.code += exprToInt(this.forNode.step!, "%rax", this.progContext);
+        this.code += genOpCode("movq","%rax",`${this.labelNode._stepOffset}(%rbp)`);
+        this.hasNegStepCond = true;
+      } else {
+        const floatResult = exprToFloat(this.forNode.step!, this.progContext);
+        this.code += floatResult.code;
+        this.code += genOpCode("movsd", floatResult.source!, "%xmm0");
+        freeFloatTmp(this.progContext, floatResult.tmpOffset);
+        this.code += genOpCode("movsd","%xmm0",`${this.labelNode._stepOffset}(%rbp)`);
+        this.hasNegStepCond = true;
+      }
+    } else {
+      if (this.forNode.step) {
+        if (
+          isIntNumber(this.forNode.step) ||
+          isFloatNumber(this.forNode.step)
+        ) {
+          this.stepConstant = this.forNode.step.val.toString();
+        }
+      } else {
+        this.stepConstant = "1";
+      }
+    }
+  }
+  initToVariable() {
+    if (this.labelNode._toOffset) {
+      if (this.isIntVar) {
+        this.code += exprToInt(this.forNode.end, "%rax", this.progContext);
+        this.code += genOpCode("movq","%rax",`${this.labelNode._toOffset}(%rbp)`);
+      } else {
+        const floatResult = exprToFloat(this.forNode.end, this.progContext);
+        this.code += floatResult.code;
+        this.code += genOpCode("movsd", floatResult.source!, "%xmm0");
+        freeFloatTmp(this.progContext, floatResult.tmpOffset);
+        this.code += genOpCode("movsd","%xmm0",`${this.labelNode._toOffset}(%rbp)`);
+      }
+    } else {
+      if (this.forNode.end) {
+        if (isIntNumber(this.forNode.end) || isFloatNumber(this.forNode.end)) {
+          this.toConstant = this.forNode.end.val.toString();
+        }
+      } else {
+        throw "for loop without to";
+      }
+    }
+  }
 }

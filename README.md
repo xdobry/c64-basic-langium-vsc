@@ -94,12 +94,13 @@ The compiler will break with error if some unsupported keyword is used
 * DIM arrays
 * ON GOTO, ON GOSUB
 * MATH functions
-    SIG, ABS, RND, SIG, TAN, EXP, SQR, LOG, ATN, COS, SIN, ABS
-* GET
-* INPUT
+    SGN, ABS, RND, TAN, EXP, SQR, LOG, ATN, COS, SIN
+    INT
+* GET, INPUT
 * OPERATORS: AND, OR, NOT
 * DATA, READ
 * PEEK, POKE
+* DEF FN
  
 
 # Testing
