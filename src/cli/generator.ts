@@ -31,7 +31,12 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     isGet,
     Get,
     isInput,
-    Input} from '../language/generated/ast.js';
+    Input,
+    isDefFn,
+    DefFn,
+    isIntVar,
+    isFnCall,
+    FnCall} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
@@ -42,10 +47,12 @@ interface ProgContext {
     usedRegisters: string[]
     usedXmmRegisters: string[]
     variables: Map<string, number>
+    fnType: Map<string,string>
     ifLabelCounter: number
     forLabelCounter: number
     copyLabelCounter: number
     goSubLabelCounter: number
+    defnLabelCounter: number
     forStack: ForEntry[]
     usedLines: string[]
     goSubLabels: string[]
@@ -73,11 +80,13 @@ interface ForEntry {
 // RCX, RDX, R8, R9, Stack
 
 // Register to be used (beside %rax)
-const registers : string[] = ["%rbx","%rcx","%rdx","%rsi","%rdi","%r8","%r9","%r10","%r11","%r12","%r13","%r14","%r15"]
+const registers : string[] = ["%rsi","%rdi","%r8","%r9","%r10","%r11","%r12","%r13","%r14","%r15","%rbx","%rcx","%rdx"]
 
 const xmmRegisters : string[] = ["%xmm0","%xmm1","%xmm2","%xmm3","%xmm4","%xmm5","%xmm6","%xmm7"]
 
 const regParameters = ["%rcx", "%rdx", "%r8", "%r9"]
+
+const notPreservedRegister = ["%rcx","%rdx","%r8","%r9","%r10","%r11"]
 
 
 // Register that must be preserved during c-call
@@ -107,6 +116,7 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         usedRegisters: [],
         usedXmmRegisters: [],
         variables: new Map(),
+        fnType: new Map(),
         ifLabelCounter: 0,
         forLabelCounter: 0,
         copyLabelCounter: 0,
@@ -117,6 +127,7 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         stringTmpCount: 0,
         floatTmpCount: 0,
         tmpOffset: 0,
+        defnLabelCounter: 0,
     }
     generateVariables(model, progContext)
     // TODO compute how many tmp str variables are needed
@@ -371,6 +382,42 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                     parNum++
                 }
                 code += genOpCode("call", "inputData");
+            } else if (isDefFn(node)) {
+                const defFn : DefFn = node
+                const labelEnd = `.defn_end${defFn.name}_${progContext.defnLabelCounter}`
+                const labelExpr = `.defn_expr${defFn.name}_${progContext.defnLabelCounter}`
+                progContext.defnLabelCounter++
+                var defnPointer = progContext.variables.get(`_deffn_${defFn.name}`)
+                if (!defnPointer) {
+                    throw "can not find defn pointer for: "+defFn.name
+                }
+                code += genOpCode("leaq", `${labelExpr}(%rip)`, "%rax");
+                code += genOpCode("movq", "%rax", `${defnPointer}(%rbp)`);
+                code += genOpCode("jmp", labelEnd);
+                code += `${labelExpr}:\n`
+                // We need shadow placa on stack. Because every call to std function will overwrite the return address
+                // 40 is because the rsp needs to be aligned to 16 byte (8 bytes are used by ret address already)
+                code += genOpCode("subq", "$40", "%rsp");
+                var defnVar = progContext.variables.get(`_defvar_${defFn.name}`)
+                if (!defnVar) {
+                    throw "can not find defn var for: "+defFn.name
+                }
+                const globalValue = progContext.variables.get(defFn.param.name)
+                progContext.variables.set(defFn.param.name, defnVar)
+                if (isIntVar(defFn.param)) {
+                    code += exprToInt(defFn.expr, "%rax", progContext);
+                } else {
+                    const floatResult = exprToFloat(defFn.expr, progContext)
+                    code += floatResult.code
+                    code += genOpCode("movsd", floatResult.source!, "%xmm0");
+                    freeFloatTmp(progContext, floatResult.tmpOffset);
+                }
+                code += genOpCode("addq", "$40", "%rsp");
+                code += genOpCode("ret")
+                code += `${labelEnd}:\n`
+                if (globalValue) {
+                    progContext.variables.set(defFn.param.name, globalValue)
+                }
             } else {
                 throw "unsupported command: "+node.$type
             }
@@ -403,6 +450,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
     let code = ""
     let variableOffset = 0
     let tmpOffset : number | undefined = undefined
+    code += `\t# str: ${expr.$cstNode?.text}\n`;
     if (isStringLiteral(expr)) {
         const lNode : LabeledNode = expr;
         variableOffset = lNode._variableOffset!
@@ -436,7 +484,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         const exprNode : Expr = expr;
         variableOffset = allocateStrTmp(progContext);
         tmpOffset = variableOffset
-        if (isFloatExpr(exprNode)) {
+        if (isFloatExpr(exprNode, progContext)) {
             console.log("str float expr")
             const floatResult = exprToFloat(exprNode, progContext);
             code += floatResult.code;
@@ -512,12 +560,13 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
     return {varOffset: variableOffset, code, tmpOffset};
 }
 
-function isFloatExpr(expr: Expr) : boolean {
+function isFloatExpr(expr: Expr, progContext: ProgContext) : boolean {
     return isFloatVarRef(expr) || isFloatNumber(expr) 
         || (isNumFunc(expr) && isNumFloatFunction(expr)) 
-        || (isBinExpr(expr) && (isFloatExpr(expr.e1) || isFloatExpr(expr.e2)))
-        || (isNegExpr(expr) && isFloatExpr(expr.expr))
-        || (isGroupExpr(expr) && isFloatExpr(expr.ge));
+        || (isBinExpr(expr) && (isFloatExpr(expr.e1,progContext) || isFloatExpr(expr.e2,progContext)))
+        || (isNegExpr(expr) && isFloatExpr(expr.expr,progContext))
+        || (isGroupExpr(expr) && isFloatExpr(expr.ge,progContext))
+        || (isFnCall(expr) && isFnFloatType(expr,progContext));
 }
 
 function isNumFloatFunction(numFunc: NumFunc) : boolean {
@@ -569,6 +618,10 @@ function freeFloatTmp(progContext: ProgContext, tmpOffset?: number) : string {
     return stmts;
 }
 
+function nameForFnCall(fnCall: FnCall, progContext: ProgContext) : string {
+    return fnCall.fnname.ref?.name!
+}
+
 function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
     const lNode : AstNode = varRef.var.ref!;
     if (isLetNum(lNode)) {
@@ -618,6 +671,9 @@ function offsetForVarRef(varRef: AllVarRef, progContext: ProgContext) : number {
             }
         }
         throw "can not find variable offset for input var: "+varName        
+    } else if (isDefFn(lNode)) {
+        const defFn : DefFn = lNode;
+        return progContext.variables.get(defFn.param.name)!
     } else {
         throw "error: expecting Let node as var reference: " + lNode.$type
     }
@@ -626,6 +682,7 @@ function offsetForVarRef(varRef: AllVarRef, progContext: ProgContext) : number {
 
 function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
     let stmts = ""
+    stmts += `\t# int: ${expr.$cstNode?.text} - ${reg}\n`;
     if (isIntNumber(expr)) {
         const intNumber : IntNumber = expr;
         stmts += genOpCode("movq", `$${intNumber.val.toString()}`, reg);
@@ -645,7 +702,22 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
             stmts += genOpCode("imulq", reg2, reg);
         } else if (binExpr.op === "/") {
             // stmts += genOpCode("cqto");
+            stmts += genOpCode("movq", reg,"%rax");
+
+            // TODO check if %rax is not null otherwise DIVISION BY ZERO error
+            // TODO store rbx and rdx before div and restore after div if necessery
+            // cqto extend rax to rdx (high part of dividend)
+            stmts += genOpCode("cqto");
+            // division of 128 bit / 64 bit 
+            // rdx - hight part of dividend
+            // rax - log part of dividend
+            // rax - result division
+            // rdx - result remainder
+            const storeValue = storeRegister(progContext, ["%rbx","%rdx"],[reg2,reg])
+            stmts += storeValue.code
             stmts += genOpCode("idivq", reg2);
+            stmts += genOpCode("movq", "%rax", reg);
+            stmts += restoreRegister(storeValue)
         } else if (binExpr.op === "<") {
             stmts += genOpCode("cmpq", reg2,reg);
             stmts += genOpCode("setl", "%al");
@@ -665,6 +737,10 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         } else if (binExpr.op === ">=") {
             stmts += genOpCode("cmpq", reg2,reg);
             stmts += genOpCode("setge", "%al");
+            stmts += genOpCode("movzbq", "%al", reg);
+        } else if (binExpr.op === "<>") {
+            stmts += genOpCode("cmpq", reg2,reg);
+            stmts += genOpCode("setne", "%al");
             stmts += genOpCode("movzbq", "%al", reg);
         } else {
             throw "unknown binary operator: "+binExpr.op
@@ -694,12 +770,38 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         stmts += genOpCode("movq", "%rax",`${progContext.tmpOffset}(%rbp)`);
         stmts += freeStrTmp(progContext, strResult.tmpOffset);
         stmts += genOpCode("movq", `${progContext.tmpOffset}(%rbp)`,reg);
+    } else if (isFnCall(expr) && !isFnFloatType(expr as FnCall, progContext)) {
+        const fnCall : FnCall = expr;
+        const deffnName = nameForFnCall(fnCall, progContext)
+        const defnPointer = progContext.variables.get(`_deffn_${deffnName}`)
+        if (!defnPointer) {
+            throw "can not find defn pointer for: "+deffnName
+        }
+        const defnVar = progContext.variables.get(`_defvar_${deffnName}`)
+        if (!defnVar) {
+            throw "can not find defn var for: "+deffnName
+        }
+        const reg2 = allocateRegister(progContext)
+        const storeValue = storeRegister(progContext, registers,[reg2,reg])
+        stmts += storeValue.code
+        stmts += exprToInt(fnCall.param, reg2, progContext);
+        stmts += genOpCode("movq", reg2, `${defnVar}(%rbp)`);
+        freeRegister(progContext, reg2)
+        // stmts += genOpCode("movq", "$0", reg);
+        stmts += genOpCode("movq", `${defnPointer}(%rbp)`, "%rax");
+        // TODO check if %rax is not null otherwise UNDEF'D FUNCTION error
+        stmts += genOpCode("call", "*%rax");
+        stmts += genOpCode("movq", "%rax",reg);
+        stmts += restoreRegister(storeValue);
     } else {
-        if (isFloatExpr(expr)) {
+        if (isFloatExpr(expr,progContext)) {
+            const storeValue = storeRegister(progContext, notPreservedRegister,[reg],true)
+            stmts += storeValue.code
             const floatResult = exprToFloat(expr, progContext);
             stmts += floatResult.code;
             stmts += genOpCode("movsd", floatResult.source!, "%xmm0");
             freeFloatTmp(progContext, floatResult.tmpOffset);
+            stmts += restoreRegister(storeValue);
             stmts += genOpCode("cvtsd2siq", "%xmm0", reg);
         } else {
             throw "unknown int expression: "+expr.$type
@@ -732,6 +834,7 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
     let stmts = ""
     let source = ""
     let tmpOffset : undefined | number = undefined
+    stmts += `\t# float: ${expr.$cstNode?.text}\n`;
     if (isFloatNumber(expr)) {
         const lNode : LabeledNode = expr;
         source = `${lNode._label}(%rip)`
@@ -778,13 +881,42 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
             stmts += floatResult.code;
             stmts += genOpCode("movsd", floatResult.source, "%xmm0");
             stmts += genOpCode("call", cFunc);
-            source = "%xmm0"
+            const resTmpOffset = allocateFloatTmp(progContext)
+            tmpOffset = resTmpOffset
+            source = `${resTmpOffset}(%rbp)`
+            stmts += genOpCode("movsd", "%xmm0", `${resTmpOffset}(%rbp)`);
             freeFloatTmp(progContext, floatResult.tmpOffset);
         } else {
             throw "unsupported float function "+numFunc.func
         }
+    } else if (isFnCall(expr) && isFnFloatType(expr as FnCall, progContext)) {
+        const fnCall : FnCall = expr;
+        const deffnName = nameForFnCall(fnCall, progContext)
+        const defnPointer = progContext.variables.get(`_deffn_${deffnName}`)
+        if (!defnPointer) {
+            throw "can not find defn pointer for: "+deffnName
+        }
+        const defnVar = progContext.variables.get(`_defvar_${deffnName}`)
+        if (!defnVar) {
+            throw "can not find defn var for: "+deffnName
+        }
+        const floatValue = exprToFloat(fnCall.param, progContext);
+        stmts += floatValue.code;
+        stmts += genOpCode("movsd", floatValue.source, "%xmm0");
+        stmts += genOpCode("movsd", "%xmm0", `${defnVar}(%rbp)`);
+        freeFloatTmp(progContext, floatValue.tmpOffset);
+        stmts += genOpCode("movq", `${defnPointer}(%rbp)`, "%rax");
+        // TODO check if %rax is not null otherwise UNDEF'D FUNCTION error
+        const storeValue = storeRegister(progContext, registers,[],true)
+        stmts += storeValue.code
+        stmts += genOpCode("call", "*%rax");
+        const resTmpOffset = allocateFloatTmp(progContext)
+        stmts += genOpCode("movsd","%xmm0", `${resTmpOffset}(%rbp)`);
+        tmpOffset = resTmpOffset
+        source = `${resTmpOffset}(%rbp)`
+        stmts += restoreRegister(storeValue);
     } else {
-        if (!isFloatExpr(expr)) {
+        if (!isFloatExpr(expr,progContext)) {
             const reg2 = allocateRegister(progContext)
             stmts += exprToInt(expr, reg2, progContext);
             const resTmpOffset = allocateFloatTmp(progContext)
@@ -831,6 +963,11 @@ function genCall(cmd: string, ...parameters: CallParameter[]) {
 
 function isStrVariable(varname: string) : boolean {
     return varname.endsWith("$");
+}
+
+function isFnFloatType(fnNode: FnCall, progContext: ProgContext) {
+    const fnName = nameForFnCall(fnNode, progContext)
+    return progContext.fnType.get(fnName)==="float"
 }
 
 function generateVariables(model: Model, progContext: ProgContext) {
@@ -905,6 +1042,30 @@ function generateVariables(model: Model, progContext: ProgContext) {
             const lNode : LabeledNode = node;
             lNode._variableOffset = variableOffset;
             variableOffset -= 8
+        } else if (isDefFn(node)) {
+            const lNode : LabeledNode = node;
+            const defFn : DefFn = node;
+            const pointerName = `_deffn_${defFn.name}`
+            const fnType = defFn.param.name.endsWith("%") ? "int" : "float"
+            if (!progContext.fnType.has(defFn.name)) {
+                progContext.fnType.set(defFn.name, fnType)
+            } else {
+                if (fnType!==progContext.fnType.get(defFn.name)) {
+                    throw "function parameter type redifinition mismatch: "+defFn.name
+                }
+            }
+            console.log("store pointerName ",pointerName)
+            if (!progContext.variables.has(pointerName)) {
+                progContext.variables.set(pointerName, variableOffset)
+                lNode._variableOffset = variableOffset
+                variableOffset -= 8;
+            }
+            const paramName = `_defvar_${defFn.name}`
+            if (!progContext.variables.has(paramName)) {
+                progContext.variables.set(paramName, variableOffset)
+                lNode._variableOffset = variableOffset
+                variableOffset -= 8;
+            }
         }
     }
     // create temporaty variables for bstring
@@ -1022,6 +1183,55 @@ function allocateRegister(progContext: ProgContext) : string {
 function freeRegister(progContext: ProgContext, register: string) {
     progContext.usedRegisters = progContext.usedRegisters.filter(e => e !== register);
 }
+
+interface RegisterStorage {
+    code: string
+    restoreStack: string[]
+    allocateShadowSpace: boolean
+}
+
+function storeRegister(progContext: ProgContext, toStore: string[], except: string[], allocateShadowSpace = false) : RegisterStorage {
+    let code = ""
+    let restoreStack = []
+    for (const reg of toStore) {
+        if (progContext.usedRegisters.includes(reg) && !except.includes(reg)) {
+            code += genOpCode("pushq", reg);
+            restoreStack.push(reg)
+            progContext.tmpOffset -= 8
+        }
+    }
+    if (allocateShadowSpace) {
+        for (let i=0;i<progContext.tmpOffset;i++) {
+            const varName = `floattmp${i}`
+            const offset = progContext.variables.get(varName)!
+            const source = `${offset}(%rbp)`
+            code += genOpCode("pushq", source);
+            restoreStack.push(source)
+        }
+        if (restoreStack.length>0) {
+            // The stack needs to be 16 bytes aligned
+            if (restoreStack.length%2===1) {
+                code += genOpCode("pushq", "%rax");
+                restoreStack.push("%rax")
+            }
+            // need 16 bytes aligment (8 for ret address)
+            code += genOpCode("subq", "$32", "%rsp");
+        }
+    }
+    return {code, restoreStack, allocateShadowSpace}
+}
+
+function restoreRegister(registerStorage: RegisterStorage) : string {
+    let code = ""
+    for (const reg of registerStorage.restoreStack.reverse()) {
+        code += genOpCode("popq", reg);
+    }
+    if (registerStorage.allocateShadowSpace && registerStorage.restoreStack.length>0) {
+        code += genOpCode("addq", "$32", "%rsp");
+    }
+    return code
+}
+
 
 function allocateXmmRegister(progContext: ProgContext) : string {
     const freeRegister = xmmRegisters.find(r => !progContext.usedXmmRegisters.includes(r));

@@ -53,7 +53,7 @@ OnGoto: "ON" expr=Expr "GOTO" ((labels+=[Label:FLOAT_VARNAME] (',' labels+=[Labe
 
 OnGoSub: "ON" expr=Expr "GOSUB" ((labels+=[Label:FLOAT_VARNAME] (',' labels+=[Label:FLOAT_VARNAME])*) | (lineNumbers+=[Line:INT_NUMBER] (',' lineNumbers+=[Line:INT_NUMBER])*));
 
-DefFn: "DEF" "FN" name=FLOAT_VARNAME '(' param=FloatVar ')' '=' expr=Expr;
+DefFn: "DEF" "FN" name=FLOAT_VARNAME '(' param=( FloatVar | IntVar) ')' '=' expr=Expr;
 
 Wait: "WAIT" addr=Expr ',' mask=Expr (',' invers=Expr)?;
 
