@@ -13,3 +13,5 @@ loop:
    PRINT "IF LOOP ",C%
    C%=C%+1
    IF C%<5 THEN GOTO loop
+
+PRINT "END"

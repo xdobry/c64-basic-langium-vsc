@@ -1,12 +1,55 @@
-A(5)=5.0
-PRINT A(5)
-B% = 5
-PRINT A(B%)
-PRINT A(A)
-DIM STR$(20)
-FOR I%=0 TO 20
-  STR$(I%)=CHR$(65+1)
-NEXT I%
-FOR I%=0 TO 20
-  PRINT STR$(I%)
-NEXT I%
+PRINT "START"
+A(5,0)=5.0
+B=A(5,0)
+PRINT B
+IF A(0,0)<>0.0 THEN PRINT "ERROR UNINITIALIZED VALUE NOT 0.0"
+
+A% = 4
+DIM T(2,4)
+FOR X=0 TO 2
+FOR Y=0 TO 4
+V = X*10+Y
+PRINT " X=",X," Y=",Y," = ",V
+T(X,Y) = V
+NEXT Y,X
+
+FOR X%=0 TO 2
+FOR Y%=0 TO 4
+V = X%*10+Y%
+PRINT " X=",X%," Y=",Y%," = ",T(X%,Y%)
+IF V<>T(X%,Y%) THEN PRINT "ERROR VALUE"
+NEXT Y%,X%
+
+PRINT "INT ARRAY"
+
+DIM T%(2,4)
+FOR X%=0 TO 2
+FOR Y%=0 TO 4
+V% = X%*10+Y%
+PRINT " X=",X%," Y=",Y%," = ",V%
+T%(X%,Y%) = V%
+NEXT Y%,X%
+
+FOR X%=0 TO 2
+FOR Y%=0 TO 4
+V% = X%*10+Y%
+PRINT " X=",X%," Y=",Y%," = ",V%
+IF V%<>T%(X%,Y%) THEN PRINT "ERROR INT VALUE"
+NEXT Y%,X%
+
+PRINT "STRING ARRAY"
+
+DIM S$(15)
+FOR X%=0 TO 15
+E$="VAL"+CHR$(65+X%)
+PRINT " X=",X%," = ",E$
+S$(X%)=E$
+NEXT X%
+
+PRINT "READ STR ARRAY"
+
+FOR X%=0 TO 15
+PRINT "X=",X%," ",S$(X%)
+NEXT X%
+
+PRINT "END"

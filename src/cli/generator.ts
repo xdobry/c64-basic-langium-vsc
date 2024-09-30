@@ -36,7 +36,15 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     DefFn,
     isIntVar,
     isFnCall,
-    FnCall} from '../language/generated/ast.js';
+    FnCall,
+    isDim,
+    Dim,
+    isStrComparision,
+    StrComparision,
+    isStr,
+    Str,
+    isVal,
+    Val} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
@@ -48,11 +56,13 @@ interface ProgContext {
     usedXmmRegisters: string[]
     variables: Map<string, number>
     fnType: Map<string,string>
+    variableRank: Map<string,number>
     ifLabelCounter: number
     forLabelCounter: number
     copyLabelCounter: number
     goSubLabelCounter: number
     defnLabelCounter: number
+    dimLabelCounter: number
     forStack: ForEntry[]
     usedLines: string[]
     goSubLabels: string[]
@@ -117,6 +127,7 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         usedXmmRegisters: [],
         variables: new Map(),
         fnType: new Map(),
+        variableRank: new Map(),
         ifLabelCounter: 0,
         forLabelCounter: 0,
         copyLabelCounter: 0,
@@ -128,6 +139,7 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         floatTmpCount: 0,
         tmpOffset: 0,
         defnLabelCounter: 0,
+        dimLabelCounter: 0,
     }
     generateVariables(model, progContext)
     // TODO compute how many tmp str variables are needed
@@ -142,6 +154,16 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
             programmCode += genOpCode("movq","$0",`${value+8}(%rbp)`);
             programmCode += genOpCode("movq","$0",`${value+16}(%rbp)`);
         }
+    })
+    progContext.variableRank.forEach((value, key) => {
+        const aoffset = progContext.variables.get(key)
+        if (!aoffset) {
+            throw "can not find arr variable offset for: "+key
+        }
+        programmCode += `\t# init array ${key} ${value}\n`;
+        programmCode += genOpCode("lea",`${aoffset}(%rbp)`, "%rcx");
+        programmCode += genOpCode("movq",`$${value}`, "%rdx");
+        programmCode += genOpCode("call","c64_init_array");
     })
 
     programmCode += initStringConstants(model, progContext)
@@ -276,28 +298,74 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 code += genOpCode("ret");
             } else if (isLetNum(node)) {
                 const letNode : LetNum = node;
-                const lNode : LabeledNode = letNode.name;
+                const isArray = letNode.name.indexes.length>0
+                const varName = isArray? letNode.name.name+"[]" : letNode.name.name
+                const offset = progContext.variables.get(varName)
+                if (!offset) {
+                    throw "can not find variable offset for let: "+varName
+                }
                 if (isFloatVar(letNode.name)) {
                     const xmmReg = allocateXmmRegister(progContext);
                     const floatResult = exprToFloat(letNode.expr, progContext);
                     code += floatResult.code;
-                    code += genOpCode("movsd", floatResult.source!, xmmReg);
+                    if (isArray) {
+                        code += genArrIndex(varName, letNode.name.indexes, progContext)
+                        code += genOpCode("lea", `${offset}(%rbp)`,"%rcx");
+                        code += genOpCode("call", "c64_get_item_ptr");
+                        code += genOpCode("movq", floatResult.source!, "%rbx");
+                        code += genOpCode("movq", "%rbx", "(%rax)");
+                    } else {
+                        code += genOpCode("movsd", floatResult.source!, xmmReg);
+                        code += genOpCode("movsd", xmmReg, `${offset}(%rbp)`);
+                    }
                     freeFloatTmp(progContext, floatResult.tmpOffset);
-                    code += genOpCode("movsd", xmmReg, `${lNode._variableOffset}(%rbp)`);
                     freeXmmRegister(progContext, xmmReg);
                 } else {
-                    code += exprToInt(letNode.expr, "%rax", progContext);
-                    code += genOpCode("movq", "%rax", `${lNode._variableOffset}(%rbp)`);
+                    if (isArray) {
+                        code += genArrIndex(varName, letNode.name.indexes, progContext)
+                        code += genOpCode("lea", `${offset}(%rbp)`,"%rcx");
+                        code += genOpCode("call", "c64_get_item_ptr");
+                        const treg = allocateRegister(progContext)
+                        code += genOpCode("movq", "%rax", treg);
+                        const reg = allocateRegister(progContext)
+                        code += exprToInt(letNode.expr, reg, progContext);
+                        code += genOpCode("movq", reg, `(${treg})`);
+                        freeRegister(progContext, reg)
+                        freeRegister(progContext, treg)
+                    } else {
+                        const reg = allocateRegister(progContext)
+                        code += exprToInt(letNode.expr, reg, progContext);
+                        code += genOpCode("movq", reg, `${offset}(%rbp)`);
+                        freeRegister(progContext, reg)
+                    }
                 }
             } else  if (isLetStr(node)) {
                 const letNode : LetStr = node;
-                const lNode : LabeledNode = letNode.name;
-                const strResult = exprAsBString(letNode.expr,progContext);
-                code += strResult.code;
-                code += genCall("assignBString", 
-                    {cmd: "leaq", source: `${lNode._variableOffset}(%rbp)`}, 
-                    {cmd: "leaq", source: `${strResult.varOffset}(%rbp)`});
-                code += freeStrTmp(progContext, strResult.tmpOffset);
+                const isArray = letNode.name.indexes.length>0
+                const varName = isArray? letNode.name.name+"[]" : letNode.name.name
+                const offset = progContext.variables.get(varName)
+                if (!offset) {
+                    throw "can not find variable offset for let str: "+varName
+                }
+                if (isArray) {
+                    const strResult = exprAsBString(letNode.expr,progContext);
+                    code += strResult.code;
+                    code += genArrIndex(varName, letNode.name.indexes, progContext)
+                    code += genOpCode("lea", `${offset}(%rbp)`,"%rcx");
+                    code += genOpCode("call", "c64_get_str_item_ptr");
+                    code += genCall("assignBString", 
+                        {cmd: "movq", source: "%rax"},
+                        {cmd: "leaq", source: `${strResult.varOffset}(%rbp)`}
+                       );
+                    code += freeStrTmp(progContext, strResult.tmpOffset);
+                } else {
+                    const strResult = exprAsBString(letNode.expr,progContext);
+                    code += strResult.code;
+                    code += genCall("assignBString", 
+                        {cmd: "leaq", source: `${offset}(%rbp)`}, 
+                        {cmd: "leaq", source: `${strResult.varOffset}(%rbp)`});
+                    code += freeStrTmp(progContext, strResult.tmpOffset);
+                }
             } else if (isIf(node)) {
                 const ifNode : If = node;
                 const notIfLabel = `.ifnot${progContext.ifLabelCounter++}`
@@ -418,6 +486,37 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 if (globalValue) {
                     progContext.variables.set(defFn.param.name, globalValue)
                 }
+            } else if (isDim(node)) {
+                const dimNode : Dim = node
+                for (const variable of dimNode.vars) {
+                    if (variable.indexes.length>0) {
+                        const varName = variable.name+"[]"
+                        const offset = progContext.variables.get(varName)
+                        if (!offset) {
+                            throw "can not find variable offset for: "+varName
+                        }
+                        const rank = progContext.variableRank.get(varName)
+                        if (!rank) {
+                            throw "can not find variable rank for: "+varName
+                        }
+                        code += genOpCode("cmpq","$0",`${offset}(%rbp)`);
+                        const label = `.dim_ok${progContext.dimLabelCounter++}`
+                        code += genOpCode("je", label);
+                        //  ERROR "REDIM'D ARRAY", // 5
+                        code += genOpCode("movq", "$5", "%rcx");
+                        code += genOpCode("call", "c64_error");
+                        code += `${label}:\n`
+                        let index = 0
+                        for (const idx of variable.indexes) {
+                            const idxReg = allocateRegister(progContext)
+                            code += exprToInt(idx, idxReg, progContext)
+                            // set dimmension in arr_entry structure
+                            code += genOpCode("movq", idxReg, `${offset+16+8*index}(%rbp)`);
+                            freeRegister(progContext, idxReg)
+                            index++
+                        }
+                    }
+                }
             } else {
                 throw "unsupported command: "+node.$type
             }
@@ -455,20 +554,38 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         const lNode : LabeledNode = expr;
         variableOffset = lNode._variableOffset!
     } else if (isStringVarRef(expr)) {
-        variableOffset = offsetForVarRef(expr, progContext)
-    } else if (isIntVarRef(expr)) {
+        const rawVarName = nameForVarRef(expr, progContext)
+        const varName = expr.indexes.length>0 ? rawVarName+"[]" : rawVarName
+        const varOffset = progContext.variables.get(varName)
+        if (!varOffset) {
+            throw "can not find float variable offset for: "+varName
+        }
+        if (expr.indexes.length>0) {
+            variableOffset = allocateStrTmp(progContext);
+            tmpOffset = variableOffset
+            // TODO for every array access we copy the variable content to a tmp variable
+            // because the caller can handle only stack offset to access the variable
+            // this should be switched to pointer to elimante this behavior
+            code += genArrIndex(varName, expr.indexes, progContext)
+            code += genOpCode("lea", `${varOffset}(%rbp)`, "%rcx");
+            code += genOpCode("call", "c64_get_str_item_ptr");
+            code += genCall("assignBString",{cmd:'leaq',source:`${variableOffset}(%rbp)`},{cmd:'movq',source:'%rax'});
+        } else {
+            variableOffset = varOffset
+        }
+    } else if (isIntVarRef(expr) && expr.indexes.length===0) {
         const varName = nameForVarRef(expr, progContext)
         const intVarOffset = progContext.variables.get(varName)
         variableOffset = allocateStrTmp(progContext);
         tmpOffset = variableOffset
         if (intVarOffset) {
-            code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
-            code += genOpCode("movq", `${intVarOffset}(%rbp)`, "%rdx");
-            code += genOpCode("call", "assignInt");
+            code += genCall("assignInt",
+                {cmd: 'leaq', source: `${variableOffset}(%rbp)`},
+                {cmd: 'movq', source: `${intVarOffset}(%rbp)`})
         } else {
             throw "error: can get int var offset for "+varName
         }
-    } else if (isFloatVarRef(expr)) {
+    } else if (isFloatVarRef(expr)  && expr.indexes.length===0) {
         const varName = nameForVarRef(expr, progContext)
         const intVarOffset = progContext.variables.get(varName)
         variableOffset = allocateStrTmp(progContext);
@@ -478,7 +595,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
             code += genOpCode("movsd", `${intVarOffset}(%rbp)`, "%xmm1");
             code += genOpCode("call", "assignDouble");
         } else {
-            throw "error: can get int var offset for "+varName
+            throw "error: can get float var offset for "+varName
         }
     } else if (isExpr(expr)) {
         const exprNode : Expr = expr;
@@ -554,6 +671,25 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
             throw "unknown string function2 expression: "+stringFunction3.func
         }
         code += freeStrTmp(progContext, strResult.tmpOffset);
+    } else if (isStr(expr)) {
+        const strNode : Str = expr
+        variableOffset = allocateStrTmp(progContext)
+        tmpOffset = variableOffset
+        if (isFloatExpr(strNode.param, progContext)) {
+            const floatResult = exprToFloat(strNode.param, progContext)
+            code += floatResult.code
+            code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+            code += genOpCode("movsd", `${floatResult.source}`, "%xmm1");
+            code += genOpCode("call", "assignDouble");
+            code += freeFloatTmp(progContext, floatResult.tmpOffset)
+        } else {
+            const reg = allocateRegister(progContext);
+            code += exprToInt(strNode.param, reg, progContext);
+            code += genCall("assignInt",
+                {cmd: 'leaq', source: `${variableOffset}(%rbp)`},
+                {cmd: 'movq', source: reg})
+            freeRegister(progContext, reg)
+        }
     } else {
         throw "unknown string expression: "+expr.$type
     }
@@ -625,37 +761,13 @@ function nameForFnCall(fnCall: FnCall, progContext: ProgContext) : string {
 function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
     const lNode : AstNode = varRef.var.ref!;
     if (isLetNum(lNode)) {
-        const letNode : LetNum = lNode;
-        return letNode.name.name
-    } if (isLetStr(lNode)) {
-        const letNode : LetStr = lNode;
-        return letNode.name.name
-    } if (isFor(lNode)) {
-        const forNode : For = lNode;
-        return forNode.name.name
-    } else {
-        throw "error: expecting Let node as string reference: " + lNode.$type
-    }
-}
-
-function offsetForVarRef(varRef: AllVarRef, progContext: ProgContext) : number {
-    const lNode : AstNode = varRef.var.ref!;
-    if (isLetNum(lNode)) {
-        const letNode : LetNum = lNode;
-        const lNode2 : LabeledNode = letNode.name
-        return lNode2._variableOffset!
+        return lNode.name.name
     } else if (isLetStr(lNode)) {
-        const letNode : LetStr = lNode;
-        const lNode2 : LabeledNode = letNode.name
-        return lNode2._variableOffset!
+        return lNode.name.name
     } else if (isFor(lNode)) {
-        const forNode : For = lNode;
-        const lNode2 : LabeledNode = forNode.name
-        return lNode2._variableOffset!
+        return lNode.name.name
     } else if (isGet(lNode)) {
-        const getNode : Get = lNode;
-        const lNode2 : LabeledNode = getNode.var
-        return lNode2._variableOffset!
+        return lNode.var.name
     } else if (isInput(lNode)) {
         // The ref point to input that can have many variables,
         // we need find the right one
@@ -666,18 +778,17 @@ function offsetForVarRef(varRef: AllVarRef, progContext: ProgContext) : number {
         const getNode : Input = lNode;
         for (const ivar of getNode.vars) {
             if (ivar.name === varName) {
-                const lNode2 : LabeledNode = ivar
-                return lNode2._variableOffset!
+                return ivar.name
             }
         }
         throw "can not find variable offset for input var: "+varName        
     } else if (isDefFn(lNode)) {
-        const defFn : DefFn = lNode;
-        return progContext.variables.get(defFn.param.name)!
+        return lNode.param.name
     } else {
-        throw "error: expecting Let node as var reference: " + lNode.$type
+        throw "error: cannot get name for var reference: " + lNode.$type
     }
 }
+
 
 
 function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
@@ -687,8 +798,20 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         const intNumber : IntNumber = expr;
         stmts += genOpCode("movq", `$${intNumber.val.toString()}`, reg);
     } else if (isIntVarRef(expr)) {
-        const varOffset = offsetForVarRef(expr, progContext)
-        stmts += genOpCode("movq", `${varOffset}(%rbp)`, reg);
+        const rawVarName = nameForVarRef(expr, progContext)
+        const varName = expr.indexes.length>0 ? rawVarName+"[]" : rawVarName
+        const varOffset = progContext.variables.get(varName)
+        if (!varOffset) {
+            throw "can not find float variable offset for: "+varName
+        }
+        if (expr.indexes.length>0) {
+            stmts += genArrIndex(varName, expr.indexes, progContext)
+            stmts += genOpCode("lea", `${varOffset}(%rbp)`, "%rcx");
+            stmts += genOpCode("call", "c64_get_item");
+            stmts += genOpCode("movq", "%rax", reg);
+        } else {
+            stmts += genOpCode("movq", `${varOffset}(%rbp)`, reg);
+        }
     } else if (isBinExpr(expr)) {
         const binExpr : BinExpr = expr;
         stmts += exprToInt(binExpr.e1, reg, progContext);
@@ -793,6 +916,44 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         stmts += genOpCode("call", "*%rax");
         stmts += genOpCode("movq", "%rax",reg);
         stmts += restoreRegister(storeValue);
+    } else if (isStrComparision(expr)) {
+        const strComp : StrComparision = expr
+        const strResult1 = exprAsBString(strComp.e1, progContext);
+        const strResult2 = exprAsBString(strComp.e2, progContext);
+        stmts += strResult1.code;
+        stmts += strResult2.code;
+        let opNum = 0
+        if (strComp.operator === "=") {
+            opNum = 0
+        } else if (strComp.operator === "<>") {
+            opNum = 1
+        } else if (strComp.operator === "<") {
+            opNum = 2
+        } else if (strComp.operator === ">") {
+            opNum = 3
+        } else if (strComp.operator === "<=") {
+            opNum = 4
+        } else if (strComp.operator === ">=") {
+            opNum = 5
+        } else {
+            throw "unknown string comparision operator: "+strComp.operator
+        }
+        stmts += genCall("bstrCmp",
+            {cmd: "leaq", source: `${strResult1.varOffset}(%rbp)`},
+            {cmd: "leaq", source: `${strResult2.varOffset}(%rbp)`},
+            {cmd: "movq", source: "$"+opNum}
+        )
+        stmts += genOpCode("movq", "%rax", reg);
+        stmts += freeStrTmp(progContext, strResult1.tmpOffset);
+        stmts += freeStrTmp(progContext, strResult2.tmpOffset);
+    } else if (isVal(expr)) {
+        const valNode : Val = expr
+        const strResult = exprAsBString(valNode.param, progContext)
+        stmts += strResult.code
+        freeStrTmp(progContext, strResult.tmpOffset)
+        stmts += genCall("bstringToInt",{cmd: 'lea',source: `${strResult.varOffset}(%rbp)`})
+        stmts += genOpCode("movq","%rax",reg)
+        valNode.param
     } else {
         if (isFloatExpr(expr,progContext)) {
             const storeValue = storeRegister(progContext, notPreservedRegister,[reg],true)
@@ -808,6 +969,24 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         }
     }
     return stmts;
+}
+
+function genArrIndex(varName: string, indexes: Expr[], progContext: ProgContext) : string {
+    let code = ""
+    const offset = progContext.variables.get(varName)!
+    const rank = progContext.variableRank.get(varName)
+    if (!rank) {
+        throw "can not find variable rank for let: "+varName
+    }
+    let index = 0
+    for (const idx of indexes) {
+        const idxReg = allocateRegister(progContext)
+        code += exprToInt(idx, idxReg, progContext)
+        code += genOpCode("movq", idxReg, `${offset+16+8*rank+index*8}(%rbp)`);
+        freeRegister(progContext, idxReg)
+        index++
+    }
+    return code
 }
 
 interface FloatResult {
@@ -839,8 +1018,23 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
         const lNode : LabeledNode = expr;
         source = `${lNode._label}(%rip)`
     } else if (isFloatVarRef(expr)) {
-        const varOffset = offsetForVarRef(expr, progContext)
-        source =  `${varOffset}(%rbp)`
+        const rawVarName = nameForVarRef(expr, progContext)
+        const varName = expr.indexes.length>0 ? rawVarName+"[]" : rawVarName
+        const varOffset = progContext.variables.get(varName)
+        if (!varOffset) {
+            throw "can not find float variable offset for: "+varName
+        }
+        if (expr.indexes.length>0) {
+            stmts += genArrIndex(varName, expr.indexes, progContext)
+            const resTmpOffset = allocateFloatTmp(progContext)
+            stmts += genOpCode("lea", `${varOffset}(%rbp)`, "%rcx");
+            stmts += genOpCode("call", "c64_get_item");
+            stmts += genOpCode("movq", "%rax", `${resTmpOffset}(%rbp)`);
+            tmpOffset = resTmpOffset
+            source = `${resTmpOffset}(%rbp)`
+        } else {
+            source =  `${varOffset}(%rbp)`
+        }
     } else if (isBinExpr(expr)) {
         const binExpr : BinExpr = expr;
         const floatResult1 = exprToFloat(binExpr.e1, progContext);
@@ -915,6 +1109,28 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
         tmpOffset = resTmpOffset
         source = `${resTmpOffset}(%rbp)`
         stmts += restoreRegister(storeValue);
+    } else if (isVal(expr)) {
+        const valNode : Val = expr
+        const strResult = exprAsBString(valNode.param, progContext)
+        stmts += strResult.code
+        freeStrTmp(progContext, strResult.tmpOffset)
+        const resTmpOffset = allocateFloatTmp(progContext)
+        tmpOffset = resTmpOffset
+        source = `${resTmpOffset}(%rbp)`
+        stmts += genCall("bstringToDouble",{cmd: 'lea',source: `${strResult.varOffset}(%rbp)`})
+        stmts += genOpCode("movq","%xmm0",source)
+    } else if (isNegExpr(expr)) {
+        const negNode : NegExpr = expr
+        const floatResult = exprToFloat(negNode.expr, progContext);
+        stmts += floatResult.code;
+        const resTmpOffset = allocateFloatTmp(progContext)
+        tmpOffset = resTmpOffset
+        source = `${resTmpOffset}(%rbp)`
+        stmts += genOpCode("movsd",floatResult.source,'%xmm0')
+        stmts += genOpCode("xorpd",'%xmm1','%xmm1')
+        stmts += genOpCode("subsd", "%xmm0","%xmm1")
+        stmts += genOpCode("movsd","%xmm1",source)
+        freeFloatTmp(progContext, floatResult.tmpOffset);
     } else {
         if (!isFloatExpr(expr,progContext)) {
             const reg2 = allocateRegister(progContext)
@@ -975,14 +1191,39 @@ function generateVariables(model: Model, progContext: ProgContext) {
     for (const node of AstUtils.streamAllContents(model)) {
         if (isVar(node)) {
             const lNode : LabeledNode = node;
-            const varName = node.name
+            const isArray = node.indexes.length>0
+            const varName = isArray ? `${node.name}[]`: node.name
+            const rank = isArray ? node.indexes.length : 0
+            if (isArray) {
+                if (progContext.variableRank.has(varName)) {
+                    if (progContext.variableRank.get(varName)! !== rank) {
+                        throw "variable rank mismatch: "+varName
+                    }
+                } else {
+                    progContext.variableRank.set(varName, rank)
+                }
+            }
             if (progContext.variables.has(varName)) {
                 lNode._variableOffset = progContext.variables.get(varName)!;
             } else {
-                if (isStrVariable(varName)) {
-                    // We need addition 2 t_size for BString structure
-                    variableOffset -= 16;
-                } 
+                if (isArray) {
+                    // we need additional space to store dimension sizes
+                    // The structure of array is
+                    // struct {
+                    //    void* ptr;
+                    //    long rank;
+                    //    long dim[rank];
+                    //    long indexes[rank];
+                    // }
+                    // The size is 8+8+8*rank+8*rank = 16+16*rank
+                    // 8 will be reserved later
+                    variableOffset -= 8+16*rank
+                } else {
+                    if (isStrVariable(varName)) {
+                        // We need addition 2 t_size for BString structure
+                        variableOffset -= 16;
+                    } 
+                }
                 progContext.variables.set(varName, variableOffset)
                 lNode._variableOffset = variableOffset
                 variableOffset -= 8;

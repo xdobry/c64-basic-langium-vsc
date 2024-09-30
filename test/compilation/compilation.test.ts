@@ -5,7 +5,7 @@ import { parseHelper } from "langium/test";
 import type { Diagnostic } from "vscode-languageserver-types";
 import { createC64BasicServices } from "../../src/language/c-64-basic-module.js";
 import { Model, isModel } from "../../src/language/generated/ast.js";
-import { readdirSync, readFileSync } from "fs";
+import { readdirSync, readFileSync, existsSync } from "fs";
 import { generateAssemblerCode } from "../../src/cli/generator.js";
 import * as path from 'node:path';
 import { execSync } from 'node:child_process';
@@ -28,10 +28,13 @@ describe('Compilation', () => {
     test('check-compile-files', async() => {
         const indir = 'examples_compile';
         for (const file of readdirSync(indir)) {
-            if (file.endsWith(".c64b")) {
+            if (file.endsWith(".c64b") && !file.startsWith("keyread")) {
+                const idx = file.lastIndexOf('.')
+                const inputFile = file.substring(0,idx)+".txt"
+                const inputFilePath = path.join(indir,inputFile)
                 const filePath = path.join(indir,file);
                 const content = readFileSync(filePath, "utf-8");
-                console.log("parsing: "+file)
+                console.log("compile: "+file)
                 document = await parse(content);
                 expect(
                     checkDocumentValid(document) || document?.diagnostics?.map(diagnosticToString)?.join('\n')
@@ -43,8 +46,18 @@ describe('Compilation', () => {
                 console.log(`gcc ${sFile} .\\ccode\\rtlib.c -o ${outFile}`)
                 const stdout = execSync(`gcc ${sFile} .\\ccode\\rtlib.c -o ${outFile}`);
                 console.log("gcc output: " + stdout.toString());
-                const stdout2 = execSync(outFile);
-                console.log("exe output: " + stdout2.toString());
+                if (!existsSync(inputFilePath)) {
+                    const stdout2 = execSync(outFile).toString();
+                    console.log("exe output: " + stdout2);
+                    expect(stdout2).not.toMatch("ERROR")
+                    expect(stdout2).toMatch("END")
+                } else {
+                    const inputValue = readFileSync(inputFilePath).toString()
+                    const stdout2 = execSync(outFile,{input:inputValue}).toString();
+                    console.log("exe stdin output: " + stdout2);
+                    expect(stdout2).not.toMatch("ERROR")
+                    expect(stdout2).toMatch("END")
+                }
             }
         }
     }); 

@@ -30,6 +30,9 @@
 .LC8:
 	.ascii "END"
 	.byte 0
+	.align 8
+.LONE:
+	.double 1.0
 
     .section .bss
 .buffer:
@@ -39,7 +42,7 @@
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$432, %rsp
+	subq	$464, %rsp
 	# init variable A$
 	movq	$0, -24(%rbp)
 	movq	$0, -16(%rbp)
@@ -93,16 +96,20 @@ main:
 	leaq	.LC8(%rip), %rdx
 	call	assignFromConst
 	# A$="TEST"
+	# str: "TEST"
 	leaq	-24(%rbp), %rcx
 	leaq	-48(%rbp), %rdx
 	call	assignBString
 	# PRINT A$
+	# str: A$
 	movq	-24(%rbp), %rcx
 	call	puts
 	# PRINT LEN(A$)
+	# str: LEN(A$)
+	# int: LEN(A$) - %rdx
 	movq	-16(%rbp), %rax
-	movq	%rax, -384(%rbp)
-	movq	-384(%rbp), %rdx
+	movq	%rax, -424(%rbp)
+	movq	-424(%rbp), %rdx
 	leaq	-280(%rbp), %rcx
 	call	assignInt
 	movq	-280(%rbp), %rcx
@@ -110,10 +117,12 @@ main:
 	leaq	-280(%rbp), %rcx
 	call	freeBString
 	# PRINT ASC("A")
+	# str: ASC("A")
+	# int: ASC("A") - %rdx
 	movq	-72(%rbp), %rax
 	movzbl	(%eax), %rax
-	movq	%rax, -384(%rbp)
-	movq	-384(%rbp), %rdx
+	movq	%rax, -424(%rbp)
+	movq	-424(%rbp), %rdx
 	leaq	-280(%rbp), %rcx
 	call	assignInt
 	movq	-280(%rbp), %rcx
@@ -121,6 +130,8 @@ main:
 	leaq	-280(%rbp), %rcx
 	call	freeBString
 	# PRINT CHR$(65),CHR$(66)
+	# str: CHR$(65),
+	# int: 65 - %rdx
 	movq	$65, %rdx
 	leaq	-304(%rbp), %rcx
 	call	assignChar
@@ -129,6 +140,8 @@ main:
 	call	assignBString
 	leaq	-304(%rbp), %rcx
 	call	freeBString
+	# str: CHR$(66)
+	# int: 66 - %rdx
 	movq	$66, %rdx
 	leaq	-304(%rbp), %rcx
 	call	assignChar
@@ -142,9 +155,11 @@ main:
 	leaq	-280(%rbp), %rcx
 	call	freeBString
 	# Z%=70
-	movq	$70, %rax
-	movq	%rax, -80(%rbp)
+	# int: 70 - %rsi
+	movq	$70, %rsi
+	movq	%rsi, -80(%rbp)
 	# PRINT Z%,"=",CHR$(Z%)
+	# str: Z%,
 	leaq	-304(%rbp), %rcx
 	movq	-80(%rbp), %rdx
 	call	assignInt
@@ -153,9 +168,12 @@ main:
 	call	assignBString
 	leaq	-304(%rbp), %rcx
 	call	freeBString
+	# str: "=",
 	leaq	-280(%rbp), %rcx
 	leaq	-104(%rbp), %rdx
 	call	appendBString
+	# str: CHR$(Z%)
+	# int: Z% - %rdx
 	movq	-80(%rbp), %rdx
 	leaq	-304(%rbp), %rcx
 	call	assignChar
@@ -169,8 +187,10 @@ main:
 	leaq	-280(%rbp), %rcx
 	call	freeBString
 	# FOR A%=65 TO 80
-	movq	$65, %rax
-	movq	%rax, -112(%rbp)
+	# int: 65 - %rsi
+	movq	$65, %rsi
+	movq	%rsi, -112(%rbp)
+# stepoffset undefined tooffset undefined
 	jmp	.for0
 .forNext0:
 	movq	-112(%rbp), %rax
@@ -183,6 +203,7 @@ main:
 	pop	%rax
 .for0:
 	# PRINT A%,"=",CHR$(A%)
+	# str: A%,
 	leaq	-304(%rbp), %rcx
 	movq	-112(%rbp), %rdx
 	call	assignInt
@@ -191,9 +212,12 @@ main:
 	call	assignBString
 	leaq	-304(%rbp), %rcx
 	call	freeBString
+	# str: "=",
 	leaq	-280(%rbp), %rcx
 	leaq	-136(%rbp), %rdx
 	call	appendBString
+	# str: CHR$(A%)
+	# int: A% - %rdx
 	movq	-112(%rbp), %rdx
 	leaq	-304(%rbp), %rcx
 	call	assignChar
@@ -209,6 +233,9 @@ main:
 	# NEXT A%
 	call	.forNext0
 	# PRINT RIGHT$("TEST",2)
+	# str: RIGHT$("TEST",2)
+	# str: "TEST"
+	# int: 2 - %r8
 	movq	$2, %r8
 	leaq	-280(%rbp), %rcx
 	leaq	-160(%rbp), %rdx
@@ -218,6 +245,9 @@ main:
 	leaq	-280(%rbp), %rcx
 	call	freeBString
 	# PRINT LEFT$("TEST",2)
+	# str: LEFT$("TEST",2)
+	# str: "TEST"
+	# int: 2 - %r8
 	movq	$2, %r8
 	leaq	-280(%rbp), %rcx
 	leaq	-184(%rbp), %rdx
@@ -227,6 +257,9 @@ main:
 	leaq	-280(%rbp), %rcx
 	call	freeBString
 	# PRINT MID$("TEST",1)
+	# str: MID$("TEST",1)
+	# str: "TEST"
+	# int: 1 - %r8
 	movq	$1, %r8
 	movq	$0, %r9
 	leaq	-280(%rbp), %rcx
@@ -237,7 +270,11 @@ main:
 	leaq	-280(%rbp), %rcx
 	call	freeBString
 	# PRINT MID$("TEST",1,1)
+	# str: MID$("TEST",1,1)
+	# str: "TEST"
+	# int: 1 - %r8
 	movq	$1, %r8
+	# int: 1 - %r9
 	movq	$1, %r9
 	leaq	-280(%rbp), %rcx
 	leaq	-232(%rbp), %rdx
@@ -247,6 +284,7 @@ main:
 	leaq	-280(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
+	# str: "END"
 	movq	-256(%rbp), %rcx
 	call	puts
 

@@ -1,210 +1,171 @@
-	.file	"input.c"
+
+	.file	"input"
 	.text
 	.def	__main;	.scl	2;	.type	32;	.endef
 	.section .rdata,"dr"
 .LC0:
-	.ascii "Hello\0"
+	.ascii "STARTING INPUT"
+	.byte 0
 .LC1:
-	.ascii " \0"
+	.ascii "ss"
+	.byte 0
+.LC2:
+	.ascii "WHAT IS YOUR NAME, SURNAME"
+	.byte 0
 .LC3:
-	.ascii "right 2 %s\12\0"
+	.ascii "WELCOME "
+	.byte 0
 .LC4:
-	.ascii "left 2 %s\12\0"
+	.ascii " "
+	.byte 0
 .LC5:
-	.ascii "mid 2,2 %s\12\0"
+	.ascii "d"
+	.byte 0
 .LC6:
-	.ascii "mid 2,0 %s\12\0"
+	.ascii "GIVE A NUMBER"
+	.byte 0
 .LC7:
-	.ascii "press a key\0"
+	.ascii "this is the 1/2 of is: "
+	.byte 0
 .LC8:
-	.ascii "pressed %s\12\0"
-.LC9:
-	.ascii "Get 2 values seperated by ,\0"
-.LC10:
-	.ascii "ss\0"
-.LC11:
-	.ascii "b=%s c=%s\12\0"
-.LC12:
-	.ascii "Get int value\0"
-.LC13:
-	.ascii "i\0"
-.LC14:
-	.ascii "int %lld\12\0"
-	.text
+	.ascii "END"
+	.byte 0
+	.align 8
+.LONE:
+	.double 1.0
+
+    .section .bss
+.buffer:
+    .zero 2048
+    .text
 	.globl	main
-	.def	main;	.scl	2;	.type	32;	.endef
-	.seh_proc	main
 main:
 	pushq	%rbp
-	.seh_pushreg	%rbp
 	movq	%rsp, %rbp
-	.seh_setframe	%rbp, 0
-	subq	$176, %rsp
-	.seh_stackalloc	176
-	.seh_endprologue
-	call	__main
-	leaq	-32(%rbp), %rax
-	movq	%rax, %rcx
-	call	initBString
-	leaq	-64(%rbp), %rax
-	movq	%rax, %rcx
-	call	initBString
-	leaq	-96(%rbp), %rax
-	movq	%rax, %rcx
-	call	initBString
-	leaq	-32(%rbp), %rax
+	subq	$432, %rsp
+	# init variable B$
+	movq	$0, -72(%rbp)
+	movq	$0, -64(%rbp)
+	movq	$0, -56(%rbp)
+	# init variable C$
+	movq	$0, -96(%rbp)
+	movq	$0, -88(%rbp)
+	movq	$0, -80(%rbp)
+	# init variable strtmp0$
+	movq	$0, -248(%rbp)
+	movq	$0, -240(%rbp)
+	movq	$0, -232(%rbp)
+	# init variable strtmp1$
+	movq	$0, -272(%rbp)
+	movq	$0, -264(%rbp)
+	movq	$0, -256(%rbp)
+	# init variable strtmp2$
+	movq	$0, -296(%rbp)
+	movq	$0, -288(%rbp)
+	movq	$0, -280(%rbp)
+	# init variable strtmp3$
+	movq	$0, -320(%rbp)
+	movq	$0, -312(%rbp)
+	movq	$0, -304(%rbp)
+	# init variable strtmp4$
+	movq	$0, -344(%rbp)
+	movq	$0, -336(%rbp)
+	movq	$0, -328(%rbp)
+	 # init bstring constants
+	leaq	-24(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
-	movq	%rax, %rcx
 	call	assignFromConst
-	movq	-32(%rbp), %rax
-	movq	%rax, %rcx
+	leaq	-48(%rbp), %rcx
+	leaq	.LC2(%rip), %rdx
+	call	assignFromConst
+	leaq	-120(%rbp), %rcx
+	leaq	.LC3(%rip), %rdx
+	call	assignFromConst
+	leaq	-144(%rbp), %rcx
+	leaq	.LC4(%rip), %rdx
+	call	assignFromConst
+	leaq	-168(%rbp), %rcx
+	leaq	.LC6(%rip), %rdx
+	call	assignFromConst
+	leaq	-200(%rbp), %rcx
+	leaq	.LC7(%rip), %rdx
+	call	assignFromConst
+	leaq	-224(%rbp), %rcx
+	leaq	.LC8(%rip), %rdx
+	call	assignFromConst
+	# PRINT "STARTING INPUT"
+	# str: "STARTING INPUT"
+	movq	-24(%rbp), %rcx
 	call	puts
-	leaq	-64(%rbp), %rax
-	movq	%rax, %rcx
-	call	inputBString
-	movq	-64(%rbp), %rax
-	movq	%rax, %rcx
-	call	puts
-	leaq	-32(%rbp), %rax
+	# INPUT "WHAT IS YOUR NAME, SURNAME" ; B$ , C$
+	leaq	-48(%rbp), %rcx
 	leaq	.LC1(%rip), %rdx
-	movq	%rax, %rcx
-	call	appendCString
-	leaq	-64(%rbp), %rdx
-	leaq	-32(%rbp), %rax
-	movq	%rax, %rcx
+	leaq	-72(%rbp), %r8
+	leaq	-96(%rbp), %r9
+	call	inputData
+	# PRINT "WELCOME ",B$," ",C$
+	# str: "WELCOME ",
+	leaq	-248(%rbp), %rcx
+	leaq	-120(%rbp), %rdx
+	call	assignBString
+	# str: B$,
+	leaq	-248(%rbp), %rcx
+	leaq	-72(%rbp), %rdx
 	call	appendBString
-	movq	-32(%rbp), %rax
-	movq	%rax, %rcx
+	# str: " ",
+	leaq	-248(%rbp), %rcx
+	leaq	-144(%rbp), %rdx
+	call	appendBString
+	# str: C$
+	leaq	-248(%rbp), %rcx
+	leaq	-96(%rbp), %rdx
+	call	appendBString
+	movq	-248(%rbp), %rcx
 	call	puts
-	leaq	-64(%rbp), %rcx
-	leaq	-32(%rbp), %rdx
-	leaq	-96(%rbp), %rax
-	movq	%rcx, %r8
-	movq	%rax, %rcx
-	call	concatBString
-	movq	-96(%rbp), %rax
-	movq	%rax, %rcx
-	call	puts
-	leaq	-128(%rbp), %rax
-	movq	%rax, %rcx
-	call	initBString
-	leaq	-128(%rbp), %rax
-	movl	$1234, %edx
-	movq	%rax, %rcx
-	call	assignInt
-	movq	-128(%rbp), %rax
-	movq	%rax, %rcx
-	call	puts
-	movsd	.LC2(%rip), %xmm0
-	leaq	-128(%rbp), %rax
-	movapd	%xmm0, %xmm1
-	movq	%rax, %rcx
+	leaq	-248(%rbp), %rcx
+	call	freeBString
+	# INPUT "GIVE A NUMBER";A
+	leaq	-168(%rbp), %rcx
+	leaq	.LC5(%rip), %rdx
+	leaq	-176(%rbp), %r8
+	call	inputData
+	# PRINT "this is the 1/2 of is: ",A/2
+	# str: "this is the 1/2 of is: ",
+	leaq	-248(%rbp), %rcx
+	leaq	-200(%rbp), %rdx
+	call	assignBString
+	# str: A/2
+	# float: A/2
+	# float: A
+	# float: 2
+	# int: 2 - %rsi
+	movq	$2, %rsi
+	cvtsi2sdq	%rsi, %xmm0
+	movsd	%xmm0, -352(%rbp)
+	movsd	-176(%rbp), %xmm0
+	movsd	-352(%rbp), %xmm1
+	divsd	%xmm1, %xmm0
+	movsd	%xmm0, -352(%rbp)
+	movsd	-352(%rbp), %xmm1
+	leaq	-272(%rbp), %rcx
 	call	assignDouble
-	movq	-128(%rbp), %rax
-	movq	%rax, %rcx
+	leaq	-248(%rbp), %rcx
+	leaq	-272(%rbp), %rdx
+	call	appendBString
+	leaq	-272(%rbp), %rcx
+	call	freeBString
+	movq	-248(%rbp), %rcx
 	call	puts
-	leaq	-64(%rbp), %rdx
-	leaq	-128(%rbp), %rax
-	movl	$2, %r8d
-	movq	%rax, %rcx
-	call	bstrRight
-	movq	-128(%rbp), %rax
-	movq	%rax, %rdx
-	leaq	.LC3(%rip), %rcx
-	call	printf
-	leaq	-64(%rbp), %rdx
-	leaq	-128(%rbp), %rax
-	movl	$2, %r8d
-	movq	%rax, %rcx
-	call	bstrLeft
-	movq	-128(%rbp), %rax
-	movq	%rax, %rdx
-	leaq	.LC4(%rip), %rcx
-	call	printf
-	leaq	-64(%rbp), %rdx
-	leaq	-128(%rbp), %rax
-	movl	$2, %r9d
-	movl	$2, %r8d
-	movq	%rax, %rcx
-	call	bstrMid
-	movq	-128(%rbp), %rax
-	movq	%rax, %rdx
-	leaq	.LC5(%rip), %rcx
-	call	printf
-	leaq	-64(%rbp), %rdx
-	leaq	-128(%rbp), %rax
-	movl	$0, %r9d
-	movl	$2, %r8d
-	movq	%rax, %rcx
-	call	bstrMid
-	movq	-128(%rbp), %rax
-	movq	%rax, %rdx
-	leaq	.LC6(%rip), %rcx
-	call	printf
-	leaq	.LC7(%rip), %rcx
+	leaq	-248(%rbp), %rcx
+	call	freeBString
+	# PRINT "END"
+	# str: "END"
+	movq	-224(%rbp), %rcx
 	call	puts
-	leaq	-128(%rbp), %rax
-	movq	%rax, %rcx
-	call	readChar
-	movq	-128(%rbp), %rax
-	movq	%rax, %rdx
-	leaq	.LC8(%rip), %rcx
-	call	printf
-	leaq	-32(%rbp), %rax
-	leaq	.LC9(%rip), %rdx
-	movq	%rax, %rcx
-	call	assignFromConst
-	leaq	-96(%rbp), %rcx
-	leaq	-64(%rbp), %rdx
-	leaq	-32(%rbp), %rax
-	movq	%rcx, %r9
-	movq	%rdx, %r8
-	leaq	.LC10(%rip), %rdx
-	movq	%rax, %rcx
-	call	inputData
-	movq	-96(%rbp), %rdx
-	movq	-64(%rbp), %rax
-	movq	%rdx, %r8
-	movq	%rax, %rdx
-	leaq	.LC11(%rip), %rcx
-	call	printf
-	leaq	-32(%rbp), %rax
-	leaq	.LC12(%rip), %rdx
-	movq	%rax, %rcx
-	call	assignFromConst
-	leaq	-136(%rbp), %rdx
-	leaq	-32(%rbp), %rax
-	movq	%rdx, %r8
-	leaq	.LC13(%rip), %rdx
-	movq	%rax, %rcx
-	call	inputData
-	movq	-136(%rbp), %rax
-	movq	%rax, %rdx
-	leaq	.LC14(%rip), %rcx
-	call	printf
-	movl	$0, %eax
-	addq	$176, %rsp
+
+.basicend:
+    movl	$0, %eax
+	movq	%rbp, %rsp
 	popq	%rbp
 	ret
-	.seh_endproc
-	.section .rdata,"dr"
-	.align 8
-.LC2:
-	.long	2061584302
-	.long	1076407828
-	.ident	"GCC: (x86_64-win32-sjlj-rev0, Built by MinGW-W64 project) 8.1.0"
-	.def	initBString;	.scl	2;	.type	32;	.endef
-	.def	assignFromConst;	.scl	2;	.type	32;	.endef
-	.def	puts;	.scl	2;	.type	32;	.endef
-	.def	inputBString;	.scl	2;	.type	32;	.endef
-	.def	appendCString;	.scl	2;	.type	32;	.endef
-	.def	appendBString;	.scl	2;	.type	32;	.endef
-	.def	concatBString;	.scl	2;	.type	32;	.endef
-	.def	assignInt;	.scl	2;	.type	32;	.endef
-	.def	assignDouble;	.scl	2;	.type	32;	.endef
-	.def	bstrRight;	.scl	2;	.type	32;	.endef
-	.def	printf;	.scl	2;	.type	32;	.endef
-	.def	bstrLeft;	.scl	2;	.type	32;	.endef
-	.def	bstrMid;	.scl	2;	.type	32;	.endef
-	.def	readChar;	.scl	2;	.type	32;	.endef
-	.def	inputData;	.scl	2;	.type	32;	.endef
+    

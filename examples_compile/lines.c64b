@@ -7,3 +7,5 @@
 60 PRINT L%
 70 L%=L%+1
 80 IF L%<5 THEN 55
+90 PRINT "END"
+

@@ -72,6 +72,10 @@ void assignCStringLen(struct BString* str, const char* data, size_t length) {
 }
 
 void assignBString(struct BString* target, const struct BString* str) {
+    // printf("assignBString target=%p len=%ld source=%p len=%ld\n", target, target->length,str, str->length);
+    if (target==str) {
+        return;
+    }
     // TODO just use existing mem if possible
     freeBString(target);
     target->data = malloc(str->length+1);
@@ -187,6 +191,84 @@ void bstrMid(struct BString* target, const struct BString* str, size_t pos, size
     }
 }
 
+/**
+ * Compare two bstrings
+ * operator
+ * 0 = equal
+ * 1 = not equal
+ * 2 = less than <
+ * 3 = greater than >
+ * 4 = less than or equal <=
+ * 5 = greater than or equal >=
+ * 
+ * return
+ * -1 - true
+ * 0 - false
+ */
+size_t bstrCmp(struct BString* c1, struct BString* c2, size_t operator)
+{
+    size_t res;
+    if (operator==0 || operator==1) {
+        if (c1->length==0 && c2->length==0) {
+            res = -1;
+        } else if (c1->length!=c2->length) {
+            res = 0;
+        } else {
+            res = memcmp(c1->data, c2->data, c1->length)==0 ? -1 : 0;
+        }
+    } else if(operator==2 || operator==3) {
+        if (c1->length==0 && c2->length==0) {
+            res = 0;
+        } else if (c1->length==0) {
+            res = -1;
+        } else if (c2->length==0) {
+            res = 0;
+        } else {
+            int resCmp = memcmp(c1->data, c2->data, c1->length > c2->length ? c2->length : c1->length);
+            if (resCmp==0) {
+                res = c1->length < c2->length ? -1 : 0;
+            } else {
+                res = resCmp<0 ? -1 : 0;
+            }
+        }
+    } else if(operator==4 || operator==5) {
+        if (c1->length==0 && c2->length==0) {
+            res = -1;
+        } else if (c1->length==0) {
+            res = -1;
+        } else if (c2->length==0) {
+            res = 0;
+        } else {
+            int resCmp = memcmp(c1->data, c2->data, c1->length > c2->length ? c2->length : c1->length);
+            if (resCmp==0) {
+                if (operator==5) {
+                    res = c1->length >= c2->length ? -1 : 0;
+                } else {
+                    res = c1->length <= c2->length ? -1 : 0;
+                }
+            } else {
+                if (operator==5) {
+                    res = resCmp>0 ? -1 : 0;
+                } else {
+                    res = resCmp<0 ? -1 : 0;
+                }
+                
+            }
+        }
+    }
+    if (operator==1 || operator==3) {
+        res = res ? 0 : -1;
+    }
+    /*
+    if (c1->data && c2->data) {
+       printf("cmp res=%ld op=%ld p1='%s' p2='%s'\n",res, operator, c1->data, c2->data);
+    } else {
+       printf("cmp res=%ld op=%ld l1=%ld l2=%ld\n",res, operator, c1->length, c2->length);
+    }
+    */
+    return res;
+};
+
 void inputBString(struct BString* str) {
     printf("Enter a string: ");
     char buffer[100];
@@ -204,6 +286,23 @@ void readChar(struct BString* str) {
     char mc = _getch();
     assignChar(str, mc);
 }
+
+size_t bstringToInt(struct BString* str) {
+    if (str->data && str->length>0) {
+        char *end;
+        return strtol(str->data,&end,10);
+    } else {
+        return 0;
+    }   
+}
+double bstringToDouble(struct BString* str) {
+    if (str->data && str->length>0) {
+        return atof(str->data);
+    } else {
+        return 0;
+    }   
+}
+
 
 /**
  * Reimplementation (without error handling and redo) of the INPUT Basic function
@@ -290,7 +389,8 @@ void inputData(struct BString* message,const char *format, ...) {
             assignCStringLen(bstring, start, ptr-start);
         } else if (format[i]=='i') {
             long long *val = va_arg(args, long long*);
-            *val = atoi(start);
+            char *end;
+            *val = strtol(start,&end,10);
         } else if (format[i]=='d') {
             double *val = va_arg(args, double*);
             *val = atof(start);
@@ -310,4 +410,113 @@ double c64rnd(double d) {
         srand(d);
     }
     return (double) rand() / (double) RAND_MAX;
+}
+
+static const char* errorMessages[] = {
+    "UNDEF'D FUNCTION", // 1
+    "RETURN WITHOUT GOSUB",  // 2
+    "NEXT WITHOUT FOR", // 3
+    "DIVISION BY ZERO", // 4
+    "REDIM'D ARRAY", // 5
+    "BAD SUBSCRIPT", // 6 - array index out of bounds
+    /*
+    "BREAK",
+    "NOT INPUT FILE",
+    "CAN'T CONTINUE",
+    "NOT OUTPUT FILE",
+    "DEVICE NOT PRESENT",
+    "OUT OF DATA",
+    "OUT OF MEMORY",
+    "FILE DATA",
+    "OVERFLOW",
+    "FILE NOT FOUND",
+    "FILE NOT OPEN",
+    "FILE OPEN",
+    "STRING TOO LONG",
+    "FORMULA TOO COMPLEX",
+    "SYNTAX",
+    "ILLEGAL DEVICE NUMBER",
+    "TOO MANY FILES",
+    "ILLEGAL DIRECT",
+    "TYPE MISMATCH",
+    "ILLEGAL QUANTITY", // parameter out of range
+    "LOAD",
+    "UNDEF'D STATEMENT", // goto to undefined line
+    "MISSING FILENAME"
+    */
+};
+
+
+void c64_error(size_t err_no) {
+    printf("?%s  ERROR\n", errorMessages[err_no-1]);
+    exit(err_no);
+}
+
+
+
+void c64_allocate_arr(struct arr_entry *arr,size_t elem_size) {
+    long size = 1;
+    // if array has dimension 0, set it to 10 (array without dim)
+    for (int i=0; i<arr->rank; i++) {
+        if (arr->dims[i]==0) {
+            arr->dims[i] = 10;
+        }
+    }
+    for (int i=0; i<arr->rank; i++) {
+        size *= arr->dims[i]+1;
+    }
+    arr->data = calloc(1, size*elem_size);
+}
+
+size_t arr_entry_size(size_t rank) {
+    return sizeof(struct arr_entry) + sizeof(size_t)*rank*2;
+}
+
+size_t arr_elem_index(struct arr_entry *arr) {
+    // Check out of bound error for each dimension
+    for (int i=0; i<arr->rank; i++) {
+        if (arr->dims[i+arr->rank]>arr->dims[i]) {
+            // printf("Array index out bound %d dim %ld index %ld \n",i,arr->dims[i],arr->dims[i+arr->rank]);
+            c64_error(6);
+        }
+    }
+    size_t index = 0;
+    for (int i=0; i<arr->rank; i++) {
+        size_t dimSkip = 1;
+        for (int j=i+1; j<arr->rank; j++) {
+            dimSkip *= arr->dims[j]+1;
+        }
+        index += arr->dims[i+arr->rank]*dimSkip;
+    }
+    // printf(" arr index %ld\n",index);
+    return index;
+}
+
+size_t* c64_get_item_ptr(struct arr_entry *arr) {
+    if (!arr->data) {
+        c64_allocate_arr(arr, sizeof(size_t));
+    }
+    size_t index = arr_elem_index(arr);
+    return (size_t *)((size_t)arr->data + index*sizeof(size_t));
+}
+
+size_t c64_get_item(struct arr_entry *arr) {
+    return *c64_get_item_ptr(arr);
+}
+
+struct BString* c64_get_str_item_ptr(struct arr_entry *arr) {
+    if (!arr->data) {
+        c64_allocate_arr(arr, sizeof(struct BString));
+    }
+    size_t index = arr_elem_index(arr);
+    return (struct BString *)((size_t)arr->data + index*sizeof(struct BString));
+}
+
+void c64_init_array(struct arr_entry *arr,size_t rank) {
+    arr->data = NULL;
+    arr->rank = rank;
+    for (int i=0; i<rank; i++) {
+        arr->dims[i] = 0;
+        arr->dims[i+rank] = 0;
+    }
 }
