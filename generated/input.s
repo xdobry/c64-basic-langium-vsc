@@ -34,9 +34,6 @@
 .LONE:
 	.double 1.0
 
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:

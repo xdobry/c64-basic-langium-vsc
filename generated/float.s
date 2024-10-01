@@ -90,9 +90,6 @@
 .LF3:
 	.double 3
 
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:

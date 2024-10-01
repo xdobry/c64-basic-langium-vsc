@@ -91,9 +91,6 @@
 .LONE:
 	.double 1.0
 
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:
@@ -300,6 +297,7 @@ main:
 	cmpq	%rdi, %rsi
 	sete	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot1
 	# PRINT "ERROR EQ"

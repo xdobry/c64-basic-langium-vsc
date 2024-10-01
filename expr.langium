@@ -5,21 +5,20 @@ entry Model:
 
 Expr: Logical;
 
-Logical infers Exprs:
-    Add ({infer BinExpr.e1=current} op=('AND' | 'OR') e2=Add)*;
-Add infers Expr: 
-    Mult     ({infer BinExpr.e1=current} op=('+'|'-') e2=Mult)*;
+Logical infers Expr:
+    Comparison ({infer BinExpr.e1=current} op=('AND' | 'OR') e2=Comparison)*;
+Comparison infers Expr:
+    Add ({infer BinExpr.e1=current} op=('<' | '<=' | '>' | '>=' | '=' | '<>') e2=Add)*;
+Add  infers Expr: 
+    Mult ({infer BinExpr.e1=current} op=('+'|'-') e2=Mult)*;
 Mult infers Expr: 
-    Comparison ({infer BinExpr.e1=current} op=('*'|'/') e2=Comparison)*;
-Comparison infers Exprs:
-    PrimExpr ({infer BinExpr.e1=current} op=('<' | '<=' | '>' | '>=' | '=' | '<>') e2=PrimExpr)*;
+    PrimExpr ({infer BinExpr.e1=current} op=('*'|'/') e2=PrimExpr)*;
 
-PrimExpr: NegExpr | IntNumber | GroupExpr;
+PrimExpr: IntNumber | GroupExpr | NotExpr | NegExpr;
 
-
-NegExpr: '-' expr=Expr;
 GroupExpr:  '(' ge=Expr ')';
 NotExpr: 'NOT' expr=Expr;
+NegExpr:  '-' ne=PrimExpr;
 
 IntNumber: val=INT_NUMBER;
 

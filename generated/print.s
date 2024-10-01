@@ -28,9 +28,6 @@
 .LONE:
 	.double 1.0
 
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:
@@ -217,6 +214,7 @@ main:
 	cmpq	%rdi, %rsi
 	setl	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot0
 	# GOTO loop

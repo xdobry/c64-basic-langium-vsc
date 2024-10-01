@@ -58,9 +58,6 @@
 .LF5:
 	.double 2
 
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:
@@ -279,13 +276,15 @@ main:
 	call	freeBString
 	# IF F<>5 THEN PRINT "ERROR3"
 	# int: F<>5 - %rsi
-	# int: F - %rsi
 	# float: F
-	movsd	-152(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
+	# float: 5
 	# int: 5 - %rdi
 	movq	$5, %rdi
-	cmpq	%rdi, %rsi
+	cvtsi2sdq	%rdi, %xmm0
+	movsd	%xmm0, -584(%rbp)
+	movsd	-152(%rbp), %xmm0
+	movsd	-584(%rbp), %xmm1
+	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi
 	negq	%rsi

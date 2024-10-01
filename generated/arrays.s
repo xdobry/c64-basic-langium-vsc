@@ -90,9 +90,6 @@
 .LF3:
 	.double 4
 
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:
@@ -255,7 +252,6 @@ main:
 	call	freeBString
 	# IF A(0,0)<>0.0 THEN PRINT "ERROR UNINITIALIZED VALUE NOT 0.0"
 	# int: A(0,0)<>0.0 - %rsi
-	# int: A(0,0) - %rsi
 	# float: A(0,0)
 	# int: 0 - %rdi
 	movq	$0, %rdi
@@ -266,13 +262,10 @@ main:
 	lea	-72(%rbp), %rcx
 	call	c64_get_item
 	movq	%rax, -992(%rbp)
-	movsd	-992(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: 0.0 - %rdi
 	# float: 0.0
-	movsd	.LF1(%rip), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	cmpq	%rdi, %rsi
+	movsd	-992(%rbp), %xmm0
+	movsd	.LF1(%rip), %xmm1
+	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi
 	negq	%rsi
@@ -538,24 +531,20 @@ main:
 	call	freeBString
 	# IF V<>T(X%,Y%) THEN PRINT "ERROR VALUE"
 	# int: V<>T(X%,Y%) - %rsi
-	# int: V - %rsi
 	# float: V
-	movsd	-184(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: T(X%,Y%) - %rdi
 	# float: T(X%,Y%)
-	# int: X% - %r8
-	movq	-264(%rbp), %r8
-	movq	%r8, -128(%rbp)
-	# int: Y% - %r8
-	movq	-272(%rbp), %r8
-	movq	%r8, -120(%rbp)
+	# int: X% - %rdi
+	movq	-264(%rbp), %rdi
+	movq	%rdi, -128(%rbp)
+	# int: Y% - %rdi
+	movq	-272(%rbp), %rdi
+	movq	%rdi, -120(%rbp)
 	lea	-160(%rbp), %rcx
 	call	c64_get_item
 	movq	%rax, -992(%rbp)
-	movsd	-992(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	cmpq	%rdi, %rsi
+	movsd	-184(%rbp), %xmm0
+	movsd	-992(%rbp), %xmm1
+	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi
 	negq	%rsi

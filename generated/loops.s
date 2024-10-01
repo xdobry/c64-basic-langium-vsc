@@ -105,9 +105,6 @@
 .LF12:
 	.double 0
 
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:

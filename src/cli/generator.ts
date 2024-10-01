@@ -178,9 +178,6 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
     }
 
     const code = `
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:
@@ -701,7 +698,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
 function isFloatExpr(expr: Expr, progContext: ProgContext) : boolean {
     return isFloatVarRef(expr) || isFloatNumber(expr) 
         || (isNumFunc(expr) && isNumFloatFunction(expr)) 
-        || (isBinExpr(expr) && (isFloatExpr(expr.e1,progContext) || isFloatExpr(expr.e2,progContext)))
+        || (isBinExpr(expr) && (isFloatExpr(expr.e1,progContext) || isFloatExpr(expr.e2,progContext)) && isFloatOperator(expr.op))
         || (isNegExpr(expr) && isFloatExpr(expr.expr,progContext))
         || (isGroupExpr(expr) && isFloatExpr(expr.ge,progContext))
         || (isFnCall(expr) && isFnFloatType(expr,progContext));
@@ -709,6 +706,11 @@ function isFloatExpr(expr: Expr, progContext: ProgContext) : boolean {
 
 function isNumFloatFunction(numFunc: NumFunc) : boolean {
     return numFunc.func !== 'PEEK'
+}
+
+function isFloatOperator(op: string) {
+    const notFloatOp: string[] = ["=","<>",">",">=","<","<=","AND","OR"]
+    return !notFloatOp.includes(op);
 }
 
 
@@ -795,6 +797,7 @@ function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
 
 function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
     let stmts = ""
+    console.log(`expr int: ${expr.$cstNode?.text} - ${reg}`)
     stmts += `\t# int: ${expr.$cstNode?.text} - ${reg}\n`;
     if (isIntNumber(expr)) {
         const intNumber : IntNumber = expr;
@@ -816,73 +819,130 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         }
     } else if (isBinExpr(expr)) {
         const binExpr : BinExpr = expr;
-        stmts += exprToInt(binExpr.e1, reg, progContext);
-        const reg2 = allocateRegister(progContext)
-        stmts += exprToInt(binExpr.e2, reg2, progContext);
-        if (binExpr.op === "+") {
-            stmts += genOpCode("addq", reg2, reg);
-        } else if (binExpr.op === "-") {
-            stmts += genOpCode("subq", reg2, reg);
-        } else if (binExpr.op === "*") {
-            stmts += genOpCode("imulq", reg2, reg);
-        } else if (binExpr.op === "/") {
-            // stmts += genOpCode("cqto");
-            stmts += genOpCode("movq", reg,"%rax");
-
-            // TODO check if %rax is not null otherwise DIVISION BY ZERO error
-            // TODO store rbx and rdx before div and restore after div if necessery
-            // cqto extend rax to rdx (high part of dividend)
-            stmts += genOpCode("cqto");
-            // division of 128 bit / 64 bit 
-            // rdx - hight part of dividend
-            // rax - log part of dividend
-            // rax - result division
-            // rdx - result remainder
-            const storeValue = storeRegister(progContext, ["%rbx","%rdx"],[reg2,reg])
-            stmts += storeValue.code
-            stmts += genOpCode("idivq", reg2);
-            stmts += genOpCode("movq", "%rax", reg);
-            stmts += restoreRegister(storeValue)
-        } else if (binExpr.op === "<") {
-            stmts += genOpCode("cmpq", reg2,reg);
-            stmts += genOpCode("setl", "%al");
-            stmts += genOpCode("movzbq", "%al", reg);
-            // We need -1 in case of 1 for OR/AND logic and be compatible with c64 basic
-            // NOT -1 is 0
-            stmts += genOpCode("negq", reg)
-        } else if (binExpr.op === ">") {
-            stmts += genOpCode("cmpq", reg2,reg);
-            stmts += genOpCode("setg", "%al");
-            stmts += genOpCode("movzbq", "%al", reg);
-            stmts += genOpCode("negq", reg)
-        } else if (binExpr.op === "=") {
-            stmts += genOpCode("cmpq", reg2,reg);
-            stmts += genOpCode("sete", "%al");
-            stmts += genOpCode("movzbq", "%al", reg);
-            stmts += genOpCode("negq", reg)
-        } else if (binExpr.op === "<=") {
-            stmts += genOpCode("cmpq", reg2,reg);
-            stmts += genOpCode("setle", "%al");
-            stmts += genOpCode("movzbq", "%al", reg);
-            stmts += genOpCode("negq", reg)
-        } else if (binExpr.op === ">=") {
-            stmts += genOpCode("cmpq", reg2,reg);
-            stmts += genOpCode("setge", "%al");
-            stmts += genOpCode("movzbq", "%al", reg);
-            stmts += genOpCode("negq", reg)
-        } else if (binExpr.op === "<>") {
-            stmts += genOpCode("cmpq", reg2,reg);
-            stmts += genOpCode("setne", "%al");
-            stmts += genOpCode("movzbq", "%al", reg);
-            stmts += genOpCode("negq", reg)
-        } else if (binExpr.op === "OR") {
-            stmts += genOpCode("orq", reg2,reg);
-        } else if (binExpr.op === "AND") {
-            stmts += genOpCode("andq", reg2,reg);
+        if (!isFloatOperator(expr.op) 
+            && expr.op!=="AND" 
+            && expr.op!=="OR" 
+            && (isFloatExpr(expr.e1,progContext) || isFloatExpr(expr.e2,progContext))) {
+            // The comparision is int result
+            // But float needs to be compared as float not converter to int
+            // AND and OR bitwise operation need int as operants
+            const binExpr : BinExpr = expr;
+            const floatResult1 = exprToFloat(binExpr.e1, progContext);
+            stmts += floatResult1.code;
+            const reg1 = allocateXmmRegister(progContext)
+            const reg2 = allocateXmmRegister(progContext)
+            const floatResult2 = exprToFloat(binExpr.e2, progContext);
+            stmts += floatResult2.code;
+            stmts += genOpCode("movsd", floatResult1.source, reg1);
+            stmts += genOpCode("movsd", floatResult2.source, reg2);
+            if (binExpr.op === "<") {
+                stmts += genOpCode("comisd", reg2,reg1);
+                stmts += genOpCode("setb", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                // We need -1 in case of 1 for OR/AND logic and be compatible with c64 basic
+                // NOT -1 is 0
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === ">") {
+                stmts += genOpCode("comisd", reg2,reg1);
+                stmts += genOpCode("seta", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === "=") {
+                stmts += genOpCode("comisd", reg2,reg1);
+                stmts += genOpCode("sete", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === "<=") {
+                stmts += genOpCode("comisd", reg2,reg1);
+                stmts += genOpCode("setbe", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === ">=") {
+                stmts += genOpCode("comisd", reg2,reg1);
+                stmts += genOpCode("setae", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === "<>") {
+                stmts += genOpCode("comisd", reg2,reg1);
+                stmts += genOpCode("setne", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else {
+                throw "unexpected float to binary comp operator: "+binExpr.op
+            }
+            freeFloatTmp(progContext, floatResult1.tmpOffset);        
+            freeFloatTmp(progContext, floatResult2.tmpOffset);
+            freeXmmRegister(progContext, reg1)
+            freeXmmRegister(progContext, reg2)
         } else {
-            throw "unknown binary operator: "+binExpr.op
+            stmts += exprToInt(binExpr.e1, reg, progContext);
+            const reg2 = allocateRegister(progContext)
+            stmts += exprToInt(binExpr.e2, reg2, progContext);
+            if (binExpr.op === "+") {
+                stmts += genOpCode("addq", reg2, reg);
+            } else if (binExpr.op === "-") {
+                stmts += genOpCode("subq", reg2, reg);
+            } else if (binExpr.op === "*") {
+                stmts += genOpCode("imulq", reg2, reg);
+            } else if (binExpr.op === "/") {
+                // stmts += genOpCode("cqto");
+                stmts += genOpCode("movq", reg,"%rax");
+
+                // TODO check if %rax is not null otherwise DIVISION BY ZERO error
+                // TODO store rbx and rdx before div and restore after div if necessery
+                // cqto extend rax to rdx (high part of dividend)
+                stmts += genOpCode("cqto");
+                // division of 128 bit / 64 bit 
+                // rdx - hight part of dividend
+                // rax - log part of dividend
+                // rax - result division
+                // rdx - result remainder
+                const storeValue = storeRegister(progContext, ["%rbx","%rdx"],[reg2,reg])
+                stmts += storeValue.code
+                stmts += genOpCode("idivq", reg2);
+                stmts += genOpCode("movq", "%rax", reg);
+                stmts += restoreRegister(storeValue)
+            } else if (binExpr.op === "<") {
+                stmts += genOpCode("cmpq", reg2,reg);
+                stmts += genOpCode("setl", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                // We need -1 in case of 1 for OR/AND logic and be compatible with c64 basic
+                // NOT -1 is 0
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === ">") {
+                stmts += genOpCode("cmpq", reg2,reg);
+                stmts += genOpCode("setg", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === "=") {
+                stmts += genOpCode("cmpq", reg2,reg);
+                stmts += genOpCode("sete", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === "<=") {
+                stmts += genOpCode("cmpq", reg2,reg);
+                stmts += genOpCode("setle", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === ">=") {
+                stmts += genOpCode("cmpq", reg2,reg);
+                stmts += genOpCode("setge", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === "<>") {
+                stmts += genOpCode("cmpq", reg2,reg);
+                stmts += genOpCode("setne", "%al");
+                stmts += genOpCode("movzbq", "%al", reg);
+                stmts += genOpCode("negq", reg)
+            } else if (binExpr.op === "OR") {
+                stmts += genOpCode("orq", reg2,reg);
+            } else if (binExpr.op === "AND") {
+                stmts += genOpCode("andq", reg2,reg);
+            } else {
+                throw "unknown binary operator: "+binExpr.op
+            }
+            freeRegister(progContext, reg2)
         }
-        freeRegister(progContext, reg2)
     } else if (isNegExpr(expr)) {
         const negExpr : NegExpr = expr
         stmts += exprToInt(negExpr.expr,reg,progContext)
@@ -1031,6 +1091,7 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
     let stmts = ""
     let source = ""
     let tmpOffset : undefined | number = undefined
+    console.log(`expr float: ${expr.$cstNode?.text}`);
     stmts += `\t# float: ${expr.$cstNode?.text}\n`;
     if (isFloatNumber(expr)) {
         const lNode : LabeledNode = expr;
@@ -1053,7 +1114,7 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
         } else {
             source =  `${varOffset}(%rbp)`
         }
-    } else if (isBinExpr(expr)) {
+    } else if (isBinExpr(expr) && isFloatOperator(expr.op)) {
         const binExpr : BinExpr = expr;
         const floatResult1 = exprToFloat(binExpr.e1, progContext);
         stmts += floatResult1.code;

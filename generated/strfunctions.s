@@ -62,9 +62,6 @@
 .LF1:
 	.double 2.2
 
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:
@@ -237,6 +234,7 @@ main:
 	cmpq	%rdi, %rsi
 	setne	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot0
 	# PRINT "ERROR VAL INT"
@@ -263,17 +261,14 @@ main:
 	movsd	%xmm0, -40(%rbp)
 	# IF A<>2.2 THEN PRINT "ERROR VAL FLOAT"
 	# int: A<>2.2 - %rsi
-	# int: A - %rsi
 	# float: A
-	movsd	-40(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: 2.2 - %rdi
 	# float: 2.2
-	movsd	.LF1(%rip), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	cmpq	%rdi, %rsi
+	movsd	-40(%rbp), %xmm0
+	movsd	.LF1(%rip), %xmm1
+	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot1
 	# PRINT "ERROR VAL FLOAT"

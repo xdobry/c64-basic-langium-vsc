@@ -41,9 +41,6 @@
 .LF4:
 	.double 6
 
-    .section .bss
-.buffer:
-    .zero 2048
     .text
 	.globl	main
 main:
@@ -113,27 +110,23 @@ main:
 	movsd	%xmm0, -32(%rbp)
 	# IF A+B+C<>6.0 THEN PRINT "ERROR1"
 	# int: A+B+C<>6.0 - %rsi
-	# int: A+B+C - %rsi
-	# int: A+B - %rsi
-	# int: A - %rsi
+	# float: A+B+C
+	# float: A+B
 	# float: A
-	movsd	-8(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: B - %rdi
 	# float: B
-	movsd	-16(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	addq	%rdi, %rsi
-	# int: C - %rdi
+	movsd	-8(%rbp), %xmm0
+	movsd	-16(%rbp), %xmm1
+	addsd	%xmm1, %xmm0
+	movsd	%xmm0, -352(%rbp)
 	# float: C
-	movsd	-24(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	addq	%rdi, %rsi
-	# int: 6.0 - %rdi
+	movsd	-352(%rbp), %xmm0
+	movsd	-24(%rbp), %xmm1
+	addsd	%xmm1, %xmm0
+	movsd	%xmm0, -352(%rbp)
 	# float: 6.0
-	movsd	.LF4(%rip), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	cmpq	%rdi, %rsi
+	movsd	-352(%rbp), %xmm0
+	movsd	.LF4(%rip), %xmm1
+	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi
 	negq	%rsi
@@ -146,15 +139,11 @@ main:
 .ifnot0:
 	# IF A=A1 THEN PRINT "ERROR2"
 	# int: A=A1 - %rsi
-	# int: A - %rsi
 	# float: A
-	movsd	-8(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: A1 - %rdi
 	# float: A1
-	movsd	-32(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	cmpq	%rdi, %rsi
+	movsd	-8(%rbp), %xmm0
+	movsd	-32(%rbp), %xmm1
+	comisd	%xmm1, %xmm0
 	sete	%al
 	movzbq	%al, %rsi
 	negq	%rsi
@@ -167,16 +156,12 @@ main:
 .ifnot1:
 	# IF B<A THEN PRINT "ERROR3"
 	# int: B<A - %rsi
-	# int: B - %rsi
 	# float: B
-	movsd	-16(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: A - %rdi
 	# float: A
-	movsd	-8(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	cmpq	%rdi, %rsi
-	setl	%al
+	movsd	-16(%rbp), %xmm0
+	movsd	-8(%rbp), %xmm1
+	comisd	%xmm1, %xmm0
+	setb	%al
 	movzbq	%al, %rsi
 	negq	%rsi
 	cmpq	$0, %rsi
@@ -188,16 +173,12 @@ main:
 .ifnot2:
 	# IF B<=A THEN PRINT "ERROR4"
 	# int: B<=A - %rsi
-	# int: B - %rsi
 	# float: B
-	movsd	-16(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: A - %rdi
 	# float: A
-	movsd	-8(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	cmpq	%rdi, %rsi
-	setle	%al
+	movsd	-16(%rbp), %xmm0
+	movsd	-8(%rbp), %xmm1
+	comisd	%xmm1, %xmm0
+	setbe	%al
 	movzbq	%al, %rsi
 	negq	%rsi
 	cmpq	$0, %rsi
@@ -209,16 +190,12 @@ main:
 .ifnot3:
 	# IF A>B THEN PRINT "ERROR5"
 	# int: A>B - %rsi
-	# int: A - %rsi
 	# float: A
-	movsd	-8(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: B - %rdi
 	# float: B
-	movsd	-16(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	cmpq	%rdi, %rsi
-	setg	%al
+	movsd	-8(%rbp), %xmm0
+	movsd	-16(%rbp), %xmm1
+	comisd	%xmm1, %xmm0
+	seta	%al
 	movzbq	%al, %rsi
 	negq	%rsi
 	cmpq	$0, %rsi
@@ -230,16 +207,12 @@ main:
 .ifnot4:
 	# IF A>=B THEN PRINT "ERROR6"
 	# int: A>=B - %rsi
-	# int: A - %rsi
 	# float: A
-	movsd	-8(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: B - %rdi
 	# float: B
-	movsd	-16(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	cmpq	%rdi, %rsi
-	setge	%al
+	movsd	-8(%rbp), %xmm0
+	movsd	-16(%rbp), %xmm1
+	comisd	%xmm1, %xmm0
+	setae	%al
 	movzbq	%al, %rsi
 	negq	%rsi
 	cmpq	$0, %rsi
@@ -251,40 +224,36 @@ main:
 .ifnot5:
 	# IF A+B+C>=A1+B+C THEN PRINT "ERROR7"
 	# int: A+B+C>=A1+B+C - %rsi
-	# int: A+B+C - %rsi
-	# int: A+B - %rsi
-	# int: A - %rsi
+	# float: A+B+C
+	# float: A+B
 	# float: A
+	# float: B
 	movsd	-8(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: B - %rdi
-	# float: B
-	movsd	-16(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	addq	%rdi, %rsi
-	# int: C - %rdi
+	movsd	-16(%rbp), %xmm1
+	addsd	%xmm1, %xmm0
+	movsd	%xmm0, -352(%rbp)
 	# float: C
-	movsd	-24(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	addq	%rdi, %rsi
-	# int: A1+B+C - %rdi
-	# int: A1+B - %rdi
-	# int: A1 - %rdi
+	movsd	-352(%rbp), %xmm0
+	movsd	-24(%rbp), %xmm1
+	addsd	%xmm1, %xmm0
+	movsd	%xmm0, -352(%rbp)
+	# float: A1+B+C
+	# float: A1+B
 	# float: A1
-	movsd	-32(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	# int: B - %r8
 	# float: B
-	movsd	-16(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %r8
-	addq	%r8, %rdi
-	# int: C - %r8
+	movsd	-32(%rbp), %xmm2
+	movsd	-16(%rbp), %xmm3
+	addsd	%xmm3, %xmm2
+	movsd	%xmm2, -360(%rbp)
 	# float: C
-	movsd	-24(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %r8
-	addq	%r8, %rdi
-	cmpq	%rdi, %rsi
-	setge	%al
+	movsd	-360(%rbp), %xmm2
+	movsd	-24(%rbp), %xmm3
+	addsd	%xmm3, %xmm2
+	movsd	%xmm2, -360(%rbp)
+	movsd	-352(%rbp), %xmm0
+	movsd	-360(%rbp), %xmm1
+	comisd	%xmm1, %xmm0
+	setae	%al
 	movzbq	%al, %rsi
 	negq	%rsi
 	cmpq	$0, %rsi
