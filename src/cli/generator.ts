@@ -44,7 +44,9 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     isStr,
     Str,
     isVal,
-    Val} from '../language/generated/ast.js';
+    Val,
+    isNotExpr,
+    NotExpr} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
@@ -845,26 +847,38 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
             stmts += genOpCode("cmpq", reg2,reg);
             stmts += genOpCode("setl", "%al");
             stmts += genOpCode("movzbq", "%al", reg);
+            // We need -1 in case of 1 for OR/AND logic and be compatible with c64 basic
+            // NOT -1 is 0
+            stmts += genOpCode("negq", reg)
         } else if (binExpr.op === ">") {
             stmts += genOpCode("cmpq", reg2,reg);
             stmts += genOpCode("setg", "%al");
             stmts += genOpCode("movzbq", "%al", reg);
+            stmts += genOpCode("negq", reg)
         } else if (binExpr.op === "=") {
             stmts += genOpCode("cmpq", reg2,reg);
             stmts += genOpCode("sete", "%al");
             stmts += genOpCode("movzbq", "%al", reg);
+            stmts += genOpCode("negq", reg)
         } else if (binExpr.op === "<=") {
             stmts += genOpCode("cmpq", reg2,reg);
             stmts += genOpCode("setle", "%al");
             stmts += genOpCode("movzbq", "%al", reg);
+            stmts += genOpCode("negq", reg)
         } else if (binExpr.op === ">=") {
             stmts += genOpCode("cmpq", reg2,reg);
             stmts += genOpCode("setge", "%al");
             stmts += genOpCode("movzbq", "%al", reg);
+            stmts += genOpCode("negq", reg)
         } else if (binExpr.op === "<>") {
             stmts += genOpCode("cmpq", reg2,reg);
             stmts += genOpCode("setne", "%al");
             stmts += genOpCode("movzbq", "%al", reg);
+            stmts += genOpCode("negq", reg)
+        } else if (binExpr.op === "OR") {
+            stmts += genOpCode("orq", reg2,reg);
+        } else if (binExpr.op === "AND") {
+            stmts += genOpCode("andq", reg2,reg);
         } else {
             throw "unknown binary operator: "+binExpr.op
         }
@@ -954,6 +968,10 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         stmts += genCall("bstringToInt",{cmd: 'lea',source: `${strResult.varOffset}(%rbp)`})
         stmts += genOpCode("movq","%rax",reg)
         valNode.param
+    } else if (isNotExpr(expr)) {
+        const notNode : NotExpr = expr
+        stmts += exprToInt(notNode.expr,reg,progContext)
+        stmts += genOpCode("notq", reg)
     } else {
         if (isFloatExpr(expr,progContext)) {
             const storeValue = storeRegister(progContext, notPreservedRegister,[reg],true)

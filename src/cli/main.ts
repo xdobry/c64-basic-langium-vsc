@@ -25,7 +25,7 @@ export const generateAst = async (fileName: string): Promise<void> => {
     const services = createC64BasicServices(NodeFileSystem).C64Basic;
     const model = await extractAstNode<Model>(fileName, services);
     // serialize & output the model ast
-    const serializedAst = services.serializer.JsonSerializer.serialize(model, { sourceText: true, textRegions: true });
+    const serializedAst = JSON.stringify(JSON.parse(services.serializer.JsonSerializer.serialize(model, { sourceText: false, textRegions: false })),null,2);
     console.log(serializedAst);
 };
 

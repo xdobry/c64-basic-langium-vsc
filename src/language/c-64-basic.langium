@@ -69,7 +69,7 @@ SExprt: (Expr | SExpr) sep=(';' | ',')?;
 
 SExpr: SAdd;
 
-SAdd  infers SExpr: 
+SAdd infers SExpr: 
     SPrimExpr  ({infer SBinExpr.e1=current} op=('+') e2=SPrimExpr)*;
 
 SPrimExpr: StringLiteral | StringVarRef | StringFunction;
@@ -92,25 +92,24 @@ Len: 'LEN' '(' param=SExpr ')';
 
 Val: 'VAL' '(' param=SExpr ')';
 
-Expr: Add;
+Expr: Logical;
 
-Add  infers Expr: 
-    Mult     ({infer BinExpr.e1=current} op=('+'|'-') e2=Mult)*;
-Mult infers Expr: 
-    Logical ({infer BinExpr.e1=current} op=('*'|'/') e2=Logical)*;
-Logical infers Exprs:
+Logical infers Expr:
     Comparison ({infer BinExpr.e1=current} op=('AND' | 'OR') e2=Comparison)*;
-Comparison infers Exprs:
-    PrimExpr ({infer BinExpr.e1=current} op=('<' | '<=' | '>' | '>=' | '=' | '<>') e2=PrimExpr)*;
+Comparison infers Expr:
+    Add ({infer BinExpr.e1=current} op=('<' | '<=' | '>' | '>=' | '=' | '<>') e2=Add)*;
+Add  infers Expr: 
+    Mult ({infer BinExpr.e1=current} op=('+'|'-') e2=Mult)*;
+Mult infers Expr: 
+    PrimExpr ({infer BinExpr.e1=current} op=('*'|'/') e2=PrimExpr)*;
 
-
-PrimExpr: VarRef | IntNumber | FloatNumber | GroupExpr | NegExpr | NotExpr | NumFunc | PiConst | Asc | Len | Val | StrComparision | FnCall;
+PrimExpr: VarRef | IntNumber | FloatNumber | GroupExpr | NotExpr | NumFunc | PiConst | Asc | Len | Val | StrComparision | FnCall | NegExpr;
 
 FnCall: 'FN' fnname=[DefFn:FLOAT_VARNAME] '(' param=Expr ')';
 
 GroupExpr:  '(' ge=Expr ')';
-NegExpr: '-' expr=Expr;
 NotExpr: 'NOT' expr=Expr;
+NegExpr: '-' expr=PrimExpr;
 
 StrComparision: e1=SPrimExpr operator=('<' | '<=' | '>' | '>=' | '=' | '<>') e2=SPrimExpr;
 

@@ -275,6 +275,7 @@ main:
 	cmpq	%rdi, %rsi
 	setne	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot0
 	# PRINT "ERROR UNINITIALIZED VALUE NOT 0.0"
@@ -557,6 +558,7 @@ main:
 	cmpq	%rdi, %rsi
 	setne	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot1
 	# PRINT "ERROR VALUE"
@@ -792,6 +794,7 @@ main:
 	cmpq	%rdi, %rsi
 	setne	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot2
 	# PRINT "ERROR INT VALUE"

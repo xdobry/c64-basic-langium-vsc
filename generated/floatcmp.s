@@ -4,25 +4,25 @@
 	.def	__main;	.scl	2;	.type	32;	.endef
 	.section .rdata,"dr"
 .LC0:
-	.ascii "ERROR"
+	.ascii "ERROR1"
 	.byte 0
 .LC1:
-	.ascii "ERROR"
+	.ascii "ERROR2"
 	.byte 0
 .LC2:
-	.ascii "ERROR"
+	.ascii "ERROR3"
 	.byte 0
 .LC3:
-	.ascii "ERROR"
+	.ascii "ERROR4"
 	.byte 0
 .LC4:
-	.ascii "ERROR"
+	.ascii "ERROR5"
 	.byte 0
 .LC5:
-	.ascii "ERROR"
+	.ascii "ERROR6"
 	.byte 0
 .LC6:
-	.ascii "ERROR"
+	.ascii "ERROR7"
 	.byte 0
 .LC7:
 	.ascii "END"
@@ -111,8 +111,9 @@ main:
 	# float: 1.1
 	movsd	.LF3(%rip), %xmm0
 	movsd	%xmm0, -32(%rbp)
-	# IF A+B+C<>6.0 THEN PRINT "ERROR"
+	# IF A+B+C<>6.0 THEN PRINT "ERROR1"
 	# int: A+B+C<>6.0 - %rsi
+	# int: A+B+C - %rsi
 	# int: A+B - %rsi
 	# int: A - %rsi
 	# float: A
@@ -123,27 +124,27 @@ main:
 	movsd	-16(%rbp), %xmm0
 	cvtsd2siq	%xmm0, %rdi
 	addq	%rdi, %rsi
-	# int: C<>6.0 - %rdi
 	# int: C - %rdi
 	# float: C
 	movsd	-24(%rbp), %xmm0
 	cvtsd2siq	%xmm0, %rdi
-	# int: 6.0 - %r8
+	addq	%rdi, %rsi
+	# int: 6.0 - %rdi
 	# float: 6.0
 	movsd	.LF4(%rip), %xmm0
-	cvtsd2siq	%xmm0, %r8
-	cmpq	%r8, %rdi
+	cvtsd2siq	%xmm0, %rdi
+	cmpq	%rdi, %rsi
 	setne	%al
-	movzbq	%al, %rdi
-	addq	%rdi, %rsi
+	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot0
-	# PRINT "ERROR"
-	# str: "ERROR"
+	# PRINT "ERROR1"
+	# str: "ERROR1"
 	movq	-56(%rbp), %rcx
 	call	puts
 .ifnot0:
-	# IF A=A1 THEN PRINT "ERROR"
+	# IF A=A1 THEN PRINT "ERROR2"
 	# int: A=A1 - %rsi
 	# int: A - %rsi
 	# float: A
@@ -156,14 +157,15 @@ main:
 	cmpq	%rdi, %rsi
 	sete	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot1
-	# PRINT "ERROR"
-	# str: "ERROR"
+	# PRINT "ERROR2"
+	# str: "ERROR2"
 	movq	-80(%rbp), %rcx
 	call	puts
 .ifnot1:
-	# IF B<A THEN PRINT "ERROR"
+	# IF B<A THEN PRINT "ERROR3"
 	# int: B<A - %rsi
 	# int: B - %rsi
 	# float: B
@@ -176,14 +178,15 @@ main:
 	cmpq	%rdi, %rsi
 	setl	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot2
-	# PRINT "ERROR"
-	# str: "ERROR"
+	# PRINT "ERROR3"
+	# str: "ERROR3"
 	movq	-104(%rbp), %rcx
 	call	puts
 .ifnot2:
-	# IF B<=A THEN PRINT "ERROR"
+	# IF B<=A THEN PRINT "ERROR4"
 	# int: B<=A - %rsi
 	# int: B - %rsi
 	# float: B
@@ -196,14 +199,15 @@ main:
 	cmpq	%rdi, %rsi
 	setle	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot3
-	# PRINT "ERROR"
-	# str: "ERROR"
+	# PRINT "ERROR4"
+	# str: "ERROR4"
 	movq	-128(%rbp), %rcx
 	call	puts
 .ifnot3:
-	# IF A>B THEN PRINT "ERROR"
+	# IF A>B THEN PRINT "ERROR5"
 	# int: A>B - %rsi
 	# int: A - %rsi
 	# float: A
@@ -216,14 +220,15 @@ main:
 	cmpq	%rdi, %rsi
 	setg	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot4
-	# PRINT "ERROR"
-	# str: "ERROR"
+	# PRINT "ERROR5"
+	# str: "ERROR5"
 	movq	-152(%rbp), %rcx
 	call	puts
 .ifnot4:
-	# IF A>=B THEN PRINT "ERROR"
+	# IF A>=B THEN PRINT "ERROR6"
 	# int: A>=B - %rsi
 	# int: A - %rsi
 	# float: A
@@ -236,17 +241,17 @@ main:
 	cmpq	%rdi, %rsi
 	setge	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot5
-	# PRINT "ERROR"
-	# str: "ERROR"
+	# PRINT "ERROR6"
+	# str: "ERROR6"
 	movq	-176(%rbp), %rcx
 	call	puts
 .ifnot5:
-	# IF A+B+C>=A1+B+C THEN PRINT "ERROR"
+	# IF A+B+C>=A1+B+C THEN PRINT "ERROR7"
 	# int: A+B+C>=A1+B+C - %rsi
-	# int: A+B+C>=A1+B - %rsi
-	# int: A+B+C>=A1 - %rsi
+	# int: A+B+C - %rsi
 	# int: A+B - %rsi
 	# int: A - %rsi
 	# float: A
@@ -257,33 +262,35 @@ main:
 	movsd	-16(%rbp), %xmm0
 	cvtsd2siq	%xmm0, %rdi
 	addq	%rdi, %rsi
-	# int: C>=A1 - %rdi
 	# int: C - %rdi
 	# float: C
 	movsd	-24(%rbp), %xmm0
 	cvtsd2siq	%xmm0, %rdi
-	# int: A1 - %r8
+	addq	%rdi, %rsi
+	# int: A1+B+C - %rdi
+	# int: A1+B - %rdi
+	# int: A1 - %rdi
 	# float: A1
 	movsd	-32(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %r8
-	cmpq	%r8, %rdi
-	setge	%al
-	movzbq	%al, %rdi
-	addq	%rdi, %rsi
-	# int: B - %rdi
+	cvtsd2siq	%xmm0, %rdi
+	# int: B - %r8
 	# float: B
 	movsd	-16(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	addq	%rdi, %rsi
-	# int: C - %rdi
+	cvtsd2siq	%xmm0, %r8
+	addq	%r8, %rdi
+	# int: C - %r8
 	# float: C
 	movsd	-24(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	addq	%rdi, %rsi
+	cvtsd2siq	%xmm0, %r8
+	addq	%r8, %rdi
+	cmpq	%rdi, %rsi
+	setge	%al
+	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot6
-	# PRINT "ERROR"
-	# str: "ERROR"
+	# PRINT "ERROR7"
+	# str: "ERROR7"
 	movq	-200(%rbp), %rcx
 	call	puts
 .ifnot6:

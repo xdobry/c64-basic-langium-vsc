@@ -181,6 +181,7 @@ main:
 	cmpq	%rdi, %rsi
 	setne	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot0
 	# PRINT "ERROR1"
@@ -232,6 +233,7 @@ main:
 	cmpq	%rdi, %rsi
 	setne	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot1
 	# PRINT "ERROR2"
@@ -286,6 +288,7 @@ main:
 	cmpq	%rdi, %rsi
 	setne	%al
 	movzbq	%al, %rsi
+	negq	%rsi
 	cmpq	$0, %rsi
 	je	.ifnot2
 	# PRINT "ERROR3"
