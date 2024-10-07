@@ -114,17 +114,14 @@ There are also integer function possible. There must be distinct to float functi
 
 The compiler will break with error if some unsupported keyword is used
 
-* ON GOTO, ON GOSUB
-  - use jmp table
-  - 
-* OPERATORS: AND, OR, NOT
-* DATA, READ
-  - store all data as structure operators to read the data simmilar to input, handle the pointer to next data
-  - all data could be safe as str,int und double (zeros if not possible)
-  - A and A% can not read masked value DATA "2", but A$ can read DATA 2. So we do not knwo if 2 is string or number.
-  - store (hasfloat, lenght of str, int data, float data, str) - can use error float to store that not number. Store in all 3 representation for speed
-* PEEK, POKE
-  - just reserver 64K Memory to use. Just can read and write byte values.
+* ARRAYS for INPUT and READ
+* TIME, TIME$
+* OPEN, INPUT#, GET#, PRINT#
+* PRINT , and ;
+* SPC - space
+* TAB, POS
+* Math Potenz ^
+* REM
 
 * TODO 
   - check stack usage for GOSUB there need be additional place under stack so each call needs to reserve some values on stack to safe "ret" address
@@ -133,9 +130,17 @@ The compiler will break with error if some unsupported keyword is used
 
 # Incompatibilities to C64 Basic
 
+I tried that the compiler produces code that behavious same as possible as original basic 64 interpereter
+without the limitations of c64 basic.
+
 Integer and float variables uses 64-bit numbers.
 There are no limitiation on string and array dimension length.
+The whole variable name is siginificant (not only 2 characters as in c64 basic).
+
 The mathematical expression are also computed directly on integer numbers if 2 operand are also integer.
+For loops can use integer variables. If you want to compile the program to x86 you may use more integer variables.
+But this will not run on original c64.
+
 For-Next loop might work differently for special cases.
 Following code will work on original c64 basic but will not compile with this compiler
 
@@ -144,6 +149,19 @@ Following code will work on original c64 basic but will not compile with this co
    30 END
    50 FOR I=0 TO 5
    60 GOTO 20
+
+Some commands are not implementated because they make no sense in compiled language or on windows platform.
+* RUN
+* LIST
+* BREAK
+* LOAD
+* SYS
+* VERIFY
+* WAIT
+* USR
+* FRE
+* NEW
+* CLR
 
 # Testing
 

@@ -419,16 +419,16 @@ static const char* errorMessages[] = {
     "DIVISION BY ZERO", // 4
     "REDIM'D ARRAY", // 5
     "BAD SUBSCRIPT", // 6 - array index out of bounds
+    "OVERFLOW", // 7
+    "OUT OF DATA", // 8
     /*
     "BREAK",
     "NOT INPUT FILE",
     "CAN'T CONTINUE",
     "NOT OUTPUT FILE",
     "DEVICE NOT PRESENT",
-    "OUT OF DATA",
     "OUT OF MEMORY",
     "FILE DATA",
-    "OVERFLOW",
     "FILE NOT FOUND",
     "FILE NOT OPEN",
     "FILE OPEN",
@@ -519,4 +519,70 @@ void c64_init_array(struct arr_entry *arr,size_t rank) {
         arr->dims[i] = 0;
         arr->dims[i+rank] = 0;
     }
+}
+
+#define SLEN 32
+size_t retstack[SLEN];
+// free position on stack
+size_t stack_pos = 0;
+
+void pushEntry(size_t add) {
+    if (stack_pos>SLEN) {
+        c64_error(7);
+    }
+    retstack[stack_pos++] = add;
+}
+
+size_t popEntry() {
+    if (stack_pos<=0) {
+        c64_error(2);
+    }
+    return retstack[--stack_pos];
+}
+
+/**
+ * All data (from DATA c64 basic command) are stored as Data Entries
+ * as character, integer or double values.
+ * the structures are aligned to 4 bytes and placed each after the other.
+ * they have variable lenght because the characters are added at the end of the structure.
+ */
+struct DataEntry {
+    long long length;
+    double dValue;
+    long long iValue;
+    char data[];
+};
+
+void readData(struct DataEntry** dpointer,const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    for (int i=0; format[i]; i++) {
+        if (dpointer[0]->length==8) {
+            c64_error(7);
+        }
+        // printf("readData format=%c len=%ld dp=%p\n",format[i],dpointer[0]->length,dpointer[0]);
+        if (format[i] == 's') {
+            struct BString *bstring = va_arg(args, struct BString *);
+            assignCStringLen(bstring, dpointer[0]->data, dpointer[0]->length);
+        } else if (format[i]=='i') {
+            long long *val = va_arg(args, long long*);
+            *val = dpointer[0]->iValue;
+            // printf("readData iValue=%ld\n",dpointer[0]->iValue);
+        } else if (format[i]=='d') {
+            double *val = va_arg(args, double*);
+            // printf("readData dValue=%f\n",dpointer[0]->dValue);
+            *val = dpointer[0]->dValue;
+        }
+        // compute the data entry of next structure
+        char *b = (char *)*dpointer;
+        // 20 is the size of 3*8 (dobule, quad, quad) - struct size of DataEntry
+        b += 24 + dpointer[0]->length;
+        size_t alignment = 4;
+        size_t offset = (size_t)(b) % alignment;
+        if (offset != 0) {
+            b += (alignment - offset);
+        }
+        *dpointer = (struct DataEntry *)b;
+    }
+    va_end(args);  
 }

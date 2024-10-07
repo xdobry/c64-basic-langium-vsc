@@ -46,11 +46,23 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     isVal,
     Val,
     isNotExpr,
-    NotExpr} from '../language/generated/ast.js';
+    NotExpr,
+    isOnGoto,
+    OnGoto,
+    Line,
+    isOnGoSub,
+    OnGoSub,
+    isPoke,
+    Poke,
+    isData,
+    isRead,
+    Data,
+    Read,
+    isRestore} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
-import { AstNode, AstUtils } from 'langium';
+import { AstNode, AstUtils, Reference } from 'langium';
 
 interface ProgContext {
     stackAllocation: number
@@ -70,7 +82,13 @@ interface ProgContext {
     goSubLabels: string[]
     stringTmpCount : number
     floatTmpCount : number
+    // tmp variable offset for quat integer 
     tmpOffset: number
+    pokeMemOffset: number
+    dataPointerOffset: number
+    jmpTablesCounter: number
+    jmpTables: string
+    dataDefinition: string
 }
 
 interface ForEntry {
@@ -142,6 +160,11 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         tmpOffset: 0,
         defnLabelCounter: 0,
         dimLabelCounter: 0,
+        jmpTablesCounter: 0,
+        jmpTables: '',
+        pokeMemOffset: 0,
+        dataPointerOffset: 0,
+        dataDefinition: '',
     }
     generateVariables(model, progContext)
     // TODO compute how many tmp str variables are needed
@@ -163,10 +186,20 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
             throw "can not find arr variable offset for: "+key
         }
         programmCode += `\t# init array ${key} ${value}\n`;
-        programmCode += genOpCode("lea",`${aoffset}(%rbp)`, "%rcx");
-        programmCode += genOpCode("movq",`$${value}`, "%rdx");
-        programmCode += genOpCode("call","c64_init_array");
+        programmCode += genCall("c64_init_array",{cmd:'lea',source:`${aoffset}(%rbp)`},{cmd:'movq',source:`$${value}`})
     })
+    console.log("data pointer",progContext.dataPointerOffset)
+    if (progContext.dataPointerOffset!==0) {
+        programmCode += `\t# init data pointer\n`;
+        programmCode += genOpCode("lea","dataDefinition(%rip)","%rax");
+        programmCode += genOpCode("movq","%rax",`${progContext.dataPointerOffset}(%rbp)`);
+    }
+    if (progContext.pokeMemOffset!==0) {
+        programmCode += `\t# init peek/poke 64k memory\n`;
+        // allocate 64k (2<<5) bytes for peek and poke
+        programmCode += genCall("calloc", {cmd:'movq',source:"$1"},{cmd:'movq',source:`$${2<<15}`})
+        programmCode += genOpCode("movq","%rax",`${progContext.pokeMemOffset}(%rbp)`)
+    }
 
     programmCode += initStringConstants(model, progContext)
 
@@ -192,7 +225,14 @@ ${programmCode}
 	ret
     `
 
-    const all = preamble + stringLiterals + floatLiterals + code;
+    if (progContext.jmpTables!=="") {
+        progContext.jmpTables = "# jump tables for goto and gosub\n" + progContext.jmpTables
+    }
+    if (progContext.dataDefinition!=="") {
+        progContext.dataDefinition = "\t.align 4\ndataDefinition:\n" + progContext.dataDefinition
+    }
+
+    const all = preamble + stringLiterals + floatLiterals + progContext.jmpTables + progContext.dataDefinition + code;
     fs.writeFileSync(generatedFilePath, all);
     return generatedFilePath;
 }
@@ -211,14 +251,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
             const lNode : StrLabel = node;
             const name : string = lNode.name.substring(0,lNode.name.length-1)
             if (progContext.goSubLabels.includes(name)) {
-                const jumpOverLabel : string = ".jumpover"+progContext.goSubLabelCounter++
-                code += genOpCode("jmp", jumpOverLabel);
                 code += `.${name}:\n`;
-                // Allocate stack space needed because otherwise the ret address will be overwritten
-                // by caller (see windows ABI for details)
-                // 32 is the value that gcc c compiler uses
-                code += genOpCode("subq","$32","%rsp");
-                code += `${jumpOverLabel}:\n`;
             } else {
                 code += `.${lNode.name}\n`;
             }
@@ -260,41 +293,15 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                     code += freeStrTmp(progContext, tmpVarOffset);
                 }
             } else if (isGoSub(node)) {
-                const goto : GoSub = node;
-                const labelRef = goto.label?.ref
-                if (labelRef) {
-                    const name = labelRef.name
-                    if (name.endsWith(":")) {
-                        code += genOpCode("call", "."+labelRef.name.substring(0,name.length-1));
-                    } else {
-                        code += genOpCode("call", "."+labelRef.name);
-                    }
-                } else {
-                    const lineRef = goto.lineNumber?.ref
-                    if (lineRef) {
-                        code += genOpCode("call", `.line${lineRef.linenum}`);
-                    }
-                }
+                const contLabel = `.gosubCont${progContext.goSubLabelCounter++}`
+                code += genCall("pushEntry",{cmd:"leaq",source:`${contLabel}(%rip)`})
+                code += genOpCode("jmp",getJmpLabel(node.label,node.lineNumber,progContext))
+                code += `${contLabel}:\n`
             } else if (isGoTo(node)) {
-                const goto : GoTo = node;
-                const labelRef = goto.label?.ref
-                if (labelRef) {
-                    const name = labelRef.name
-                    if (name.endsWith(":")) {
-                        code += genOpCode("jmp", "."+labelRef.name.substring(0,name.length-1));
-                    } else {
-                        code += genOpCode("jmp", "."+labelRef.name);
-                    }
-                } else {
-                    const lineRef = goto.lineNumber?.ref
-                    if (lineRef) {
-                        code += genOpCode("jmp", `.line${lineRef.linenum}`);
-                    }
-                }
+                code += genOpCode("jmp",getJmpLabel(node.label,node.lineNumber,progContext))
             } else if (isReturn(node)) {
-                // RETURN without GOSUB will break the program
-                code += genOpCode("addq","$32","%rsp");
-                code += genOpCode("ret");
+                code += genCall("popEntry")
+                code += genOpCode("jmp","*%rax");
             } else if (isLetNum(node)) {
                 const letNode : LetNum = node;
                 const isArray = letNode.name.indexes.length>0
@@ -516,6 +523,105 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                         }
                     }
                 }
+            } else if (isOnGoto(node)) {
+                const onGotoNode : OnGoto = node
+                const reg = allocateRegister(progContext)
+                code += exprToInt(onGotoNode.expr, reg, progContext);
+                freeRegister(progContext,reg);
+                const jumpOverLabel = ".gotoEnd"+progContext.goSubLabelCounter++
+                code += genOpCode("cmpq","$0",reg)
+                code += genOpCode("jle",jumpOverLabel)
+                code += genOpCode("cmpq",`$${onGotoNode.labels.length}`,reg)
+                code += genOpCode("ja",jumpOverLabel)
+                const jmpTableLabel = ".jt"+progContext.jmpTablesCounter++
+                // code += genOpCode("moveq",`${jmpTableLabel}(,${reg},8)`,"%rax")
+                code += genOpCode("decq",reg)
+                code += genOpCode("jmp",`*${jmpTableLabel}(,${reg},8)`);
+                // create jump table
+                progContext.jmpTables += `${jmpTableLabel}:\n`
+                for (const label of onGotoNode.labels) {
+                    progContext.jmpTables += `\t.quad ${getJmpLabel(label,undefined,progContext)}\n`
+                }
+                code += `${jumpOverLabel}:\n`
+            } else if (isOnGoSub(node)) {
+                const onGotoNode : OnGoSub = node
+                const jumpOverLabel = ".gotoEnd"+progContext.goSubLabelCounter++
+                code += genCall("pushEntry",{cmd:"leaq",source:`${jumpOverLabel}(%rip)`})
+                const reg = allocateRegister(progContext)
+                code += exprToInt(onGotoNode.expr, reg, progContext);
+                freeRegister(progContext,reg);
+                code += genOpCode("cmpq","$0",reg)
+                code += genOpCode("jle",jumpOverLabel)
+                code += genOpCode("cmpq",`$${onGotoNode.labels.length}`,reg)
+                code += genOpCode("ja",jumpOverLabel)
+                const jmpTableLabel = ".jt"+progContext.jmpTablesCounter++
+                // code += genOpCode("moveq",`${jmpTableLabel}(,${reg},8)`,"%rax")
+                code += genOpCode("decq",reg)
+                code += genOpCode("jmp",`*${jmpTableLabel}(,${reg},8)`);
+                // create jump table
+                progContext.jmpTables += `${jmpTableLabel}:\n`
+                for (const label of onGotoNode.labels) {
+                    progContext.jmpTables += `\t.quad ${getJmpLabel(label,undefined,progContext)}\n`
+                }
+                code += `${jumpOverLabel}:\n`
+            } else if (isPoke(node)) {
+                const pokeNode : Poke = node
+                const regAddr = allocateRegister(progContext)
+                const regByte = allocateRegister(progContext)
+                code += exprToInt(pokeNode.addr,regAddr, progContext)
+                // truncate the addr to 64 K
+                code += genOpCode("andq","$0xFFFF",regAddr)
+                code += exprToInt(pokeNode.value,regByte,progContext)
+                code += genOpCode("movq",`${progContext.pokeMemOffset}(%rbp)`,"%rax")
+                code += genOpCode("movb",registerToByteName(regByte),`0(%rax,${regAddr},1)`)
+                freeRegister(progContext,regAddr);
+                freeRegister(progContext,regByte);
+            } else if (isData(node)) {
+                const dataNode: Data = node
+                for (const dataLiteral of dataNode.values) {
+                    const text = isStringLiteral(dataLiteral) ? dataLiteral.val : dataLiteral.$cstNode?.text
+                    if (text) {
+                        progContext.dataDefinition += `\t.align 4\n`
+                        progContext.dataDefinition += `\t.quad ${text.length}\n`
+                        const float = parseFloat(text)
+                        progContext.dataDefinition += `\t.double ${float}\n`
+                        const intValue = parseInt(text)
+                        if (isNaN(intValue)) {
+                            progContext.dataDefinition += `\t.quad 0\n`
+                        } else {
+                            progContext.dataDefinition += `\t.quad ${intValue}\n`
+                        }
+                        progContext.dataDefinition += `\t.ascii "${text}"\n`
+                    }
+                }
+            } else if (isRead(node)) {
+                const readNode : Read = node;
+                const labeledNode : LabeledNode = readNode;
+                code += genOpCode("leaq", `${progContext.dataPointerOffset}(%rbp)`, "%rcx");
+                code += genOpCode("leaq", `${labeledNode._label}(%rip)`, "%rdx");
+                let parNum = 2
+                for (const ivar of readNode.vars) {
+                    const varName = ivar.name
+                    const varOffset = progContext.variables.get(varName)
+                    if (varOffset) {
+                        const parReg = regParameters[parNum]
+                        if (parReg) {
+                            code += genOpCode("leaq", `${varOffset}(%rbp)`, parReg);
+                        } else {
+                            code += genOpCode("push", `${varOffset}(%rbp)`, parReg);
+                        }
+                    } else {
+                        throw "can not find variable offset for: "+varName
+                    }
+                    parNum++
+                }
+                code += genOpCode("call", "readData");
+            } else if (isRestore(node)) {
+                if (progContext.dataPointerOffset===0) {
+                    throw "restore without data"
+                }
+                code += genOpCode("lea",`dataDefinition(%rip)`,"%rax")
+                code += genOpCode("movq","%rax",`${progContext.dataPointerOffset}(%rbp)`)
             } else {
                 throw "unsupported command: "+node.$type
             }
@@ -536,6 +642,25 @@ function conditionToAssembler(cond: Expr, progContext: ProgContext, notIfLabel: 
 
 function genFor(forNode: For, progContext: ProgContext) : string {
     return new ForGenerator(forNode, progContext).generate()
+}
+
+function getJmpLabel(labelRef: Reference<Label> | undefined, lineRef: Reference<Line> | undefined, progContext: ProgContext) : string {
+    const label = labelRef?.ref
+    if (label) {
+        const name = label.name
+        if (name.endsWith(":")) {
+            return "."+label.name.substring(0,name.length-1);
+        } else {
+            return  "."+label.name;
+        }
+    } else {
+        const line = lineRef?.ref
+        if (line) {
+            return `.line${line.linenum}`
+        } else {
+            throw "can not find jmp label"
+        }
+    }
 }
 
 interface BStringResult {
@@ -786,6 +911,18 @@ function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
             }
         }
         throw "can not find variable offset for input var: "+varName        
+    } else if (isRead(lNode)) {
+        let varName = varRef.$cstNode?.text
+        if (varName?.endsWith(",")) {
+            varName = varName.substring(0,varName.length-1)
+        }
+        const getNode : Read = lNode;
+        for (const ivar of getNode.vars) {
+            if (ivar.name === varName) {
+                return ivar.name
+            }
+        }
+        throw "can not find variable offset for read var: "+varName        
     } else if (isDefFn(lNode)) {
         return lNode.param.name
     } else {
@@ -797,7 +934,7 @@ function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
 
 function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
     let stmts = ""
-    console.log(`expr int: ${expr.$cstNode?.text} - ${reg}`)
+    // console.log(`expr int: ${expr.$cstNode?.text} - ${reg}`)
     stmts += `\t# int: ${expr.$cstNode?.text} - ${reg}\n`;
     if (isIntNumber(expr)) {
         const intNumber : IntNumber = expr;
@@ -1032,6 +1169,18 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         const notNode : NotExpr = expr
         stmts += exprToInt(notNode.expr,reg,progContext)
         stmts += genOpCode("notq", reg)
+    } else if (isNumFunc(expr)) {
+        const numFuncNode : NumFunc = expr
+        if (numFuncNode.func==='PEEK') {
+            stmts += exprToInt(numFuncNode.param, reg, progContext)
+            if (!progContext.pokeMemOffset) {
+                throw "can not find poke memory offset for peek (mem not initialized)"
+            }
+            stmts += genOpCode("movq", `${progContext.pokeMemOffset}(%rbp)`, "%rax")
+            stmts += genOpCode("movzb", `(%rax,${reg},1)`, reg)
+        } else {
+            throw "unsuported int num func "+numFuncNode.func
+        }
     } else {
         if (isFloatExpr(expr,progContext)) {
             const storeValue = storeRegister(progContext, notPreservedRegister,[reg],true)
@@ -1091,7 +1240,7 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
     let stmts = ""
     let source = ""
     let tmpOffset : undefined | number = undefined
-    console.log(`expr float: ${expr.$cstNode?.text}`);
+    // console.log(`expr float: ${expr.$cstNode?.text}`);
     stmts += `\t# float: ${expr.$cstNode?.text}\n`;
     if (isFloatNumber(expr)) {
         const lNode : LabeledNode = expr;
@@ -1267,6 +1416,8 @@ function isFnFloatType(fnNode: FnCall, progContext: ProgContext) {
 
 function generateVariables(model: Model, progContext: ProgContext) {
     let variableOffset = -8;
+    let usePeekPoke = false
+    let hasData = false
     for (const node of AstUtils.streamAllContents(model)) {
         if (isVar(node)) {
             const lNode : LabeledNode = node;
@@ -1386,6 +1537,10 @@ function generateVariables(model: Model, progContext: ProgContext) {
                 lNode._variableOffset = variableOffset
                 variableOffset -= 8;
             }
+        } else if (isPoke(node) || (isNumFunc(node) && node.func==='PEEK')) {
+            usePeekPoke = true
+        } else if (isData(node)) {
+            hasData = true
         }
     }
     // create temporaty variables for bstring
@@ -1403,6 +1558,14 @@ function generateVariables(model: Model, progContext: ProgContext) {
     }
     progContext.tmpOffset = variableOffset
     variableOffset -= 8
+    if (usePeekPoke) {
+        progContext.pokeMemOffset = variableOffset
+        variableOffset -= 8
+    }
+    if (hasData) {
+        progContext.dataPointerOffset = variableOffset
+        variableOffset -= 8
+    }
     // allocate stack size pad to 16 and add 32 bytes for the stack frame
     progContext.stackAllocation = -variableOffset+(-variableOffset)%16 + 32
 }
@@ -1422,6 +1585,22 @@ function generateStringLiterals(model: Model): string {
             const input : Input = node;
             let iformat = ""
             for (const ivar of input.vars) {
+                if (isStrVariable(ivar.name)) {
+                    iformat += "s"
+                } else if (ivar.name.endsWith("%")) {
+                    iformat += "i"
+                } else {
+                    iformat += "d"
+                }
+            }
+            literals += `${label}:\n\t.ascii "${iformat}"\n\t.byte 0\n`;
+            const lNode : LabeledNode = node;
+            lNode._label = label;
+        } else if (isRead(node)) {
+            const label = `.LC${labelCounter++}`;
+            const readNode : Read = node;
+            let iformat = ""
+            for (const ivar of readNode.vars) {
                 if (isStrVariable(ivar.name)) {
                     iformat += "s"
                 } else if (ivar.name.endsWith("%")) {
@@ -1565,6 +1744,26 @@ function allocateXmmRegister(progContext: ProgContext) : string {
 
 function freeXmmRegister(progContext: ProgContext, register: string) {
     progContext.usedXmmRegisters = progContext.usedXmmRegisters.filter(e => e !== register);
+}
+
+function registerToByteName(reg: string) : string {
+    const maps : any = {
+        "%rax":"%rl",
+        "%rsi":"%sil",
+        "%rdi":"%dil",
+        "%r8":"%r8b",
+        "%r9":"%r9b",
+        "%r10":"%r10b",
+        "%r11":"%r11b",
+        "%r12":"%r12b",
+        "%r13":"%r13b",
+        "%r14":"%r14b",
+        "%r15":"%r15b",
+        "%rbx":"%bl",
+        "%rcx":"%cl",
+        "%rdx":"%dl"
+    }
+    return maps[reg]!;
 }
 
 class ForGenerator {
