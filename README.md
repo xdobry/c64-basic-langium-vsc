@@ -114,14 +114,10 @@ There are also integer function possible. There must be distinct to float functi
 
 The compiler will break with error if some unsupported keyword is used
 
-* ARRAYS for INPUT and READ
 * TIME, TIME$
 * OPEN, INPUT#, GET#, PRINT#
 * PRINT , and ;
-* SPC - space
-* TAB, POS
 * Math Potenz ^
-* REM
 
 * TODO 
   - check stack usage for GOSUB there need be additional place under stack so each call needs to reserve some values on stack to safe "ret" address
@@ -162,6 +158,8 @@ Some commands are not implementated because they make no sense in compiled langu
 * FRE
 * NEW
 * CLR
+
+POS, SPC and TAB are fake and not work as suspected. POS gives always 0.
 
 # Testing
 

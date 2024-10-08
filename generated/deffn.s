@@ -306,20 +306,19 @@ main:
 	call	assignBString
 	# str: FN C(2.0+SIN(1.0))
 	# int: FN C(2.0+SIN(1.0)) - %rdx
-	# int: 2.0+SIN(1.0) - %rsi
-	# int: 2.0 - %rsi
+	# float: 2.0+SIN(1.0)
 	# float: 2.0
-	movsd	.LF2(%rip), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	# int: SIN(1.0) - %rdi
 	# float: SIN(1.0)
 	# float: 1.0
 	movsd	.LF3(%rip), %xmm0
 	call	sin
 	movsd	%xmm0, -584(%rbp)
+	movsd	.LF2(%rip), %xmm0
+	movsd	-584(%rbp), %xmm1
+	addsd	%xmm1, %xmm0
+	movsd	%xmm0, -584(%rbp)
 	movsd	-584(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rdi
-	addq	%rdi, %rsi
+	cvtsd2siq	%xmm0, %rdx
 	movq	%rsi, -48(%rbp)
 	movq	-40(%rbp), %rax
 	call	*%rax
@@ -467,9 +466,9 @@ main:
 	subq	$32, %rsp
 	call	*%rax
 	movsd	%xmm0, -584(%rbp)
+	addq	$32, %rsp
 	popq	%rax
 	popq	%rsi
-	addq	$32, %rsp
 	movsd	-584(%rbp), %xmm0
 	cvtsd2siq	%xmm0, %rsi
 	addq	%rsi, %rax

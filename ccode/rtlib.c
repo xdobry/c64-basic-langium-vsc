@@ -191,6 +191,43 @@ void bstrMid(struct BString* target, const struct BString* str, size_t pos, size
     }
 }
 
+void bstrSpc(struct BString* target, size_t count) {
+    if (target->capacity < count+1) {
+        if (target->data==NULL) {
+            target->data = malloc(count+1);
+        } else {
+            target->data = realloc(target->data, count+1);
+        }
+        target->capacity = count+1;
+    }
+    target->length=count;
+    for (size_t i=0; i<count; i++) {
+        target->data[i] = ' ';
+    }
+    target->data[count] = '\0';
+}
+
+/**
+ * TODO - this is only fake implementation
+ * for real tab we would need cursor position add move cursor to the count
+ */
+void bstrTab(struct BString* target, size_t count) {
+    if (target->capacity < count+1) {
+        if (target->data!=NULL) {
+            target->data = malloc(count+1);
+        } else {
+            target->data = realloc(target->data, count+1);
+        }
+        target->capacity = count+1;
+    }
+    target->length=count;
+    for (size_t i=0; i<count; i++) {
+        target->data[i] = '\t';
+    }
+    target->data[count] = '\0';
+}
+
+
 /**
  * Compare two bstrings
  * operator

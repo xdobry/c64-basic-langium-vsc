@@ -1,13 +1,13 @@
 grammar C64Basic
 
 entry Model:
-    (lines+=Line NEWLINE)+;
+    (lines+=Line? NEWLINE)+ (lines+=Line)?;
 
-Line: linenum=INT_NUMBER? stmts+=Stmt (COLON stmts+=Stmt)*;
+Line: (linenum=INT_NUMBER? stmts+=Stmt (COLON stmts+=Stmt)* COLON?) | linenum=INT_NUMBER;
 
 Stmt: Cmd | StrLabel;
 
-Cmd: Print | LetStr | LetNum | Label | GoTo | If | For | Next | End | Input | Get | Read | Data | Restore | Poke | Return | GoSub | Dim | OnGoto | OnGoSub | DefFn | REM_COMMENT | Wait | Run;
+Cmd: Print | LetStr | LetNum | Label | GoTo | If | For | Next | End | Input | Get | Read | Data | Restore | Poke | Return | GoSub | Dim | OnGoto | OnGoSub | DefFn | Wait | Run;
 
 Print: "PRINT" (exprs+=SExprt)*;
 
@@ -59,7 +59,7 @@ Wait: "WAIT" addr=Expr ',' mask=Expr (',' invers=Expr)?;
 
 Var : StringVar | IntVar | FloatVar;
 
-NumFunc: func=('RND' | 'ABS' | 'SGN' | 'INT' | 'SQR' | 'LOG' | 'EXP' | 'COS' | 'SIN' | 'TAN' | 'ATN' | 'PEEK') '(' param=Expr ')';
+NumFunc: func=('RND' | 'ABS' | 'SGN' | 'INT' | 'SQR' | 'LOG' | 'EXP' | 'COS' | 'SIN' | 'TAN' | 'ATN' | 'PEEK' | 'POS') '(' param=Expr ')';
 
 StringVar: name=STRING_VARNAME ('(' indexes+=Expr  (',' indexes+=Expr)* ')')?;
 IntVar: name=INT_VARNAME ('(' indexes+=Expr  (',' indexes+=Expr)* ')')?;
@@ -76,7 +76,7 @@ SPrimExpr: StringLiteral | StringVarRef | StringFunction;
 
 StringFunction: StringFunction1 | StringFunction2 | StringFunction3 | Chrs | Str;
 
-StringFunction1: func=('ASC' | 'SPC') '(' param=Expr ')';
+StringFunction1: func=('SPC' | 'TAB') '(' param=Expr ')';
 
 StringFunction2: func=('LEFT$' | 'RIGHT$') '(' str=SExpr ',' param=Expr ')';
 
@@ -129,16 +129,17 @@ PiConst: {infer PiConst} 'π';
 DataLiteral: StringLiteral | IntNumber | FloatNumber | FLOAT_VARNAME;
 
 hidden terminal WS: /[ \t]+/;
-terminal REM_COMMENT: /REM[^\n\r]*/;
 
 // terminal BASIC_KEYWORDS returns string: /PRINT|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|TI|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT/;
-terminal INT_VARNAME returns string: /(?!PRINT|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)[A-Z][A-Z0-9]*%/;
-terminal LABEL_NAME returns string: /(?!PRINT|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)([A-Za-z][A-Za-z0-9]+):/;
-terminal STRING_VARNAME returns string: /(?!PRINT|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)[A-Z][A-Z0-9]*\$/;
-terminal FLOAT_VARNAME returns string: /(?!PRINT|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)[A-Za-z][A-Za-z0-9]*/;
+terminal INT_VARNAME returns string: /(?!PRINT|LET|REM|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)[A-Z][A-Z0-9]*%/;
+terminal LABEL_NAME returns string: /(?!PRINT|LET|REM| IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)([A-Za-z][A-Za-z0-9]+):/;
+terminal STRING_VARNAME returns string: /(?!PRINT|REM|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)[A-Z][A-Z0-9]*\$/;
+terminal FLOAT_VARNAME returns string: /(?!PRINT|REM|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)[A-Za-z][A-Za-z0-9]*/;
 terminal FLOAT returns number: /[0-9]+\.[0-9]+/;
 terminal INT_NUMBER returns string: /[0-9]+/;
 terminal STRING: /"(\\.|[^"\\])*"/;
 terminal COLON: ':';
 terminal NEWLINE: /[\n\r]+/;
 
+// hidden terminal REM_COMMENT: /:?\s*?#[^\n\r]*/;
+hidden terminal SL_COMMENT: /REM[^\n\r]*/;

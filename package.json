@@ -26,7 +26,9 @@
         "gcc": "gcc .\\generated\\compile.s .\\ccode\\rtlib_asm.s .\\ccode\\rtlib.c -o .\\generated\\compile.exe",
         "testexe": ".\\generated\\compile.exe",
         "devtrip": "npm run build && npm run clitest && npm run gcc && npm run testexe",
-        "cliast": "node ./bin/cli.js ast ./examples/compile.c64b"
+        "cliast": "node ./bin/cli.js ast",
+        "clitokenize": "node ./bin/cli.js tokenize",
+        "cligenerate": "node ./bin/cli.js generate"
     },
     "dependencies": {
         "langium": "~3.1.0",

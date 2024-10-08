@@ -58,7 +58,10 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     isRead,
     Data,
     Read,
-    isRestore} from '../language/generated/ast.js';
+    isRestore,
+    isStringFunction1,
+    StringFunction1,
+    Var} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
@@ -439,23 +442,14 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 }
                 const labeledNode : LabeledNode = inputNode;
                 code += genOpCode("leaq", `${labeledNode._label}(%rip)`, "%rdx");
-                let parNum = 2
-                for (const ivar of inputNode.vars) {
-                    const varName = ivar.name
-                    const varOffset = progContext.variables.get(varName)
-                    if (varOffset) {
-                        const parReg = regParameters[parNum]
-                        if (parReg) {
-                            code += genOpCode("leaq", `${varOffset}(%rbp)`, parReg);
-                        } else {
-                            code += genOpCode("push", `${varOffset}(%rbp)`, parReg);
-                        }
-                    } else {
-                        throw "can not find variable offset for: "+varName
-                    }
-                    parNum++
-                }
+                const usedParRegs = ["%rcx","%rdx"]
+                progContext.usedRegisters.push("%rcx")
+                progContext.usedRegisters.push("%rdx")
+                code += addVarPointerParameters(progContext, inputNode.vars, usedParRegs, 2)
                 code += genOpCode("call", "inputData");
+                for (const ureg of usedParRegs) {
+                    freeRegister(progContext,ureg)
+                }
             } else if (isDefFn(node)) {
                 const defFn : DefFn = node
                 const labelEnd = `.defn_end${defFn.name}_${progContext.defnLabelCounter}`
@@ -600,22 +594,14 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 code += genOpCode("leaq", `${progContext.dataPointerOffset}(%rbp)`, "%rcx");
                 code += genOpCode("leaq", `${labeledNode._label}(%rip)`, "%rdx");
                 let parNum = 2
-                for (const ivar of readNode.vars) {
-                    const varName = ivar.name
-                    const varOffset = progContext.variables.get(varName)
-                    if (varOffset) {
-                        const parReg = regParameters[parNum]
-                        if (parReg) {
-                            code += genOpCode("leaq", `${varOffset}(%rbp)`, parReg);
-                        } else {
-                            code += genOpCode("push", `${varOffset}(%rbp)`, parReg);
-                        }
-                    } else {
-                        throw "can not find variable offset for: "+varName
-                    }
-                    parNum++
-                }
+                const usedParRegs = ["%rcx","%rdx"]
+                progContext.usedRegisters.push("%rcx")
+                progContext.usedRegisters.push("%rdx")
+                code += addVarPointerParameters(progContext, readNode.vars, usedParRegs, parNum)
                 code += genOpCode("call", "readData");
+                for (const ureg of usedParRegs) {
+                    freeRegister(progContext,ureg)
+                }
             } else if (isRestore(node)) {
                 if (progContext.dataPointerOffset===0) {
                     throw "restore without data"
@@ -628,6 +614,41 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
         }
     }
     return code;
+}
+
+function addVarPointerParameters(progContext: ProgContext, vars: Var[], usedParRegs: string[], parNum: number) : string {
+    let code = ""
+    for (const ivar of vars) {
+        const isArray = ivar.indexes.length>0
+        const varName = isArray? ivar.name+"[]" : ivar.name
+        const varOffset = progContext.variables.get(varName)
+        if (varOffset) {
+            const parReg = regParameters[parNum]
+            if (isArray) {
+                const storeValue = storeRegister(progContext, usedParRegs,[],true,false)
+                code += storeValue.code
+                code += genArrIndex(varName, ivar.indexes, progContext)
+                code += genOpCode("lea", `${varOffset}(%rbp)`, "%rcx");
+                if (isStrVariable(ivar.name)) {
+                    code += genOpCode("call", "c64_get_str_item_ptr");
+                } else {
+                    code += genOpCode("call", "c64_get_item_ptr");
+                }
+                code += genOpCode(parReg ? "movq" : "push", "%rax", parReg);
+                code += restoreRegister(storeValue)
+            } else {
+                code += genOpCode( parReg ? "leaq" : "push", `${varOffset}(%rbp)`, parReg);
+            }
+            if (parReg) {
+                usedParRegs.push(parReg)
+                progContext.usedRegisters.push(parReg)
+            }
+        } else {
+            throw "can not find variable offset for: "+varName
+        }
+        parNum++
+    }
+    return code
 }
 
 function conditionToAssembler(cond: Expr, progContext: ProgContext, notIfLabel: string) : string {
@@ -758,6 +779,19 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         code += exprToInt(chrs.param, "%rdx", progContext);
         code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
         code += genOpCode("call", "assignChar");
+    } else if (isStringFunction1(expr)) {
+        const stringFunction1 : StringFunction1 = expr;
+        variableOffset = allocateStrTmp(progContext)
+        tmpOffset = variableOffset
+        code += exprToInt(expr.param, "%rdx", progContext);
+        code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+        if (stringFunction1.func === "SPC") {
+            code += genOpCode("call", "bstrSpc");
+        } else if (stringFunction1.func === "TAB") {
+            code += genOpCode("call", "bstrTab");
+        } else {
+            throw "unknown string function2 expression: "+stringFunction1.func
+        }
     } else if (isStringFunction2(expr)) {
         const stringFunction2 : StringFunction2 = expr;
         variableOffset = allocateStrTmp(progContext)
@@ -897,32 +931,23 @@ function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
         return lNode.name.name
     } else if (isGet(lNode)) {
         return lNode.var.name
-    } else if (isInput(lNode)) {
-        // The ref point to input that can have many variables,
-        // we need find the right one
+    } else if (isRead(lNode) || isInput(lNode)) {
         let varName = varRef.$cstNode?.text
-        if (varName?.endsWith(",")) {
-            varName = varName.substring(0,varName.length-1)
+        if (varName) {
+            if (varName.endsWith(",")) {
+                varName = varName.substring(0,varName.length-1)
+            }
+            const pIdx = varName.indexOf("(")
+            if (pIdx>0) {
+                varName = varName.substring(0,pIdx)
+            }
         }
-        const getNode : Input = lNode;
-        for (const ivar of getNode.vars) {
+        for (const ivar of lNode.vars) {
             if (ivar.name === varName) {
                 return ivar.name
             }
         }
-        throw "can not find variable offset for input var: "+varName        
-    } else if (isRead(lNode)) {
-        let varName = varRef.$cstNode?.text
-        if (varName?.endsWith(",")) {
-            varName = varName.substring(0,varName.length-1)
-        }
-        const getNode : Read = lNode;
-        for (const ivar of getNode.vars) {
-            if (ivar.name === varName) {
-                return ivar.name
-            }
-        }
-        throw "can not find variable offset for read var: "+varName        
+        throw "can not find variable offset for input/read var: "+varName        
     } else if (isDefFn(lNode)) {
         return lNode.param.name
     } else {
@@ -1118,7 +1143,18 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         const reg2 = allocateRegister(progContext)
         const storeValue = storeRegister(progContext, registers,[reg2,reg])
         stmts += storeValue.code
-        stmts += exprToInt(fnCall.param, reg2, progContext);
+        if (isFloatExpr(fnCall.param,progContext)) {
+            const storeValue = storeRegister(progContext, notPreservedRegister,[reg],true)
+            stmts += storeValue.code
+            const floatResult = exprToFloat(fnCall.param, progContext);
+            stmts += floatResult.code;
+            stmts += genOpCode("movsd", floatResult.source!, "%xmm0");
+            freeFloatTmp(progContext, floatResult.tmpOffset);
+            stmts += restoreRegister(storeValue);
+            stmts += genOpCode("cvtsd2siq", "%xmm0", reg);
+        } else {
+            stmts += exprToInt(fnCall.param, reg2, progContext);
+        }
         stmts += genOpCode("movq", reg2, `${defnVar}(%rbp)`);
         freeRegister(progContext, reg2)
         // stmts += genOpCode("movq", "$0", reg);
@@ -1178,6 +1214,9 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
             }
             stmts += genOpCode("movq", `${progContext.pokeMemOffset}(%rbp)`, "%rax")
             stmts += genOpCode("movzb", `(%rax,${reg},1)`, reg)
+        } else if (numFuncNode.func==='POS') {
+            // TODO Fake POS implementation need access to cursor position
+            stmts += genOpCode("movq", "$0", reg)
         } else {
             throw "unsuported int num func "+numFuncNode.func
         }
@@ -1689,7 +1728,7 @@ interface RegisterStorage {
     allocateShadowSpace: boolean
 }
 
-function storeRegister(progContext: ProgContext, toStore: string[], except: string[], allocateShadowSpace = false) : RegisterStorage {
+function storeRegister(progContext: ProgContext, toStore: string[], except: string[], allocateShadowSpace = false, storeTmpFloats = true) : RegisterStorage {
     let code = ""
     let restoreStack = []
     for (const reg of toStore) {
@@ -1700,12 +1739,14 @@ function storeRegister(progContext: ProgContext, toStore: string[], except: stri
         }
     }
     if (allocateShadowSpace) {
-        for (let i=0;i<progContext.tmpOffset;i++) {
-            const varName = `floattmp${i}`
-            const offset = progContext.variables.get(varName)!
-            const source = `${offset}(%rbp)`
-            code += genOpCode("pushq", source);
-            restoreStack.push(source)
+        if (storeTmpFloats) {
+            for (let i=0;i<progContext.tmpOffset;i++) {
+                const varName = `floattmp${i}`
+                const offset = progContext.variables.get(varName)!
+                const source = `${offset}(%rbp)`
+                code += genOpCode("pushq", source);
+                restoreStack.push(source)
+            }
         }
         if (restoreStack.length>0) {
             // The stack needs to be 16 bytes aligned
@@ -1722,11 +1763,11 @@ function storeRegister(progContext: ProgContext, toStore: string[], except: stri
 
 function restoreRegister(registerStorage: RegisterStorage) : string {
     let code = ""
-    for (const reg of registerStorage.restoreStack.reverse()) {
-        code += genOpCode("popq", reg);
-    }
     if (registerStorage.allocateShadowSpace && registerStorage.restoreStack.length>0) {
         code += genOpCode("addq", "$32", "%rsp");
+    }
+    for (const reg of registerStorage.restoreStack.reverse()) {
+        code += genOpCode("popq", reg);
     }
     return code
 }

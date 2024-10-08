@@ -33,6 +33,8 @@ void concatBString(struct BString* target, const struct BString* str1, const str
 void bstrRight(struct BString* target, const struct BString* str, size_t count);
 void bstrLeft(struct BString* target, const struct BString* str, size_t count);
 void bstrMid(struct BString* target, const struct BString* str, size_t pos, size_t count);
+void bstrSpc(struct BString* target, size_t count);
+void bstrTab(struct BString* target, size_t count);
 
 void inputBString(struct BString* str);
 void inputData(struct BString* message,const char *format, ...);
