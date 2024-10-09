@@ -85,12 +85,12 @@ main:
 	call	puts
 	# PRINT A%
 	# str: A%
-	leaq	-152(%rbp), %rcx
+	leaq	-248(%rbp), %rcx
 	movq	-32(%rbp), %rdx
 	call	assignInt
-	movq	-152(%rbp), %rcx
+	movq	-248(%rbp), %rcx
 	call	puts
-	leaq	-152(%rbp), %rcx
+	leaq	-248(%rbp), %rcx
 	call	freeBString
 	# A%=1
 	# int: 1 - %rsi
@@ -103,12 +103,12 @@ main:
 .gosubCont1:
 	# PRINT A%
 	# str: A%
-	leaq	-152(%rbp), %rcx
+	leaq	-248(%rbp), %rcx
 	movq	-32(%rbp), %rdx
 	call	assignInt
-	movq	-152(%rbp), %rcx
+	movq	-248(%rbp), %rcx
 	call	puts
-	leaq	-152(%rbp), %rcx
+	leaq	-248(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
 	# str: "END"
@@ -131,13 +131,13 @@ main:
 	# float: 1.0
 	movsd	.LF0(%rip), %xmm0
 	call	sin
-	movsd	%xmm0, -256(%rbp)
-	movsd	-256(%rbp), %xmm1
-	leaq	-152(%rbp), %rcx
+	movsd	%xmm0, -288(%rbp)
+	movsd	-288(%rbp), %xmm1
+	leaq	-248(%rbp), %rcx
 	call	assignDouble
-	movq	-152(%rbp), %rcx
+	movq	-248(%rbp), %rcx
 	call	puts
-	leaq	-152(%rbp), %rcx
+	leaq	-248(%rbp), %rcx
 	call	freeBString
 	# PRINT "HA"
 	# str: "HA"

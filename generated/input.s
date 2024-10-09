@@ -102,24 +102,24 @@ main:
 	call	inputData
 	# PRINT "WELCOME ",B$," ",C$
 	# str: "WELCOME ",
-	leaq	-248(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	leaq	-120(%rbp), %rdx
 	call	assignBString
 	# str: B$,
-	leaq	-248(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	leaq	-72(%rbp), %rdx
 	call	appendBString
 	# str: " ",
-	leaq	-248(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	leaq	-144(%rbp), %rdx
 	call	appendBString
 	# str: C$
-	leaq	-248(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	leaq	-96(%rbp), %rdx
 	call	appendBString
-	movq	-248(%rbp), %rcx
+	movq	-344(%rbp), %rcx
 	call	puts
-	leaq	-248(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	call	freeBString
 	# INPUT "GIVE A NUMBER";A
 	leaq	-168(%rbp), %rcx
@@ -128,7 +128,7 @@ main:
 	call	inputData
 	# PRINT "this is the 1/2 of is: ",A/2
 	# str: "this is the 1/2 of is: ",
-	leaq	-248(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	leaq	-200(%rbp), %rdx
 	call	assignBString
 	# str: A/2
@@ -138,22 +138,22 @@ main:
 	# int: 2 - %rsi
 	movq	$2, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -352(%rbp)
+	movsd	%xmm0, -384(%rbp)
 	movsd	-176(%rbp), %xmm0
-	movsd	-352(%rbp), %xmm1
+	movsd	-384(%rbp), %xmm1
 	divsd	%xmm1, %xmm0
-	movsd	%xmm0, -352(%rbp)
-	movsd	-352(%rbp), %xmm1
-	leaq	-272(%rbp), %rcx
+	movsd	%xmm0, -384(%rbp)
+	movsd	-384(%rbp), %xmm1
+	leaq	-320(%rbp), %rcx
 	call	assignDouble
-	leaq	-248(%rbp), %rcx
-	leaq	-272(%rbp), %rdx
+	leaq	-344(%rbp), %rcx
+	leaq	-320(%rbp), %rdx
 	call	appendBString
-	leaq	-272(%rbp), %rcx
+	leaq	-320(%rbp), %rcx
 	call	freeBString
-	movq	-248(%rbp), %rcx
+	movq	-344(%rbp), %rcx
 	call	puts
-	leaq	-248(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
 	# str: "END"

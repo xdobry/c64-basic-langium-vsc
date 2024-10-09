@@ -112,7 +112,7 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR2", PEEK(101)
 	# str: "ERROR2",
-	leaq	-96(%rbp), %rcx
+	leaq	-192(%rbp), %rcx
 	leaq	-48(%rbp), %rdx
 	call	assignBString
 	# str: PEEK(101)
@@ -121,16 +121,16 @@ main:
 	movq	$101, %rdx
 	movq	-248(%rbp), %rax
 	movzb	(%rax,%rdx,1), %rdx
-	leaq	-120(%rbp), %rcx
+	leaq	-168(%rbp), %rcx
 	call	assignInt
-	leaq	-96(%rbp), %rcx
-	leaq	-120(%rbp), %rdx
+	leaq	-192(%rbp), %rcx
+	leaq	-168(%rbp), %rdx
 	call	appendBString
-	leaq	-120(%rbp), %rcx
+	leaq	-168(%rbp), %rcx
 	call	freeBString
-	movq	-96(%rbp), %rcx
+	movq	-192(%rbp), %rcx
 	call	puts
-	leaq	-96(%rbp), %rcx
+	leaq	-192(%rbp), %rcx
 	call	freeBString
 .ifnot1:
 	# PRINT "END"

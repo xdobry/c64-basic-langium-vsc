@@ -108,40 +108,40 @@ main:
 	movq	%rsi, -104(%rbp)
 	# PRINT A$ B$ C%
 	# str: A$
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	leaq	-24(%rbp), %rdx
 	call	assignBString
 	# str: B$
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	leaq	-72(%rbp), %rdx
 	call	appendBString
 	# str: C%
-	leaq	-320(%rbp), %rcx
+	leaq	-368(%rbp), %rcx
 	movq	-104(%rbp), %rdx
 	call	assignInt
-	leaq	-296(%rbp), %rcx
-	leaq	-320(%rbp), %rdx
+	leaq	-392(%rbp), %rcx
+	leaq	-368(%rbp), %rdx
 	call	appendBString
-	leaq	-320(%rbp), %rcx
+	leaq	-368(%rbp), %rcx
 	call	freeBString
-	movq	-296(%rbp), %rcx
+	movq	-392(%rbp), %rcx
 	call	puts
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	call	freeBString
 	# LET MSG$=A$+B$
 	# str: A$+B$
 	# str: A$
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	leaq	-24(%rbp), %rdx
 	call	assignBString
 	# str: B$
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	leaq	-72(%rbp), %rdx
 	call	appendBString
 	leaq	-128(%rbp), %rcx
-	leaq	-296(%rbp), %rdx
+	leaq	-392(%rbp), %rdx
 	call	assignBString
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	call	freeBString
 	# PRINT MSG$
 	# str: MSG$
@@ -150,17 +150,17 @@ main:
 	# LET MSG2$=A$+"TEST"
 	# str: A$+"TEST"
 	# str: A$
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	leaq	-24(%rbp), %rdx
 	call	assignBString
 	# str: "TEST"
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	leaq	-176(%rbp), %rdx
 	call	appendBString
 	leaq	-152(%rbp), %rcx
-	leaq	-296(%rbp), %rdx
+	leaq	-392(%rbp), %rdx
 	call	assignBString
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	call	freeBString
 	# PRINT MSG2$
 	# str: MSG2$
@@ -181,21 +181,21 @@ main:
 .loop:
 	# PRINT "IF LOOP ",C%
 	# str: "IF LOOP ",
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	leaq	-248(%rbp), %rdx
 	call	assignBString
 	# str: C%
-	leaq	-320(%rbp), %rcx
+	leaq	-368(%rbp), %rcx
 	movq	-104(%rbp), %rdx
 	call	assignInt
-	leaq	-296(%rbp), %rcx
-	leaq	-320(%rbp), %rdx
+	leaq	-392(%rbp), %rcx
+	leaq	-368(%rbp), %rdx
 	call	appendBString
-	leaq	-320(%rbp), %rcx
+	leaq	-368(%rbp), %rcx
 	call	freeBString
-	movq	-296(%rbp), %rcx
+	movq	-392(%rbp), %rcx
 	call	puts
-	leaq	-296(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	call	freeBString
 	# C%=C%+1
 	# int: C%+1 - %rsi

@@ -117,12 +117,12 @@ main:
 	movq	%rsi, -56(%rbp)
 	lea	-80(%rbp), %rcx
 	call	c64_get_str_item_ptr
-	leaq	-256(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBString
-	movq	-256(%rbp), %rcx
+	movq	-352(%rbp), %rcx
 	call	puts
-	leaq	-256(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	freeBString
 	# IF A$(0)<>"STR" THEN PRINT "ERROR"
 	# int: A$(0)<>"STR" - %rsi
@@ -132,16 +132,16 @@ main:
 	movq	%rdi, -56(%rbp)
 	lea	-80(%rbp), %rcx
 	call	c64_get_str_item_ptr
-	leaq	-256(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBString
 	# str: "STR"
-	leaq	-256(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	leaq	-104(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-256(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot0
@@ -174,14 +174,14 @@ main:
 	movq	%rdi, -160(%rbp)
 	lea	-184(%rbp), %rcx
 	call	c64_get_item
-	movq	%rax, -360(%rbp)
+	movq	%rax, -392(%rbp)
 	# float: 42
 	# int: 42 - %rdi
 	movq	$42, %rdi
 	cvtsi2sdq	%rdi, %xmm0
-	movsd	%xmm0, -368(%rbp)
-	movsd	-360(%rbp), %xmm0
-	movsd	-368(%rbp), %xmm1
+	movsd	%xmm0, -384(%rbp)
+	movsd	-392(%rbp), %xmm0
+	movsd	-384(%rbp), %xmm1
 	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi

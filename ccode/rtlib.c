@@ -87,13 +87,23 @@ void assignBString(struct BString* target, const struct BString* str) {
 
 void assignInt(struct BString* target, int value) {
     char buffer[20];
-    sprintf(buffer, "%d", value);
+    if (value<0) {
+        sprintf(buffer, "%d", value);
+    } else {
+        buffer[0] = ' ';
+        sprintf(buffer+1, "%d", value);
+    }
     assignCString(target, buffer);
 }
 
 void assignDouble(struct BString* target, double value) {
     char buffer[20];
-    sprintf(buffer, "%f", value);
+    if (value<0.0) {
+        sprintf(buffer, "%g", value);
+    } else {
+        buffer[0] = ' ';
+        sprintf(buffer+1, "%g", value);
+    }
     assignCString(target, buffer);
 }
 

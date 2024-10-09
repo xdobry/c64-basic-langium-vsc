@@ -207,21 +207,21 @@ main:
 .for0:
 	# PRINT "READ ";X%
 	# str: "READ ";
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	leaq	-88(%rbp), %rdx
 	call	assignBString
 	# str: X%
-	leaq	-432(%rbp), %rcx
+	leaq	-480(%rbp), %rcx
 	movq	-64(%rbp), %rdx
 	call	assignInt
-	leaq	-408(%rbp), %rcx
-	leaq	-432(%rbp), %rdx
+	leaq	-504(%rbp), %rcx
+	leaq	-480(%rbp), %rdx
 	call	appendBString
-	leaq	-432(%rbp), %rcx
+	leaq	-480(%rbp), %rcx
 	call	freeBString
-	movq	-408(%rbp), %rcx
+	movq	-504(%rbp), %rcx
 	call	puts
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	call	freeBString
 	# READ A(X%)
 	leaq	-560(%rbp), %rcx
@@ -249,14 +249,14 @@ main:
 	movq	%rdi, -32(%rbp)
 	lea	-56(%rbp), %rcx
 	call	c64_get_item
-	movq	%rax, -512(%rbp)
+	movq	%rax, -544(%rbp)
 	# float: 1
 	# int: 1 - %rdi
 	movq	$1, %rdi
 	cvtsi2sdq	%rdi, %xmm0
-	movsd	%xmm0, -520(%rbp)
-	movsd	-512(%rbp), %xmm0
-	movsd	-520(%rbp), %xmm1
+	movsd	%xmm0, -536(%rbp)
+	movsd	-544(%rbp), %xmm0
+	movsd	-536(%rbp), %xmm1
 	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi
@@ -276,14 +276,14 @@ main:
 	movq	%rdi, -32(%rbp)
 	lea	-56(%rbp), %rcx
 	call	c64_get_item
-	movq	%rax, -512(%rbp)
+	movq	%rax, -536(%rbp)
 	# float: 6
 	# int: 6 - %rdi
 	movq	$6, %rdi
 	cvtsi2sdq	%rdi, %xmm0
-	movsd	%xmm0, -520(%rbp)
-	movsd	-512(%rbp), %xmm0
-	movsd	-520(%rbp), %xmm1
+	movsd	%xmm0, -544(%rbp)
+	movsd	-536(%rbp), %xmm0
+	movsd	-544(%rbp), %xmm1
 	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi
@@ -323,21 +323,21 @@ main:
 .for1:
 	# PRINT "READ2 ";X%
 	# str: "READ2 ";
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	leaq	-192(%rbp), %rdx
 	call	assignBString
 	# str: X%
-	leaq	-432(%rbp), %rcx
+	leaq	-480(%rbp), %rcx
 	movq	-64(%rbp), %rdx
 	call	assignInt
-	leaq	-408(%rbp), %rcx
-	leaq	-432(%rbp), %rdx
+	leaq	-504(%rbp), %rcx
+	leaq	-480(%rbp), %rdx
 	call	appendBString
-	leaq	-432(%rbp), %rcx
+	leaq	-480(%rbp), %rcx
 	call	freeBString
-	movq	-408(%rbp), %rcx
+	movq	-504(%rbp), %rcx
 	call	puts
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	call	freeBString
 	# READ A$(X%)
 	leaq	-560(%rbp), %rcx
@@ -365,16 +365,16 @@ main:
 	movq	%rdi, -144(%rbp)
 	lea	-168(%rbp), %rcx
 	call	c64_get_str_item_ptr
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBString
 	# str: "A"
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	leaq	-216(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot2
@@ -391,16 +391,16 @@ main:
 	movq	%rdi, -144(%rbp)
 	lea	-168(%rbp), %rcx
 	call	c64_get_str_item_ptr
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBString
 	# str: "C"
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	leaq	-264(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-408(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot3

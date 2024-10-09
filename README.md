@@ -114,15 +114,31 @@ There are also integer function possible. There must be distinct to float functi
 
 The compiler will break with error if some unsupported keyword is used
 
-* TIME, TIME$
+* TI$
 * OPEN, INPUT#, GET#, PRINT#
 * PRINT , and ;
 * Math Potenz ^
+* Can not GET to array GET A$(0)
 
 * TODO 
-  - check stack usage for GOSUB there need be additional place under stack so each call needs to reserve some values on stack to safe "ret" address
   - set all stack mem to 0 (init)
   - check division by zero
+  - probleme mit parsing label und FOR :AZ=1:....
+  - case insensitive parsing
+  - own float and str tmp stack for DEF FN (own local ebp pointer needed?)
+  - optimize resuing of str memory
+
+# Optimization
+
+Currently the compiler does not optimize code.
+Posible areas
+
+  * reduce expression with constants
+  * recognize variable constants
+  * encode numeric constant directly to double if only used in double context SIN(2) or 1.2+2
+  * remove unnecessary code (variables that are only set but never read)
+  * on assembly level (reduce unnecerry moving register to tmp storage and back to register)
+
 
 # Incompatibilities to C64 Basic
 
@@ -160,6 +176,8 @@ Some commands are not implementated because they make no sense in compiled langu
 * CLR
 
 POS, SPC and TAB are fake and not work as suspected. POS gives always 0.
+
+TI pseudo variable gives unix time and it cannot be set.
 
 # Testing
 

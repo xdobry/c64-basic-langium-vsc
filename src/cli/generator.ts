@@ -61,7 +61,8 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     isRestore,
     isStringFunction1,
     StringFunction1,
-    Var} from '../language/generated/ast.js';
+    Var,
+    isTiVarRef} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
@@ -85,6 +86,8 @@ interface ProgContext {
     goSubLabels: string[]
     stringTmpCount : number
     floatTmpCount : number
+    floatTmps: string[]
+    stringTmps: string[]
     // tmp variable offset for quat integer 
     tmpOffset: number
     pokeMemOffset: number
@@ -168,6 +171,8 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         pokeMemOffset: 0,
         dataPointerOffset: 0,
         dataDefinition: '',
+        floatTmps: [],
+        stringTmps: [],
     }
     generateVariables(model, progContext)
     // TODO compute how many tmp str variables are needed
@@ -438,7 +443,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                     const labeledNode : LabeledNode = inputNode.msg;
                     code += genOpCode("leaq", `${labeledNode._variableOffset}(%rbp)`, "%rcx");
                 } else {
-                    code += genOpCode("xort", "%rcx", "%rcx");
+                    code += genOpCode("xor", "%rcx", "%rcx");
                 }
                 const labeledNode : LabeledNode = inputNode;
                 code += genOpCode("leaq", `${labeledNode._label}(%rip)`, "%rdx");
@@ -874,12 +879,10 @@ function isFloatOperator(op: string) {
 
 
 function allocateStrTmp(progContext: ProgContext) : number {
-    const tmpNum = progContext.stringTmpCount
-    if (progContext.stringTmpCount>=stringTmpVarCount) {
-        throw "out of string tmp variables"
+    if (progContext.stringTmps.length<=0) {
+        throw "out of str tmp variables"
     }
-    progContext.stringTmpCount++
-    const varName = `strtmp${tmpNum}$`
+    const varName = progContext.stringTmps.pop()!
     const offset = progContext.variables.get(varName)!
     if (!offset) {
         throw "can not find string tmp variable offset for: "+varName
@@ -890,7 +893,12 @@ function allocateStrTmp(progContext: ProgContext) : number {
 function freeStrTmp(progContext: ProgContext, tmpOffset?: number) : string {
     let stmts = ""
     if (tmpOffset) {
-        progContext.stringTmpCount--
+        const entry = Array.from(progContext.variables.entries()).find(([_, value]) => value === tmpOffset);
+        if (entry) {
+            progContext.stringTmps.push(entry[0])
+        } else {
+            throw "can not find str variable name for offset: "+tmpOffset
+        }
         stmts += genOpCode("leaq", `${tmpOffset}(%rbp)`, "%rcx");
         stmts += genOpCode("call", "freeBString");
     }
@@ -898,21 +906,23 @@ function freeStrTmp(progContext: ProgContext, tmpOffset?: number) : string {
 }
 
 function allocateFloatTmp(progContext: ProgContext) : number {
-    const tmpNum = progContext.floatTmpCount
-    if (progContext.floatTmpCount>=floatTmpVarCount) {
+    if (progContext.floatTmps.length<=0) {
         throw "out of float tmp variables"
     }
-    progContext.floatTmpCount++
-    const varName = `floattmp${tmpNum}`
-    console.log("getting flattmp "+tmpNum + " var "+varName)
+    const varName = progContext.floatTmps.pop()!
+    console.log("getting flattmp "+ " var "+varName + " offset "+progContext.variables.get(varName))
     return progContext.variables.get(varName)!
 }
 
 function freeFloatTmp(progContext: ProgContext, tmpOffset?: number) : string {
     let stmts = ""
     if (tmpOffset) {
-        console.log("free float tmp")
-        progContext.floatTmpCount--
+        const entry = Array.from(progContext.variables.entries()).find(([_, value]) => value === tmpOffset);
+        if (entry) {
+            progContext.floatTmps.push(entry[0])
+        } else {
+            throw "can not find float variable name for offset: "+tmpOffset
+        } 
     }
     return stmts;
 }
@@ -922,6 +932,9 @@ function nameForFnCall(fnCall: FnCall, progContext: ProgContext) : string {
 }
 
 function nameForVarRef(varRef: AllVarRef, progContext: ProgContext) : string {
+    if (isTiVarRef(varRef)) {
+        throw "error: cannot reference TI var"
+    }
     const lNode : AstNode = varRef.var.ref!;
     if (isLetNum(lNode)) {
         return lNode.name.name
@@ -979,6 +992,10 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         } else {
             stmts += genOpCode("movq", `${varOffset}(%rbp)`, reg);
         }
+    } else if (isTiVarRef(expr)) {
+        stmts += genOpCode("xor", "%rcx", "%rcx");
+        stmts += genOpCode("call", "time");
+        stmts += genOpCode("movq", "%rax", reg);
     } else if (isBinExpr(expr)) {
         const binExpr : BinExpr = expr;
         if (!isFloatOperator(expr.op) 
@@ -1231,7 +1248,7 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
             stmts += restoreRegister(storeValue);
             stmts += genOpCode("cvtsd2siq", "%xmm0", reg);
         } else {
-            throw "unknown int expression: "+expr.$type
+            throw "unknown int expression: "+expr.$type + " " + expr.$cstNode?.text
         }
     }
     return stmts;
@@ -1586,12 +1603,14 @@ function generateVariables(model: Model, progContext: ProgContext) {
     for (let i=0; i<stringTmpVarCount; i++) {
         const varName = `strtmp${i}$`
         variableOffset -= 16;
+        progContext.stringTmps.push(varName)
         progContext.variables.set(varName, variableOffset)
         variableOffset -= 8
     }
     // float temporaty variables
     for (let i=0; i<floatTmpVarCount; i++) {
         const varName = `floattmp${i}`
+        progContext.floatTmps.push(varName)
         progContext.variables.set(varName, variableOffset)
         variableOffset -= 8
     }

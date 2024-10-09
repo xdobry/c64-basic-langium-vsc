@@ -113,7 +113,9 @@ NegExpr: '-' expr=PrimExpr;
 
 StrComparision: e1=SPrimExpr operator=('<' | '<=' | '>' | '>=' | '=' | '<>') e2=SPrimExpr;
 
-VarRef: IntVarRef | FloatVarRef | 'TI';
+VarRef: IntVarRef | FloatVarRef | TiVarRef;
+
+TiVarRef:  {infer TiVarRef} 'TI';
 
 AllVarRef: VarRef | StringVarRef;
 

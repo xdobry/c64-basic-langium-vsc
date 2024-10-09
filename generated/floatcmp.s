@@ -117,14 +117,14 @@ main:
 	movsd	-8(%rbp), %xmm0
 	movsd	-16(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -352(%rbp)
+	movsd	%xmm0, -384(%rbp)
 	# float: C
-	movsd	-352(%rbp), %xmm0
+	movsd	-384(%rbp), %xmm0
 	movsd	-24(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -352(%rbp)
+	movsd	%xmm0, -384(%rbp)
 	# float: 6.0
-	movsd	-352(%rbp), %xmm0
+	movsd	-384(%rbp), %xmm0
 	movsd	.LF4(%rip), %xmm1
 	comisd	%xmm1, %xmm0
 	setne	%al
@@ -231,12 +231,12 @@ main:
 	movsd	-8(%rbp), %xmm0
 	movsd	-16(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -352(%rbp)
+	movsd	%xmm0, -384(%rbp)
 	# float: C
-	movsd	-352(%rbp), %xmm0
+	movsd	-384(%rbp), %xmm0
 	movsd	-24(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -352(%rbp)
+	movsd	%xmm0, -384(%rbp)
 	# float: A1+B+C
 	# float: A1+B
 	# float: A1
@@ -244,14 +244,14 @@ main:
 	movsd	-32(%rbp), %xmm2
 	movsd	-16(%rbp), %xmm3
 	addsd	%xmm3, %xmm2
-	movsd	%xmm2, -360(%rbp)
+	movsd	%xmm2, -376(%rbp)
 	# float: C
-	movsd	-360(%rbp), %xmm2
+	movsd	-376(%rbp), %xmm2
 	movsd	-24(%rbp), %xmm3
 	addsd	%xmm3, %xmm2
-	movsd	%xmm2, -360(%rbp)
-	movsd	-352(%rbp), %xmm0
-	movsd	-360(%rbp), %xmm1
+	movsd	%xmm2, -376(%rbp)
+	movsd	-384(%rbp), %xmm0
+	movsd	-376(%rbp), %xmm1
 	comisd	%xmm1, %xmm0
 	setae	%al
 	movzbq	%al, %rsi

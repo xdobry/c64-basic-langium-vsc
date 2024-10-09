@@ -107,11 +107,11 @@ main:
 	movq	-16(%rbp), %rax
 	movq	%rax, -424(%rbp)
 	movq	-424(%rbp), %rdx
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	assignInt
-	movq	-280(%rbp), %rcx
+	movq	-376(%rbp), %rcx
 	call	puts
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	freeBString
 	# PRINT ASC("A")
 	# str: ASC("A")
@@ -120,36 +120,36 @@ main:
 	movzbl	(%eax), %rax
 	movq	%rax, -424(%rbp)
 	movq	-424(%rbp), %rdx
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	assignInt
-	movq	-280(%rbp), %rcx
+	movq	-376(%rbp), %rcx
 	call	puts
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	freeBString
 	# PRINT CHR$(65),CHR$(66)
 	# str: CHR$(65),
 	# int: 65 - %rdx
 	movq	$65, %rdx
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	assignChar
-	leaq	-280(%rbp), %rcx
-	leaq	-304(%rbp), %rdx
+	leaq	-376(%rbp), %rcx
+	leaq	-352(%rbp), %rdx
 	call	assignBString
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	freeBString
 	# str: CHR$(66)
 	# int: 66 - %rdx
 	movq	$66, %rdx
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	assignChar
-	leaq	-280(%rbp), %rcx
-	leaq	-304(%rbp), %rdx
+	leaq	-376(%rbp), %rcx
+	leaq	-352(%rbp), %rdx
 	call	appendBString
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	freeBString
-	movq	-280(%rbp), %rcx
+	movq	-376(%rbp), %rcx
 	call	puts
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	freeBString
 	# Z%=70
 	# int: 70 - %rsi
@@ -157,31 +157,31 @@ main:
 	movq	%rsi, -80(%rbp)
 	# PRINT Z%,"=",CHR$(Z%)
 	# str: Z%,
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	movq	-80(%rbp), %rdx
 	call	assignInt
-	leaq	-280(%rbp), %rcx
-	leaq	-304(%rbp), %rdx
+	leaq	-376(%rbp), %rcx
+	leaq	-352(%rbp), %rdx
 	call	assignBString
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	freeBString
 	# str: "=",
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	leaq	-104(%rbp), %rdx
 	call	appendBString
 	# str: CHR$(Z%)
 	# int: Z% - %rdx
 	movq	-80(%rbp), %rdx
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	assignChar
-	leaq	-280(%rbp), %rcx
-	leaq	-304(%rbp), %rdx
+	leaq	-376(%rbp), %rcx
+	leaq	-352(%rbp), %rdx
 	call	appendBString
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	freeBString
-	movq	-280(%rbp), %rcx
+	movq	-376(%rbp), %rcx
 	call	puts
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	freeBString
 	# FOR A%=65 TO 80
 	# int: 65 - %rsi
@@ -201,31 +201,31 @@ main:
 .for0:
 	# PRINT A%,"=",CHR$(A%)
 	# str: A%,
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	movq	-112(%rbp), %rdx
 	call	assignInt
-	leaq	-280(%rbp), %rcx
-	leaq	-304(%rbp), %rdx
+	leaq	-376(%rbp), %rcx
+	leaq	-352(%rbp), %rdx
 	call	assignBString
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	freeBString
 	# str: "=",
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	leaq	-136(%rbp), %rdx
 	call	appendBString
 	# str: CHR$(A%)
 	# int: A% - %rdx
 	movq	-112(%rbp), %rdx
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	assignChar
-	leaq	-280(%rbp), %rcx
-	leaq	-304(%rbp), %rdx
+	leaq	-376(%rbp), %rcx
+	leaq	-352(%rbp), %rdx
 	call	appendBString
-	leaq	-304(%rbp), %rcx
+	leaq	-352(%rbp), %rcx
 	call	freeBString
-	movq	-280(%rbp), %rcx
+	movq	-376(%rbp), %rcx
 	call	puts
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
 	call	.forNext0
@@ -234,24 +234,24 @@ main:
 	# str: "TEST"
 	# int: 2 - %r8
 	movq	$2, %r8
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	leaq	-160(%rbp), %rdx
 	call	bstrRight
-	movq	-280(%rbp), %rcx
+	movq	-376(%rbp), %rcx
 	call	puts
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	freeBString
 	# PRINT LEFT$("TEST",2)
 	# str: LEFT$("TEST",2)
 	# str: "TEST"
 	# int: 2 - %r8
 	movq	$2, %r8
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	leaq	-184(%rbp), %rdx
 	call	bstrLeft
-	movq	-280(%rbp), %rcx
+	movq	-376(%rbp), %rcx
 	call	puts
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	freeBString
 	# PRINT MID$("TEST",1)
 	# str: MID$("TEST",1)
@@ -259,12 +259,12 @@ main:
 	# int: 1 - %r8
 	movq	$1, %r8
 	movq	$0, %r9
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	leaq	-208(%rbp), %rdx
 	call	bstrMid
-	movq	-280(%rbp), %rcx
+	movq	-376(%rbp), %rcx
 	call	puts
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	freeBString
 	# PRINT MID$("TEST",1,1)
 	# str: MID$("TEST",1,1)
@@ -273,12 +273,12 @@ main:
 	movq	$1, %r8
 	# int: 1 - %r9
 	movq	$1, %r9
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	leaq	-232(%rbp), %rdx
 	call	bstrMid
-	movq	-280(%rbp), %rcx
+	movq	-376(%rbp), %rcx
 	call	puts
-	leaq	-280(%rbp), %rcx
+	leaq	-376(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
 	# str: "END"

@@ -198,7 +198,7 @@ main:
 	movq	%rsi, -24(%rbp)
 	# PRINT "-1 OR -1 ", -1 OR -1
 	# str: "-1 OR -1 ",
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	leaq	-48(%rbp), %rdx
 	call	assignBString
 	# str: -1 OR -1
@@ -212,20 +212,20 @@ main:
 	movq	$1, %rsi
 	negq	%rsi
 	orq	%rsi, %rdx
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	assignInt
-	leaq	-664(%rbp), %rcx
-	leaq	-688(%rbp), %rdx
+	leaq	-760(%rbp), %rcx
+	leaq	-736(%rbp), %rdx
 	call	appendBString
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	freeBString
-	movq	-664(%rbp), %rcx
+	movq	-760(%rbp), %rcx
 	call	puts
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# PRINT "-1 AND 0 ", -1 AND 0
 	# str: "-1 AND 0 ",
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	leaq	-72(%rbp), %rdx
 	call	assignBString
 	# str: -1 AND 0
@@ -237,20 +237,20 @@ main:
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	andq	%rsi, %rdx
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	assignInt
-	leaq	-664(%rbp), %rcx
-	leaq	-688(%rbp), %rdx
+	leaq	-760(%rbp), %rcx
+	leaq	-736(%rbp), %rdx
 	call	appendBString
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	freeBString
-	movq	-664(%rbp), %rcx
+	movq	-760(%rbp), %rcx
 	call	puts
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# PRINT "-1 AND -1 ", -1 AND -1
 	# str: "-1 AND -1 ",
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	leaq	-96(%rbp), %rdx
 	call	assignBString
 	# str: -1 AND -1
@@ -264,16 +264,16 @@ main:
 	movq	$1, %rsi
 	negq	%rsi
 	andq	%rsi, %rdx
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	assignInt
-	leaq	-664(%rbp), %rcx
-	leaq	-688(%rbp), %rdx
+	leaq	-760(%rbp), %rcx
+	leaq	-736(%rbp), %rdx
 	call	appendBString
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	freeBString
-	movq	-664(%rbp), %rcx
+	movq	-760(%rbp), %rcx
 	call	puts
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# IF B%<A% OR C%<A% THEN PRINT "ERROR2"
 	# int: B%<A% OR C%<A% - %rsi
@@ -467,7 +467,7 @@ main:
 .ifnot5:
 	# PRINT "A%>B% OR A%>C% ", A%>B% OR A%>C%
 	# str: "A%>B% OR A%>C% ",
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	leaq	-272(%rbp), %rdx
 	call	assignBString
 	# str: A%>B% OR A%>C%
@@ -491,20 +491,20 @@ main:
 	movzbq	%al, %rsi
 	negq	%rsi
 	orq	%rsi, %rdx
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	assignInt
-	leaq	-664(%rbp), %rcx
-	leaq	-688(%rbp), %rdx
+	leaq	-760(%rbp), %rcx
+	leaq	-736(%rbp), %rdx
 	call	appendBString
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	freeBString
-	movq	-664(%rbp), %rcx
+	movq	-760(%rbp), %rcx
 	call	puts
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# PRINT "A%<B% AND C%<A% ", A%<B% AND C%<A%
 	# str: "A%<B% AND C%<A% ",
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	leaq	-296(%rbp), %rdx
 	call	assignBString
 	# str: A%<B% AND C%<A%
@@ -528,16 +528,16 @@ main:
 	movzbq	%al, %rsi
 	negq	%rsi
 	andq	%rsi, %rdx
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	assignInt
-	leaq	-664(%rbp), %rcx
-	leaq	-688(%rbp), %rdx
+	leaq	-760(%rbp), %rcx
+	leaq	-736(%rbp), %rdx
 	call	appendBString
-	leaq	-688(%rbp), %rcx
+	leaq	-736(%rbp), %rcx
 	call	freeBString
-	movq	-664(%rbp), %rcx
+	movq	-760(%rbp), %rcx
 	call	puts
-	leaq	-664(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# IF 3 AND 1 <> 1 THEN PRINT "ERROR8"
 	# int: 3 AND 1 <> 1 - %rsi
@@ -674,8 +674,8 @@ main:
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -768(%rbp)
-	movsd	-768(%rbp), %xmm0
+	movsd	%xmm0, -800(%rbp)
+	movsd	-800(%rbp), %xmm0
 	movsd	%xmm0, -448(%rbp)
 	# IF A THEN PRINT "ERROR14"
 	# int: A - %rsi
@@ -713,12 +713,12 @@ main:
 	# int: 1 - %rsi
 	movq	$1, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -768(%rbp)
-	movsd	-768(%rbp), %xmm0
+	movsd	%xmm0, -800(%rbp)
+	movsd	-800(%rbp), %xmm0
 	xorpd	%xmm1, %xmm1
 	subsd	%xmm0, %xmm1
-	movsd	%xmm1, -776(%rbp)
-	movsd	-776(%rbp), %xmm0
+	movsd	%xmm1, -792(%rbp)
+	movsd	-792(%rbp), %xmm0
 	movsd	%xmm0, -448(%rbp)
 	# IF NOT A THEN PRINT "ERROR16"
 	# int: NOT A - %rsi
@@ -739,8 +739,8 @@ main:
 	# int: 3 - %rsi
 	movq	$3, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -768(%rbp)
-	movsd	-768(%rbp), %xmm0
+	movsd	%xmm0, -792(%rbp)
+	movsd	-792(%rbp), %xmm0
 	movsd	%xmm0, -448(%rbp)
 	# D%=0
 	# int: 0 - %rsi
@@ -786,13 +786,13 @@ main:
 	# int: 2 - %rdi
 	movq	$2, %rdi
 	cvtsi2sdq	%rdi, %xmm0
-	movsd	%xmm0, -768(%rbp)
-	movsd	-768(%rbp), %xmm0
+	movsd	%xmm0, -792(%rbp)
+	movsd	-792(%rbp), %xmm0
 	xorpd	%xmm1, %xmm1
 	subsd	%xmm0, %xmm1
-	movsd	%xmm1, -776(%rbp)
+	movsd	%xmm1, -800(%rbp)
 	movsd	-448(%rbp), %xmm0
-	movsd	-776(%rbp), %xmm1
+	movsd	-800(%rbp), %xmm1
 	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi

@@ -164,50 +164,50 @@ main:
 	# str: STR$(A%)
 	# int: A% - %rsi
 	movq	-32(%rbp), %rsi
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	movq	%rsi, %rdx
 	call	assignInt
 	leaq	-64(%rbp), %rcx
-	leaq	-496(%rbp), %rdx
+	leaq	-592(%rbp), %rdx
 	call	assignBString
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	call	freeBString
 	# PRINT "STR$ INT=",A$
 	# str: "STR$ INT=",
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	leaq	-88(%rbp), %rdx
 	call	assignBString
 	# str: A$
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	leaq	-64(%rbp), %rdx
 	call	appendBString
-	movq	-496(%rbp), %rcx
+	movq	-592(%rbp), %rcx
 	call	puts
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	call	freeBString
 	# A$=STR$(A)
 	# str: STR$(A)
 	# float: A
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	movsd	-40(%rbp), %xmm1
 	call	assignDouble
 	leaq	-64(%rbp), %rcx
-	leaq	-496(%rbp), %rdx
+	leaq	-592(%rbp), %rdx
 	call	assignBString
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	call	freeBString
 	# PRINT "STR$ FLOAT=",A$
 	# str: "STR$ FLOAT=",
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	leaq	-112(%rbp), %rdx
 	call	assignBString
 	# str: A$
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	leaq	-64(%rbp), %rdx
 	call	appendBString
-	movq	-496(%rbp), %rcx
+	movq	-592(%rbp), %rcx
 	call	puts
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	call	freeBString
 	# PRINT "VAL1"
 	# str: "VAL1"
@@ -256,8 +256,8 @@ main:
 	# str: A$
 	lea	-64(%rbp), %rcx
 	call	bstringToDouble
-	movq	%xmm0, -600(%rbp)
-	movsd	-600(%rbp), %xmm0
+	movq	%xmm0, -632(%rbp)
+	movsd	-632(%rbp), %xmm0
 	movsd	%xmm0, -40(%rbp)
 	# IF A<>2.2 THEN PRINT "ERROR VAL FLOAT"
 	# int: A<>2.2 - %rsi
@@ -284,17 +284,17 @@ main:
 	# S1$=S1$+"C"
 	# str: S1$+"C"
 	# str: S1$
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	leaq	-280(%rbp), %rdx
 	call	assignBString
 	# str: "C"
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	leaq	-328(%rbp), %rdx
 	call	appendBString
 	leaq	-280(%rbp), %rcx
-	leaq	-496(%rbp), %rdx
+	leaq	-592(%rbp), %rdx
 	call	assignBString
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	call	freeBString
 	# IF S1$<>"ABC" THEN PRINT "ERROR APPEND"
 	# int: S1$<>"ABC" - %rsi
@@ -315,17 +315,17 @@ main:
 	# S1$ = "D" + S1$
 	# str: "D" + S1$
 	# str: "D"
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	leaq	-400(%rbp), %rdx
 	call	assignBString
 	# str: S1$
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	leaq	-280(%rbp), %rdx
 	call	appendBString
 	leaq	-280(%rbp), %rcx
-	leaq	-496(%rbp), %rdx
+	leaq	-592(%rbp), %rdx
 	call	assignBString
-	leaq	-496(%rbp), %rcx
+	leaq	-592(%rbp), %rcx
 	call	freeBString
 	# IF S1$<>"DABC" THEN PRINT "ERROR PREPPEND"
 	# int: S1$<>"DABC" - %rsi

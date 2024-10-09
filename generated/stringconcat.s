@@ -58,21 +58,21 @@ main:
 	movq	%rsi, -8(%rbp)
 	# PRINT "Hallo ",L%
 	# str: "Hallo ",
-	leaq	-104(%rbp), %rcx
+	leaq	-200(%rbp), %rcx
 	leaq	-32(%rbp), %rdx
 	call	assignBString
 	# str: L%
-	leaq	-128(%rbp), %rcx
+	leaq	-176(%rbp), %rcx
 	movq	-8(%rbp), %rdx
 	call	assignInt
-	leaq	-104(%rbp), %rcx
-	leaq	-128(%rbp), %rdx
+	leaq	-200(%rbp), %rcx
+	leaq	-176(%rbp), %rdx
 	call	appendBString
-	leaq	-128(%rbp), %rcx
+	leaq	-176(%rbp), %rcx
 	call	freeBString
-	movq	-104(%rbp), %rcx
+	movq	-200(%rbp), %rcx
 	call	puts
-	leaq	-104(%rbp), %rcx
+	leaq	-200(%rbp), %rcx
 	call	freeBString
 	# PRINT "HALLO"
 	# str: "HALLO"
@@ -80,12 +80,12 @@ main:
 	call	puts
 	# PRINT L%
 	# str: L%
-	leaq	-104(%rbp), %rcx
+	leaq	-200(%rbp), %rcx
 	movq	-8(%rbp), %rdx
 	call	assignInt
-	movq	-104(%rbp), %rcx
+	movq	-200(%rbp), %rcx
 	call	puts
-	leaq	-104(%rbp), %rcx
+	leaq	-200(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
 	# str: "END"
