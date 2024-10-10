@@ -66,7 +66,7 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
-import { AstNode, AstUtils, Reference } from 'langium';
+import { AstNode, AstUtils, CstNode, Reference } from 'langium';
 
 interface ProgContext {
     stackAllocation: number
@@ -134,6 +134,15 @@ const notPreservedRegister = ["%rcx","%rdx","%r8","%r9","%r10","%r11"]
 const stringTmpVarCount = 5
 const floatTmpVarCount = 5
 
+export class CompileError extends Error {
+    cstNode?: CstNode;
+
+    constructor(message: string, cstNode?: CstNode) {
+        super(message);
+        this.cstNode = cstNode;
+    }
+}
+
 export function generateAssemblerCode(model: Model, filePath: string, destination: string | undefined): string {
     const data = extractDestinationAndName(filePath, destination);
     const generatedFilePath = `${path.join(data.destination, data.name)}.s`;
@@ -196,7 +205,6 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         programmCode += `\t# init array ${key} ${value}\n`;
         programmCode += genCall("c64_init_array",{cmd:'lea',source:`${aoffset}(%rbp)`},{cmd:'movq',source:`$${value}`})
     })
-    console.log("data pointer",progContext.dataPointerOffset)
     if (progContext.dataPointerOffset!==0) {
         programmCode += `\t# init data pointer\n`;
         programmCode += genOpCode("lea","dataDefinition(%rip)","%rax");
@@ -752,7 +760,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         variableOffset = allocateStrTmp(progContext);
         tmpOffset = variableOffset
         if (isFloatExpr(exprNode, progContext)) {
-            console.log("str float expr")
+            // console.log("str float expr")
             const floatResult = exprToFloat(exprNode, progContext);
             code += floatResult.code;
             code += genOpCode("movsd", floatResult.source!, "%xmm1");
@@ -760,7 +768,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
             code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
             code += genOpCode("call", "assignDouble");
         } else {
-            console.log("str int expr")
+            // console.log("str int expr")
             code += exprToInt(exprNode, "%rdx", progContext);
             code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
             code += genOpCode("call", "assignInt");
@@ -869,7 +877,7 @@ function isFloatExpr(expr: Expr, progContext: ProgContext) : boolean {
 }
 
 function isNumFloatFunction(numFunc: NumFunc) : boolean {
-    return numFunc.func !== 'PEEK'
+    return numFunc.func !== 'PEEK' && numFunc.func !== 'POS'
 }
 
 function isFloatOperator(op: string) {
@@ -910,7 +918,7 @@ function allocateFloatTmp(progContext: ProgContext) : number {
         throw "out of float tmp variables"
     }
     const varName = progContext.floatTmps.pop()!
-    console.log("getting flattmp "+ " var "+varName + " offset "+progContext.variables.get(varName))
+    // console.log("getting flattmp "+ " var "+varName + " offset "+progContext.variables.get(varName))
     return progContext.variables.get(varName)!
 }
 
@@ -1222,7 +1230,7 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         const notNode : NotExpr = expr
         stmts += exprToInt(notNode.expr,reg,progContext)
         stmts += genOpCode("notq", reg)
-    } else if (isNumFunc(expr)) {
+    } else if (isNumFunc(expr) && !isNumFloatFunction(expr)) {
         const numFuncNode : NumFunc = expr
         if (numFuncNode.func==='PEEK') {
             stmts += exprToInt(numFuncNode.param, reg, progContext)
@@ -1235,7 +1243,7 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
             // TODO Fake POS implementation need access to cursor position
             stmts += genOpCode("movq", "$0", reg)
         } else {
-            throw "unsuported int num func "+numFuncNode.func
+            throw new CompileError("unsupported int num func "+numFuncNode.func,numFuncNode.$cstNode)
         }
     } else {
         if (isFloatExpr(expr,progContext)) {
@@ -1581,7 +1589,7 @@ function generateVariables(model: Model, progContext: ProgContext) {
                     throw "function parameter type redifinition mismatch: "+defFn.name
                 }
             }
-            console.log("store pointerName ",pointerName)
+            // console.log("store pointerName ",pointerName)
             if (!progContext.variables.has(pointerName)) {
                 progContext.variables.set(pointerName, variableOffset)
                 lNode._variableOffset = variableOffset

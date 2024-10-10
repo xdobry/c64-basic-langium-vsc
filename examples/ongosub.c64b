@@ -1,3 +1,4 @@
+REM START
 start:
   INPUT A
   IF A<1 OR A>2 THEN PRINT "ERROR":GOTO start

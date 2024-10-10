@@ -4,11 +4,12 @@ import { Command } from 'commander';
 import { C64BasicLanguageMetaData } from '../language/module.js';
 import { createC64BasicServices } from '../language/c-64-basic-module.js';
 import { extractAstNode } from './cli-util.js';
-import { generateAssemblerCode } from './generator.js';
+import { generateAssemblerCode, CompileError } from './generator.js';
 import { NodeFileSystem } from 'langium/node';
 import * as url from 'node:url';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+import { exec } from 'child_process';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const packagePath = path.resolve(__dirname, '..', '..', 'package.json');
@@ -17,8 +18,41 @@ const packageContent = await fs.readFile(packagePath, 'utf-8');
 export const generateAction = async (fileName: string, opts: GenerateOptions): Promise<void> => {
     const services = createC64BasicServices(NodeFileSystem).C64Basic;
     const model = await extractAstNode<Model>(fileName, services);
-    const generatedFilePath = generateAssemblerCode(model, fileName, opts.destination);
-    console.log(chalk.green(`Assembly code generated successfully: ${generatedFilePath}`));
+    try {
+        const generatedFilePath = generateAssemblerCode(model, fileName, opts.destination);
+        console.log(chalk.green(`Assembly code generated successfully: ${generatedFilePath}`));
+        if (!opts.suppress_compiling) {
+            const outPutFile = path.join(path.dirname(generatedFilePath), path.basename(generatedFilePath, path.extname(generatedFilePath)) + '.exe');
+            // TODO compute the location of the rtlib.c file
+            const compileCommand = `gcc ${generatedFilePath} .\\ccode\\rtlib.c -o ${outPutFile}`;
+            console.log(compileCommand);
+            exec(compileCommand, (error, stdout, stderr) => {
+                console.log(stdout)
+                console.error(stderr)
+                if (error) {
+                    console.error(chalk.red(`Compilation failed: ${error.message}`));
+                    return;
+                }
+                console.log(chalk.green(`Compilation successful ${outPutFile}`));
+            });
+            console.log("run mingw compiler to generate executable");
+        }
+    } catch (error) {
+        if (error instanceof CompileError) {
+            // need compute line from offset
+            let line = 0;
+            let pos = 0;
+            if (error.cstNode) {
+                const sourceText = (await fs.readFile(fileName, 'utf-8')).toString();
+                const frag = sourceText.substring(0, error.cstNode.offset);
+                line = frag.split('\n').length;
+                pos = frag.length - frag.lastIndexOf('\n');
+            }
+            console.log(`${fileName}:${line}:${pos}: compile error ${error.message}`);
+        } else {
+            console.error(chalk.red(`core error ${error}`));
+        }
+    }
 };
 
 export const generateAst = async (fileName: string): Promise<void> => {
@@ -41,6 +75,7 @@ export const tokenizeAction = async (fileName: string): Promise<void> => {
 
 export type GenerateOptions = {
     destination?: string;
+    suppress_compiling?: boolean;
 }
 
 export default function(): void {
@@ -53,6 +88,7 @@ export default function(): void {
         .command('generate')
         .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
         .option('-d, --destination <dir>', 'destination directory of generating')
+        .option('-s, --suppress_compiling','supress compiling assembler code to executable using mingw')
         .description('generates assemble code')
         .action(generateAction);
 

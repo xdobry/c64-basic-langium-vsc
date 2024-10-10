@@ -1,3 +1,4 @@
+REM START
 start:
   INPUT A
   ON A GOTO first, second

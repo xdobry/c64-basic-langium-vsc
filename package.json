@@ -22,7 +22,7 @@
         "dev:debug": "vite --debug --force",
         "serve": "npm run dev",
         "test": "vitest run",
-        "clitest": "node ./bin/cli.js generate ./examples_compile/compile.c64b",
+        "clitest": "node ./bin/cli.js generate ./examples_compile/compile.c64b --destination generated",
         "gcc": "gcc .\\generated\\compile.s .\\ccode\\rtlib_asm.s .\\ccode\\rtlib.c -o .\\generated\\compile.exe",
         "testexe": ".\\generated\\compile.exe",
         "devtrip": "npm run build && npm run clitest && npm run gcc && npm run testexe",

@@ -13,7 +13,7 @@ import { C64BasicFormatter } from './lsp/formatter.js';
 export const C64BasicLanguageMetaData = {
     languageId: 'c-64-basic',
     fileExtensions: ['.c64b'],
-    caseInsensitive: false
+    caseInsensitive: true
 } as const satisfies LanguageMetaData;
 
 export const C64BasicGeneratedSharedModule: Module<LangiumSharedCoreServices, LangiumGeneratedSharedCoreServices> = {

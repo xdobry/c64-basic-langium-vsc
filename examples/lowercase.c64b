@@ -1,0 +1,4 @@
+print "hallo world"
+a=10
+if a>0 then print "greater 10"
+end

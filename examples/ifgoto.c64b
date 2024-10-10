@@ -1,3 +1,4 @@
+REM START
 loop:
   LET A=10
   PRINT A
