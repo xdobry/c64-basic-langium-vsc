@@ -78,7 +78,7 @@
                     "c64basic",
                     "c-64-basic"
                 ],
-                "extensions": [".c64b"],
+                "extensions": [".c64b",".bas"],
                 "configuration": "./language-configuration.json"
             }
         ],

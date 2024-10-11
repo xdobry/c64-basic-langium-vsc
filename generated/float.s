@@ -116,6 +116,11 @@ main:
 	movq	$0, -752(%rbp)
 	movq	$0, -744(%rbp)
 	movq	$0, -736(%rbp)
+	# set rounding mode to floor to be compatible with c64 rounding
+	stmxcsr	-800(%rbp)
+	andl	$0xFFFF9FFF, -800(%rbp)
+	orl	$0x2000, -800(%rbp)
+	ldmxcsr	-800(%rbp)
 	 # init bstring constants
 	leaq	-24(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx

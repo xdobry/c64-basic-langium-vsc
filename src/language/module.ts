@@ -12,7 +12,7 @@ import { C64BasicFormatter } from './lsp/formatter.js';
 
 export const C64BasicLanguageMetaData = {
     languageId: 'c-64-basic',
-    fileExtensions: ['.c64b'],
+    fileExtensions: ['.c64b','.bas','.txt'],
     caseInsensitive: true
 } as const satisfies LanguageMetaData;
 

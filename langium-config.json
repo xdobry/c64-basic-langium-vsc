@@ -4,7 +4,7 @@
         "id": "c-64-basic",
         "caseInsensitive": true,
         "grammar": "src/language/c-64-basic.langium",
-        "fileExtensions": [".c64b"],
+        "fileExtensions": [".c64b",".bas"],
         "textMate": {
             "out": "syntaxes/c-64-basic.tmLanguage.json"
         },

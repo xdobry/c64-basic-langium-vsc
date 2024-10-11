@@ -1,0 +1,17 @@
+REM TEST IF ROUNDING double to int is always floor as in c64
+A=23.8
+A%=A
+PRINT "A% ";A%
+IF A%<>23 THEN PRINT "ERROR"
+
+DIM A$(12)
+I=12.8
+I%=I
+IF I%<>12 THEN PRINT "ERROR2"
+A$(10)="TEST"
+PRINT "=I% ";I%
+A$(I%)="EST"
+PRINT "I% ";A$(I%)
+PRINT "I ";A$(I)
+
+PRINT "END"

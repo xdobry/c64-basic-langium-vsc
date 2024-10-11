@@ -1,1 +1,9 @@
+REM co za chuj
+LL=10.0
+Z%=INT(0.4*LL+1)
+IF Z%<>5 THEN PRINT "ERROR1"
+Z%=0.4*LL+1
+IF Z%<>5 THEN PRINT "ERROR2";Z%
+rem co za chuj
+
 PRINT "END"

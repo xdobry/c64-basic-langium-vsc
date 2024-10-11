@@ -84,6 +84,11 @@ main:
 	movq	$0, -576(%rbp)
 	movq	$0, -568(%rbp)
 	movq	$0, -560(%rbp)
+	# set rounding mode to floor to be compatible with c64 rounding
+	stmxcsr	-624(%rbp)
+	andl	$0xFFFF9FFF, -624(%rbp)
+	orl	$0x2000, -624(%rbp)
+	ldmxcsr	-624(%rbp)
 	 # init bstring constants
 	leaq	-24(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
@@ -449,29 +454,29 @@ main:
 .defn_exprI1_5:
 	subq	$40, %rsp
 	# int: X%+FN R1(X%) - %rax
-	# int: X% - %rax
-	movq	-320(%rbp), %rax
-	# int: FN R1(X%) - %rsi
+	# float: X%+FN R1(X%)
+	# float: X%
+	# int: X% - %rsi
+	movq	-320(%rbp), %rsi
+	cvtsi2sdq	%rsi, %xmm0
+	movsd	%xmm0, -616(%rbp)
 	# float: FN R1(X%)
 	# float: X%
-	# int: X% - %rdi
-	movq	-320(%rbp), %rdi
-	cvtsi2sdq	%rdi, %xmm0
-	movsd	%xmm0, -616(%rbp)
-	movsd	-616(%rbp), %xmm0
+	# int: X% - %rsi
+	movq	-320(%rbp), %rsi
+	cvtsi2sdq	%rsi, %xmm0
+	movsd	%xmm0, -608(%rbp)
+	movsd	-608(%rbp), %xmm0
 	movsd	%xmm0, -264(%rbp)
 	movq	-256(%rbp), %rax
-	pushq	%rsi
-	pushq	%rax
-	subq	$32, %rsp
 	call	*%rax
-	movsd	%xmm0, -616(%rbp)
-	addq	$32, %rsp
-	popq	%rax
-	popq	%rsi
+	movsd	%xmm0, -608(%rbp)
 	movsd	-616(%rbp), %xmm0
-	cvtsd2siq	%xmm0, %rsi
-	addq	%rsi, %rax
+	movsd	-608(%rbp), %xmm1
+	addsd	%xmm1, %xmm0
+	movsd	%xmm0, -608(%rbp)
+	movsd	-608(%rbp), %xmm0
+	cvtsd2siq	%xmm0, %rax
 	addq	$40, %rsp
 	ret
 .defn_endI1_5:
@@ -514,13 +519,13 @@ main:
 	# int: 10 - %rsi
 	movq	$10, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -616(%rbp)
-	movsd	-616(%rbp), %xmm0
+	movsd	%xmm0, -608(%rbp)
+	movsd	-608(%rbp), %xmm0
 	movsd	%xmm0, -264(%rbp)
 	movq	-256(%rbp), %rax
 	call	*%rax
-	movsd	%xmm0, -616(%rbp)
-	movsd	-616(%rbp), %xmm1
+	movsd	%xmm0, -608(%rbp)
+	movsd	-608(%rbp), %xmm1
 	leaq	-552(%rbp), %rcx
 	call	assignDouble
 	leaq	-576(%rbp), %rcx
@@ -597,12 +602,12 @@ main:
 	call	*%rax
 	movq	%rax, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -616(%rbp)
+	movsd	%xmm0, -608(%rbp)
 	movsd	.LF5(%rip), %xmm0
-	movsd	-616(%rbp), %xmm1
+	movsd	-608(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -616(%rbp)
-	movsd	-616(%rbp), %xmm1
+	movsd	%xmm0, -608(%rbp)
+	movsd	-608(%rbp), %xmm1
 	leaq	-552(%rbp), %rcx
 	call	assignDouble
 	leaq	-576(%rbp), %rcx

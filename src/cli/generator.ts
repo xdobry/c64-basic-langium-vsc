@@ -145,6 +145,8 @@ export class CompileError extends Error {
 
 export function generateAssemblerCode(model: Model, filePath: string, destination: string | undefined): string {
     const data = extractDestinationAndName(filePath, destination);
+    console.log("destination ",destination)
+    console.log("data",data)
     const generatedFilePath = `${path.join(data.destination, data.name)}.s`;
 
     const preamble  = `
@@ -216,6 +218,14 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         programmCode += genCall("calloc", {cmd:'movq',source:"$1"},{cmd:'movq',source:`$${2<<15}`})
         programmCode += genOpCode("movq","%rax",`${progContext.pokeMemOffset}(%rbp)`)
     }
+
+    programmCode += "\t# set rounding mode to floor to be compatible with c64 rounding\n"
+    // it is not clear if this settings are preserved during c-call
+    // or not influence it negatively
+    programmCode += genOpCode("stmxcsr", `${progContext.tmpOffset}(%rbp)`)
+    programmCode += genOpCode("andl", "$0xFFFF9FFF", `${progContext.tmpOffset}(%rbp)`)
+    programmCode += genOpCode("orl", "$0x2000", `${progContext.tmpOffset}(%rbp)`)
+    programmCode += genOpCode("ldmxcsr", `${progContext.tmpOffset}(%rbp)`)
 
     programmCode += initStringConstants(model, progContext)
 
@@ -798,9 +808,9 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         tmpOffset = variableOffset
         code += exprToInt(expr.param, "%rdx", progContext);
         code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
-        if (stringFunction1.func === "SPC") {
+        if (eqStr(stringFunction1.func,"SPC")) {
             code += genOpCode("call", "bstrSpc");
-        } else if (stringFunction1.func === "TAB") {
+        } else if (eqStr(stringFunction1.func,"TAB")) {
             code += genOpCode("call", "bstrTab");
         } else {
             throw "unknown string function2 expression: "+stringFunction1.func
@@ -814,9 +824,9 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         code += exprToInt(stringFunction2.param, "%r8", progContext);
         code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
         code += genOpCode("leaq", `${strResult.varOffset}(%rbp)`, "%rdx");
-        if (stringFunction2.func === "LEFT$") {
+        if (eqStr(stringFunction2.func,"LEFT$")) {
             code += genOpCode("call", "bstrLeft");
-        } else if (stringFunction2.func === "RIGHT$") {
+        } else if (eqStr(stringFunction2.func,"RIGHT$")) {
             code += genOpCode("call", "bstrRight");
         } else {
             throw "unknown string function2 expression: "+stringFunction2.func
@@ -836,7 +846,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         }
         code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
         code += genOpCode("leaq", `${strResult.varOffset}(%rbp)`, "%rdx");
-        if (stringFunction3.func === "MID$") {
+        if (eqStr(stringFunction3.func,"MID$")) {
             code += genOpCode("call", "bstrMid");
         } else {
             throw "unknown string function2 expression: "+stringFunction3.func
@@ -877,11 +887,11 @@ function isFloatExpr(expr: Expr, progContext: ProgContext) : boolean {
 }
 
 function isNumFloatFunction(numFunc: NumFunc) : boolean {
-    return numFunc.func !== 'PEEK' && numFunc.func !== 'POS'
+    return !eqStr(numFunc.func,'PEEK') && !eqStr(numFunc.func,'POS')
 }
 
 function isFloatOperator(op: string) {
-    const notFloatOp: string[] = ["=","<>",">",">=","<","<=","AND","OR"]
+    const notFloatOp: string[] = ["=","<>",">",">=","<","<=","AND","OR","and","or"]
     return !notFloatOp.includes(op);
 }
 
@@ -1004,6 +1014,17 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         stmts += genOpCode("xor", "%rcx", "%rcx");
         stmts += genOpCode("call", "time");
         stmts += genOpCode("movq", "%rax", reg);
+    } else if (isFloatExpr(expr, progContext)) {
+        // Float expression for example multiplocation of 2 float numbers
+        // should be done in float arithmetics and the result converted to int
+        const storeValue = storeRegister(progContext, notPreservedRegister,[reg],true)
+        stmts += storeValue.code
+        const floatResult = exprToFloat(expr, progContext);
+        stmts += floatResult.code;
+        stmts += genOpCode("movsd", floatResult.source!, "%xmm0");
+        freeFloatTmp(progContext, floatResult.tmpOffset);
+        stmts += restoreRegister(storeValue);
+        stmts += genOpCode("cvtsd2siq", "%xmm0", reg);
     } else if (isBinExpr(expr)) {
         const binExpr : BinExpr = expr;
         if (!isFloatOperator(expr.op) 
@@ -1121,9 +1142,9 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
                 stmts += genOpCode("setne", "%al");
                 stmts += genOpCode("movzbq", "%al", reg);
                 stmts += genOpCode("negq", reg)
-            } else if (binExpr.op === "OR") {
+            } else if (eqStr(binExpr.op,"OR")) {
                 stmts += genOpCode("orq", reg2,reg);
-            } else if (binExpr.op === "AND") {
+            } else if (eqStr(binExpr.op,"AND")) {
                 stmts += genOpCode("andq", reg2,reg);
             } else {
                 throw "unknown binary operator: "+binExpr.op
@@ -1232,14 +1253,14 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         stmts += genOpCode("notq", reg)
     } else if (isNumFunc(expr) && !isNumFloatFunction(expr)) {
         const numFuncNode : NumFunc = expr
-        if (numFuncNode.func==='PEEK') {
+        if (eqStr(numFuncNode.func,'PEEK')) {
             stmts += exprToInt(numFuncNode.param, reg, progContext)
             if (!progContext.pokeMemOffset) {
                 throw "can not find poke memory offset for peek (mem not initialized)"
             }
             stmts += genOpCode("movq", `${progContext.pokeMemOffset}(%rbp)`, "%rax")
             stmts += genOpCode("movzb", `(%rax,${reg},1)`, reg)
-        } else if (numFuncNode.func==='POS') {
+        } else if (eqStr(numFuncNode.func,'POS')) {
             // TODO Fake POS implementation need access to cursor position
             stmts += genOpCode("movq", "$0", reg)
         } else {
@@ -1260,6 +1281,13 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         }
     }
     return stmts;
+}
+
+function eqStr(str1?: string, str2?:string) : boolean {
+    if (!str1 || !str2) {
+        return false
+    }
+    return str1.localeCompare(str2,undefined, {sensitivity: 'base'}) === 0
 }
 
 function genArrIndex(varName: string, indexes: Expr[], progContext: ProgContext) : string {
@@ -1361,7 +1389,7 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
         return exprToFloat(groupExpr.ge,progContext)
     } else if (isNumFunc(expr)) {
         const numFunc : NumFunc = expr;
-        const cFunc = (mathFunctions as any)[numFunc.func]
+        const cFunc = (mathFunctions as any)[numFunc.func.toUpperCase()]
         if (cFunc) {
             const floatResult = exprToFloat(numFunc.param, progContext);
             stmts += floatResult.code;

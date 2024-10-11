@@ -62,7 +62,8 @@ GOTO P12
                 console.log("parsing: "+file)
                 document = await parse(content);
                 expect(
-                    checkDocumentValid(document) || document?.diagnostics?.map(diagnosticToString)?.join('\n')
+                    checkDocumentValid(document) || document?.diagnostics?.map(diagnosticToString)?.join('\n'),
+                    `No Error in file ${file}`	
                 ).not.toHaveLength(0);
             }
         }

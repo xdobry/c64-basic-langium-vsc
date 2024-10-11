@@ -136,6 +136,11 @@ main:
 	lea	-672(%rbp), %rcx
 	movq	$1, %rdx
 	call	c64_init_array
+	# set rounding mode to floor to be compatible with c64 rounding
+	stmxcsr	-1032(%rbp)
+	andl	$0xFFFF9FFF, -1032(%rbp)
+	orl	$0x2000, -1032(%rbp)
+	ldmxcsr	-1032(%rbp)
 	 # init bstring constants
 	leaq	-24(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx

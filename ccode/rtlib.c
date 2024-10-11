@@ -190,12 +190,12 @@ void bstrLeft(struct BString* target, const struct BString* str, size_t count) {
 }
 
 void bstrMid(struct BString* target, const struct BString* str, size_t pos, size_t count) {
-    if (pos >= str->length) {
+    if (pos >= str->length || pos<1) {
         freeBString(target);
     } else {
         struct BString temp;
-        temp.data = str->data + pos;
-        temp.length = str->length - pos > count && count != 0  ? count : str->length - pos;
+        temp.data = str->data + pos - 1;
+        temp.length = str->length - pos + 1 >= count && count != 0  ? count : str->length - pos + 1;
         temp.capacity = str->capacity;
         assignBString(target, &temp);
     }
@@ -604,7 +604,7 @@ void readData(struct DataEntry** dpointer,const char *format, ...) {
     va_list args;
     va_start(args, format);
     for (int i=0; format[i]; i++) {
-        if (dpointer[0]->length==8) {
+        if (dpointer[0]->length==0) {
             c64_error(7);
         }
         // printf("readData format=%c len=%ld dp=%p\n",format[i],dpointer[0]->length,dpointer[0]);

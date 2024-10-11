@@ -43,9 +43,9 @@ interface FilePathData {
 }
 
 export function extractDestinationAndName(filePath: string, destination: string | undefined): FilePathData {
-    filePath = path.basename(filePath, path.extname(filePath)).replace(/[.-]/g, '');
+    const filePathR = path.basename(filePath, path.extname(filePath));
     return {
-        destination: destination ?? path.join(path.dirname(filePath), ""),
-        name: path.basename(filePath)
+        destination: destination ? path.join(path.dirname(filePathR), destination) : path.dirname(filePath),
+        name: path.basename(filePathR)
     };
 }

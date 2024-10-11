@@ -24,7 +24,7 @@ export const generateAction = async (fileName: string, opts: GenerateOptions): P
         if (!opts.suppress_compiling) {
             const outPutFile = path.join(path.dirname(generatedFilePath), path.basename(generatedFilePath, path.extname(generatedFilePath)) + '.exe');
             // TODO compute the location of the rtlib.c file
-            const compileCommand = `gcc ${generatedFilePath} .\\ccode\\rtlib.c -o ${outPutFile}`;
+            const compileCommand = `gcc "${generatedFilePath}" .\\ccode\\rtlib.c -o "${outPutFile}"`;
             console.log(compileCommand);
             exec(compileCommand, (error, stdout, stderr) => {
                 console.log(stdout)

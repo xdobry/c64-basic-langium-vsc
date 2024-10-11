@@ -136,6 +136,11 @@ main:
 	# init data pointer
 	lea	dataDefinition(%rip), %rax
 	movq	%rax, -560(%rbp)
+	# set rounding mode to floor to be compatible with c64 rounding
+	stmxcsr	-552(%rbp)
+	andl	$0xFFFF9FFF, -552(%rbp)
+	orl	$0x2000, -552(%rbp)
+	ldmxcsr	-552(%rbp)
 	 # init bstring constants
 	leaq	-24(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx

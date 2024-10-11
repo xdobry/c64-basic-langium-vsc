@@ -49,14 +49,14 @@ describe('Compilation', () => {
                 if (!existsSync(inputFilePath)) {
                     const stdout2 = execSync(outFile).toString();
                     console.log("exe output: " + stdout2);
-                    expect(stdout2).not.toMatch("ERROR")
-                    expect(stdout2).toMatch("END")
+                    expect(stdout2,`ERROR output in file ${file}`).not.toMatch("ERROR")
+                    expect(stdout2,`NO END marker in file ${file}`).toMatch("END")
                 } else {
                     const inputValue = readFileSync(inputFilePath).toString()
                     const stdout2 = execSync(outFile,{input:inputValue}).toString();
                     console.log("exe stdin output: " + stdout2);
-                    expect(stdout2).not.toMatch("ERROR")
-                    expect(stdout2).toMatch("END")
+                    expect(stdout2,`ERROR output in file ${file}`).not.toMatch("ERROR")
+                    expect(stdout2,`NO END marker in file ${file}`).toMatch("END")
                 }
             }
         }
