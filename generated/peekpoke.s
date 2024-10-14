@@ -87,8 +87,9 @@ main:
 	je	.ifnot0
 	# PRINT "ERROR"
 	# str: "ERROR"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot0:
 	# POKE 101,-2
 	# int: 101 - %rsi
@@ -117,31 +118,28 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR2", PEEK(101)
 	# str: "ERROR2",
-	leaq	-192(%rbp), %rcx
-	leaq	-48(%rbp), %rdx
-	call	assignBString
+	leaq	-48(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: PEEK(101)
 	# int: PEEK(101) - %rdx
 	# int: 101 - %rdx
 	movq	$101, %rdx
 	movq	-248(%rbp), %rax
 	movzb	(%rax,%rdx,1), %rdx
-	leaq	-168(%rbp), %rcx
+	leaq	-192(%rbp), %rcx
 	call	assignInt
 	leaq	-192(%rbp), %rcx
-	leaq	-168(%rbp), %rdx
-	call	appendBString
-	leaq	-168(%rbp), %rcx
-	call	freeBString
-	movq	-192(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-192(%rbp), %rcx
 	call	freeBString
 .ifnot1:
 	# PRINT "END"
 	# str: "END"
-	movq	-72(%rbp), %rcx
-	call	puts
+	leaq	-72(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

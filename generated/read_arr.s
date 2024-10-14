@@ -183,8 +183,9 @@ main:
 	call	assignFromConst
 	# PRINT "START"
 	# str: "START"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# DIM A(5)
 	cmpq	$0, -56(%rbp)
 	je	.dim_ok0
@@ -212,20 +213,16 @@ main:
 .for0:
 	# PRINT "READ ";X%
 	# str: "READ ";
-	leaq	-504(%rbp), %rcx
-	leaq	-88(%rbp), %rdx
-	call	assignBString
+	leaq	-88(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: X%
-	leaq	-480(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	movq	-64(%rbp), %rdx
 	call	assignInt
 	leaq	-504(%rbp), %rcx
-	leaq	-480(%rbp), %rdx
-	call	appendBString
-	leaq	-480(%rbp), %rcx
-	call	freeBString
-	movq	-504(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-504(%rbp), %rcx
 	call	freeBString
 	# READ A(X%)
@@ -270,8 +267,9 @@ main:
 	je	.ifnot0
 	# PRINT "ERROR1"
 	# str: "ERROR1"
-	movq	-112(%rbp), %rcx
-	call	puts
+	leaq	-112(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot0:
 	# IF A(5)<> 6 THEN PRINT "ERROR2"
 	# int: A(5)<> 6 - %rsi
@@ -297,8 +295,9 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR2"
 	# str: "ERROR2"
-	movq	-136(%rbp), %rcx
-	call	puts
+	leaq	-136(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot1:
 	# DATA 1,2,3,4,5,6
 	# DIM A$(2)
@@ -328,20 +327,16 @@ main:
 .for1:
 	# PRINT "READ2 ";X%
 	# str: "READ2 ";
-	leaq	-504(%rbp), %rcx
-	leaq	-192(%rbp), %rdx
-	call	assignBString
+	leaq	-192(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: X%
-	leaq	-480(%rbp), %rcx
+	leaq	-504(%rbp), %rcx
 	movq	-64(%rbp), %rdx
 	call	assignInt
 	leaq	-504(%rbp), %rcx
-	leaq	-480(%rbp), %rdx
-	call	appendBString
-	leaq	-480(%rbp), %rcx
-	call	freeBString
-	movq	-504(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-504(%rbp), %rcx
 	call	freeBString
 	# READ A$(X%)
@@ -385,8 +380,9 @@ main:
 	je	.ifnot2
 	# PRINT "ERROR3"
 	# str: "ERROR3"
-	movq	-240(%rbp), %rcx
-	call	puts
+	leaq	-240(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot2:
 	# IF A$(2)<> "C" THEN PRINT "ERROR4"
 	# int: A$(2)<> "C" - %rsi
@@ -411,14 +407,16 @@ main:
 	je	.ifnot3
 	# PRINT "ERROR4"
 	# str: "ERROR4"
-	movq	-288(%rbp), %rcx
-	call	puts
+	leaq	-288(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot3:
 	# DATA "A","B","C"
 	# PRINT "END"
 	# str: "END"
-	movq	-384(%rbp), %rcx
-	call	puts
+	leaq	-384(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

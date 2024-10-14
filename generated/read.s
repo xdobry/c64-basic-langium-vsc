@@ -163,8 +163,9 @@ main:
 	je	.ifnot0
 	# PRINT "ERROR1"
 	# str: "ERROR1"
-	movq	-32(%rbp), %rcx
-	call	puts
+	leaq	-32(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot0:
 	# READ A
 	leaq	-456(%rbp), %rcx
@@ -185,8 +186,9 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR2"
 	# str: "ERROR2"
-	movq	-64(%rbp), %rcx
-	call	puts
+	leaq	-64(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot1:
 	# READ A$
 	leaq	-456(%rbp), %rcx
@@ -206,8 +208,9 @@ main:
 	je	.ifnot2
 	# PRINT "ERROR3"
 	# str: "ERROR3"
-	movq	-136(%rbp), %rcx
-	call	puts
+	leaq	-136(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot2:
 	# RESTORE
 	lea	dataDefinition(%rip), %rax
@@ -231,8 +234,9 @@ main:
 	je	.ifnot3
 	# PRINT "ERROR4"
 	# str: "ERROR4"
-	movq	-160(%rbp), %rcx
-	call	puts
+	leaq	-160(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot3:
 	# READ A, A$
 	leaq	-456(%rbp), %rcx
@@ -254,8 +258,9 @@ main:
 	je	.ifnot4
 	# PRINT "ERROR2"
 	# str: "ERROR2"
-	movq	-184(%rbp), %rcx
-	call	puts
+	leaq	-184(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot4:
 	# IF A$<>"ONE" THEN PRINT "ERROR3"
 	# int: A$<>"ONE" - %rsi
@@ -270,13 +275,15 @@ main:
 	je	.ifnot5
 	# PRINT "ERROR3"
 	# str: "ERROR3"
-	movq	-232(%rbp), %rcx
-	call	puts
+	leaq	-232(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot5:
 	# PRINT "END"
 	# str: "END"
-	movq	-256(%rbp), %rcx
-	call	puts
+	leaq	-256(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# DATA 1,1.2,"ONE"
 
 .basicend:

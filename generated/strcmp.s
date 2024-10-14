@@ -237,8 +237,9 @@ main:
 	call	assignFromConst
 	# PRINT "START"
 	# str: "START"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# A$="TESTA"
 	# str: "TESTA"
 	leaq	-48(%rbp), %rcx
@@ -275,8 +276,9 @@ main:
 	call	assignBString
 	# PRINT "COMPARE"
 	# str: "COMPARE"
-	movq	-344(%rbp), %rcx
-	call	puts
+	leaq	-344(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# IF A$=AA$ THEN LET I%=1
 	# int: A$=AA$ - %rsi
 	# str: A$
@@ -307,8 +309,9 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR EQ"
 	# str: "ERROR EQ"
-	movq	-368(%rbp), %rcx
-	call	puts
+	leaq	-368(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot1:
 	# IF C$<>NSET$ THEN PRINT "ERROR EMPTY CMP"
 	# int: C$<>NSET$ - %rsi
@@ -323,8 +326,9 @@ main:
 	je	.ifnot2
 	# PRINT "ERROR EMPTY CMP"
 	# str: "ERROR EMPTY CMP"
-	movq	-392(%rbp), %rcx
-	call	puts
+	leaq	-392(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot2:
 	# IF C$=NSET$ THEN PRINT "OK1"
 	# int: C$=NSET$ - %rsi
@@ -339,8 +343,9 @@ main:
 	je	.ifnot3
 	# PRINT "OK1"
 	# str: "OK1"
-	movq	-416(%rbp), %rcx
-	call	puts
+	leaq	-416(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot3:
 	# NSET$=""
 	# str: ""
@@ -360,8 +365,9 @@ main:
 	je	.ifnot4
 	# PRINT "ERROR EQ"
 	# str: "ERROR EQ"
-	movq	-488(%rbp), %rcx
-	call	puts
+	leaq	-488(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot4:
 	# IF A$<>B$ THEN PRINT "OK2"
 	# int: A$<>B$ - %rsi
@@ -376,8 +382,9 @@ main:
 	je	.ifnot5
 	# PRINT "OK2"
 	# str: "OK2"
-	movq	-512(%rbp), %rcx
-	call	puts
+	leaq	-512(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot5:
 	# IF A$>B$ THEN PRINT "ERROR >"
 	# int: A$>B$ - %rsi
@@ -392,8 +399,9 @@ main:
 	je	.ifnot6
 	# PRINT "ERROR >"
 	# str: "ERROR >"
-	movq	-536(%rbp), %rcx
-	call	puts
+	leaq	-536(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot6:
 	# IF A$<B$ THEN PRINT "OK3"
 	# int: A$<B$ - %rsi
@@ -408,8 +416,9 @@ main:
 	je	.ifnot7
 	# PRINT "OK3"
 	# str: "OK3"
-	movq	-560(%rbp), %rcx
-	call	puts
+	leaq	-560(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot7:
 	# IF A$>=B$ THEN PRINT "ERROR >="
 	# int: A$>=B$ - %rsi
@@ -424,8 +433,9 @@ main:
 	je	.ifnot8
 	# PRINT "ERROR >="
 	# str: "ERROR >="
-	movq	-584(%rbp), %rcx
-	call	puts
+	leaq	-584(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot8:
 	# IF A$<=B$ THEN PRINT "OK4"
 	# int: A$<=B$ - %rsi
@@ -440,8 +450,9 @@ main:
 	je	.ifnot9
 	# PRINT "OK4"
 	# str: "OK4"
-	movq	-608(%rbp), %rcx
-	call	puts
+	leaq	-608(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot9:
 	# IF B$<A$ THEN PRINT "ERROR >"
 	# int: B$<A$ - %rsi
@@ -456,8 +467,9 @@ main:
 	je	.ifnot10
 	# PRINT "ERROR >"
 	# str: "ERROR >"
-	movq	-632(%rbp), %rcx
-	call	puts
+	leaq	-632(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot10:
 	# IF B$<=A$ THEN PRINT "ERROR <="
 	# int: B$<=A$ - %rsi
@@ -472,8 +484,9 @@ main:
 	je	.ifnot11
 	# PRINT "ERROR <="
 	# str: "ERROR <="
-	movq	-656(%rbp), %rcx
-	call	puts
+	leaq	-656(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot11:
 	# IF C$>A$ THEN PRINT "ERROR > EMPTY"
 	# int: C$>A$ - %rsi
@@ -488,8 +501,9 @@ main:
 	je	.ifnot12
 	# PRINT "ERROR > EMPTY"
 	# str: "ERROR > EMPTY"
-	movq	-680(%rbp), %rcx
-	call	puts
+	leaq	-680(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot12:
 	# IF A$<C$ THEN PRINT "ERROR < EMPTY"
 	# int: A$<C$ - %rsi
@@ -504,8 +518,9 @@ main:
 	je	.ifnot13
 	# PRINT "ERROR < EMPTY"
 	# str: "ERROR < EMPTY"
-	movq	-704(%rbp), %rcx
-	call	puts
+	leaq	-704(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot13:
 	# IF A$>A1$ THEN PRINT "ERROR > LEN"
 	# int: A$>A1$ - %rsi
@@ -520,8 +535,9 @@ main:
 	je	.ifnot14
 	# PRINT "ERROR > LEN"
 	# str: "ERROR > LEN"
-	movq	-728(%rbp), %rcx
-	call	puts
+	leaq	-728(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot14:
 	# IF A1$<A$ THEN PRINT "ERROR < LEN"
 	# int: A1$<A$ - %rsi
@@ -536,8 +552,9 @@ main:
 	je	.ifnot15
 	# PRINT "ERROR < LEN"
 	# str: "ERROR < LEN"
-	movq	-752(%rbp), %rcx
-	call	puts
+	leaq	-752(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot15:
 	# IF A1$=A$ THEN PRINT "ERROR = LEN"
 	# int: A1$=A$ - %rsi
@@ -552,8 +569,9 @@ main:
 	je	.ifnot16
 	# PRINT "ERROR = LEN"
 	# str: "ERROR = LEN"
-	movq	-776(%rbp), %rcx
-	call	puts
+	leaq	-776(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot16:
 	# IF A$>=A1$ THEN PRINT "ERROR >= LEN"
 	# int: A$>=A1$ - %rsi
@@ -568,8 +586,9 @@ main:
 	je	.ifnot17
 	# PRINT "ERROR >= LEN"
 	# str: "ERROR >= LEN"
-	movq	-800(%rbp), %rcx
-	call	puts
+	leaq	-800(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot17:
 	# IF A1$<=A$ THEN PRINT "ERROR <= LEN"
 	# int: A1$<=A$ - %rsi
@@ -584,13 +603,15 @@ main:
 	je	.ifnot18
 	# PRINT "ERROR <= LEN"
 	# str: "ERROR <= LEN"
-	movq	-824(%rbp), %rcx
-	call	puts
+	leaq	-824(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot18:
 	# PRINT "END"
 	# str: "END"
-	movq	-848(%rbp), %rcx
-	call	puts
+	leaq	-848(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

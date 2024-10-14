@@ -155,8 +155,9 @@ main:
 	call	assignFromConst
 	# PRINT "START"
 	# str: "START"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# A%=10
 	# int: 10 - %rsi
 	movq	$10, %rsi
@@ -179,17 +180,13 @@ main:
 	call	freeBString
 	# PRINT "STR$ INT=",A$
 	# str: "STR$ INT=",
-	leaq	-592(%rbp), %rcx
-	leaq	-88(%rbp), %rdx
-	call	assignBString
+	leaq	-88(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A$
-	leaq	-592(%rbp), %rcx
-	leaq	-64(%rbp), %rdx
-	call	appendBString
-	movq	-592(%rbp), %rcx
-	call	puts
-	leaq	-592(%rbp), %rcx
-	call	freeBString
+	leaq	-64(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# A$=STR$(A)
 	# str: STR$(A)
 	# float: A
@@ -203,21 +200,18 @@ main:
 	call	freeBString
 	# PRINT "STR$ FLOAT=",A$
 	# str: "STR$ FLOAT=",
-	leaq	-592(%rbp), %rcx
-	leaq	-112(%rbp), %rdx
-	call	assignBString
+	leaq	-112(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A$
-	leaq	-592(%rbp), %rcx
-	leaq	-64(%rbp), %rdx
-	call	appendBString
-	movq	-592(%rbp), %rcx
-	call	puts
-	leaq	-592(%rbp), %rcx
-	call	freeBString
+	leaq	-64(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# PRINT "VAL1"
 	# str: "VAL1"
-	movq	-136(%rbp), %rcx
-	call	puts
+	leaq	-136(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# A$="10"
 	# str: "10"
 	leaq	-64(%rbp), %rcx
@@ -244,13 +238,15 @@ main:
 	je	.ifnot0
 	# PRINT "ERROR VAL INT"
 	# str: "ERROR VAL INT"
-	movq	-184(%rbp), %rcx
-	call	puts
+	leaq	-184(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot0:
 	# PRINT "VAL2"
 	# str: "VAL2"
-	movq	-208(%rbp), %rcx
-	call	puts
+	leaq	-208(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# A$="2.2"
 	# str: "2.2"
 	leaq	-64(%rbp), %rcx
@@ -278,8 +274,9 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR VAL FLOAT"
 	# str: "ERROR VAL FLOAT"
-	movq	-256(%rbp), %rcx
-	call	puts
+	leaq	-256(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot1:
 	# S1$="AB"
 	# str: "AB"
@@ -314,8 +311,9 @@ main:
 	je	.ifnot2
 	# PRINT "ERROR APPEND"
 	# str: "ERROR APPEND"
-	movq	-376(%rbp), %rcx
-	call	puts
+	leaq	-376(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot2:
 	# S1$ = "D" + S1$
 	# str: "D" + S1$
@@ -345,13 +343,15 @@ main:
 	je	.ifnot3
 	# PRINT "ERROR PREPPEND"
 	# str: "ERROR PREPPEND"
-	movq	-448(%rbp), %rcx
-	call	puts
+	leaq	-448(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot3:
 	# PRINT "END"
 	# str: "END"
-	movq	-472(%rbp), %rcx
-	call	puts
+	leaq	-472(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

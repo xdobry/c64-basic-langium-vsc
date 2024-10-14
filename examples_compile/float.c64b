@@ -30,4 +30,7 @@ PRINT A+LEN("TEST")
 PRINT A+3
 A% = A
 PRINT "A%=A ",A%
+A=.23
+A=2.3E2
+A=.3E-2
 PRINT "END"

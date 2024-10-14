@@ -288,35 +288,30 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 code += `.${lNode.name}:\n`;
             } else if (isPrint(node)) {
                 const print : Print = node;
-                if (print.exprs.length==1) {
-                    const expr = print.exprs[0];
-                    const stringResult = exprAsBString(expr,progContext);
-                    code += stringResult.code;
-                    code += genCall("puts", {cmd: "movq", source: `${stringResult.varOffset}(%rbp)`});
-                    code += freeStrTmp(progContext, stringResult.tmpOffset);
+                if (print.exprs.length==0) {
+                    code += genOpCode("movq", "$10", "%rcx");
+                    code += genOpCode("call", "putchar");
                 } else {
-                    const tmpVarOffset = allocateStrTmp(progContext);
-                    let isFirst : boolean = true
+                    let num = 0
                     for (const expr of print.exprs) {
-                        if (isFirst) {
-                            const stringResult = exprAsBString(expr,progContext);
-                            code += stringResult.code;
-                            code += genCall("assignBString",
-                                {cmd: "leaq", source: `${tmpVarOffset}(%rbp)`}, 
-                                {cmd: "leaq", source: `${stringResult.varOffset}(%rbp)`});
-                            code += freeStrTmp(progContext, stringResult.tmpOffset);
-                            isFirst = false;
-                        } else {
-                            const stringResult = exprAsBString(expr,progContext);
-                            code += stringResult.code;
-                            code += genCall("appendBString",
-                                {cmd: "leaq", source: `${tmpVarOffset}(%rbp)`}, 
-                                {cmd: "leaq", source: `${stringResult.varOffset}(%rbp)`});
-                            code += freeStrTmp(progContext, stringResult.tmpOffset);
+                        const stringResult = exprAsBString(expr,progContext);
+                        code += stringResult.code;
+                        let flags = 0
+                        if (isExpr(expr)) {
+                            flags |= 4
                         }
+                        if (expr.sep===',') {
+                            flags |= 1
+                        }
+                        if (num===print.exprs.length-1 && expr.sep!==';') {
+                            flags |= 8
+                        }
+                        code += genCall("printBString",
+                            {cmd: "leaq", source: `${stringResult.varOffset}(%rbp)`},
+                            {cmd: "movq", source: `$${flags}`});
+                        code += freeStrTmp(progContext, stringResult.tmpOffset);
+                        num += 1
                     }
-                    code += genCall("puts", {cmd: "movq", source: `${tmpVarOffset}(%rbp)`});
-                    code += freeStrTmp(progContext, tmpVarOffset);
                 }
             } else if (isGoSub(node)) {
                 const contLabel = `.gosubCont${progContext.goSubLabelCounter++}`
@@ -548,7 +543,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 const jumpOverLabel = ".gotoEnd"+progContext.goSubLabelCounter++
                 code += genOpCode("cmpq","$0",reg)
                 code += genOpCode("jle",jumpOverLabel)
-                code += genOpCode("cmpq",`$${onGotoNode.labels.length}`,reg)
+                code += genOpCode("cmpq",`$${onGotoNode.labels.length>0 ? onGotoNode.labels.length : onGotoNode.lineNumbers.length}`,reg)
                 code += genOpCode("ja",jumpOverLabel)
                 const jmpTableLabel = ".jt"+progContext.jmpTablesCounter++
                 // code += genOpCode("moveq",`${jmpTableLabel}(,${reg},8)`,"%rax")
@@ -556,8 +551,14 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 code += genOpCode("jmp",`*${jmpTableLabel}(,${reg},8)`);
                 // create jump table
                 progContext.jmpTables += `${jmpTableLabel}:\n`
-                for (const label of onGotoNode.labels) {
-                    progContext.jmpTables += `\t.quad ${getJmpLabel(label,undefined,progContext)}\n`
+                if (onGotoNode.labels.length>0) {
+                    for (const label of onGotoNode.labels) {
+                        progContext.jmpTables += `\t.quad ${getJmpLabel(label,undefined,progContext)}\n`
+                    }
+                } else {
+                    for (const lineNumber of onGotoNode.lineNumbers) {
+                        progContext.jmpTables += `\t.quad ${getJmpLabel(undefined, lineNumber, progContext)}\n`
+                    }
                 }
                 code += `${jumpOverLabel}:\n`
             } else if (isOnGoSub(node)) {
@@ -569,7 +570,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 freeRegister(progContext,reg);
                 code += genOpCode("cmpq","$0",reg)
                 code += genOpCode("jle",jumpOverLabel)
-                code += genOpCode("cmpq",`$${onGotoNode.labels.length}`,reg)
+                code += genOpCode("cmpq",`$${onGotoNode.labels.length>0 ? onGotoNode.labels.length : onGotoNode.lineNumbers.length}`,reg)
                 code += genOpCode("ja",jumpOverLabel)
                 const jmpTableLabel = ".jt"+progContext.jmpTablesCounter++
                 // code += genOpCode("moveq",`${jmpTableLabel}(,${reg},8)`,"%rax")
@@ -577,8 +578,14 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 code += genOpCode("jmp",`*${jmpTableLabel}(,${reg},8)`);
                 // create jump table
                 progContext.jmpTables += `${jmpTableLabel}:\n`
-                for (const label of onGotoNode.labels) {
-                    progContext.jmpTables += `\t.quad ${getJmpLabel(label,undefined,progContext)}\n`
+                if (onGotoNode.labels.length>0) {
+                    for (const label of onGotoNode.labels) {
+                        progContext.jmpTables += `\t.quad ${getJmpLabel(label,undefined,progContext)}\n`
+                    }
+                } else {
+                    for (const lineNumber of onGotoNode.lineNumbers) {
+                        progContext.jmpTables += `\t.quad ${getJmpLabel(undefined, lineNumber, progContext)}\n`
+                    }
                 }
                 code += `${jumpOverLabel}:\n`
             } else if (isPoke(node)) {
@@ -706,6 +713,7 @@ function getJmpLabel(labelRef: Reference<Label> | undefined, lineRef: Reference<
         }
     }
 }
+
 
 interface BStringResult {
     varOffset: number
@@ -1561,6 +1569,24 @@ function generateVariables(model: Model, progContext: ProgContext) {
             if (forNode.end && !isIntNumber(forNode.end)) {
                 lNode._toOffset = variableOffset
                 variableOffset -= 8;
+            }
+        } else if (isOnGoto(node)) {
+            const ongoto : OnGoto = node;
+            for (const lineNumber of ongoto.lineNumbers) {
+                const linenum = lineNumber.ref?.linenum
+                if (linenum && !progContext.usedLines.includes(linenum)) {
+                    progContext.usedLines.push(linenum)
+                }
+
+            }
+        } else if (isOnGoSub(node)) {
+            const ongosub : OnGoSub = node;
+            for (const lineNumber of ongosub.lineNumbers) {
+                const linenum = lineNumber.ref?.linenum
+                if (linenum && !progContext.usedLines.includes(linenum)) {
+                    progContext.usedLines.push(linenum)
+                }
+
             }
         } else if (isGoTo(node)) {
             const goto : GoTo = node;

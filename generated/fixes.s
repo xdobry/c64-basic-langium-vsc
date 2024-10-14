@@ -83,8 +83,9 @@ main:
 	call	assignFromConst
 	# PRINT "START"
 	# str: "START"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# A=RND(1)*5+1
 	# float: RND(1)*5+1
 	# float: RND(1)*5
@@ -122,8 +123,9 @@ main:
 	leaq	-328(%rbp), %rcx
 	movsd	-32(%rbp), %xmm1
 	call	assignDouble
-	movq	-328(%rbp), %rcx
-	call	puts
+	leaq	-328(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-328(%rbp), %rcx
 	call	freeBString
 	# IF A=26 THEN PRINT "ERROR"
@@ -144,8 +146,9 @@ main:
 	je	.ifnot0
 	# PRINT "ERROR"
 	# str: "ERROR"
-	movq	-56(%rbp), %rcx
-	call	puts
+	leaq	-56(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot0:
 	# A=RND(-3)
 	# float: RND(-3)
@@ -234,8 +237,9 @@ main:
 	leaq	-328(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBString
-	movq	-328(%rbp), %rcx
-	call	puts
+	leaq	-328(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	leaq	-328(%rbp), %rcx
 	call	freeBString
 	# D2=32
@@ -315,8 +319,9 @@ main:
 	je	.ifnot2
 	# PRINT "ERROR1"
 	# str: "ERROR1"
-	movq	-160(%rbp), %rcx
-	call	puts
+	leaq	-160(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot2:
 	# Z%=0.4*LL+1
 	# int: 0.4*LL+1 - %rsi
@@ -354,27 +359,24 @@ main:
 	je	.ifnot3
 	# PRINT "ERROR2";Z%
 	# str: "ERROR2";
-	leaq	-328(%rbp), %rcx
-	leaq	-184(%rbp), %rdx
-	call	assignBString
+	leaq	-184(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: Z%
-	leaq	-304(%rbp), %rcx
+	leaq	-328(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
 	leaq	-328(%rbp), %rcx
-	leaq	-304(%rbp), %rdx
-	call	appendBString
-	leaq	-304(%rbp), %rcx
-	call	freeBString
-	movq	-328(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-328(%rbp), %rcx
 	call	freeBString
 .ifnot3:
 	# PRINT "END"
 	# str: "END"
-	movq	-208(%rbp), %rcx
-	call	puts
+	leaq	-208(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

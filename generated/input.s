@@ -97,8 +97,9 @@ main:
 	call	assignFromConst
 	# PRINT "STARTING INPUT"
 	# str: "STARTING INPUT"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# INPUT "WHAT IS YOUR NAME, SURNAME" ; B$ , C$
 	leaq	-48(%rbp), %rcx
 	leaq	.LC1(%rip), %rdx
@@ -107,25 +108,21 @@ main:
 	call	inputData
 	# PRINT "WELCOME ",B$," ",C$
 	# str: "WELCOME ",
-	leaq	-344(%rbp), %rcx
-	leaq	-120(%rbp), %rdx
-	call	assignBString
+	leaq	-120(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: B$,
-	leaq	-344(%rbp), %rcx
-	leaq	-72(%rbp), %rdx
-	call	appendBString
+	leaq	-72(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: " ",
-	leaq	-344(%rbp), %rcx
-	leaq	-144(%rbp), %rdx
-	call	appendBString
+	leaq	-144(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: C$
-	leaq	-344(%rbp), %rcx
-	leaq	-96(%rbp), %rdx
-	call	appendBString
-	movq	-344(%rbp), %rcx
-	call	puts
-	leaq	-344(%rbp), %rcx
-	call	freeBString
+	leaq	-96(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# INPUT "GIVE A NUMBER";A
 	leaq	-168(%rbp), %rcx
 	leaq	.LC5(%rip), %rdx
@@ -133,9 +130,9 @@ main:
 	call	inputData
 	# PRINT "this is the 1/2 of is: ",A/2
 	# str: "this is the 1/2 of is: ",
-	leaq	-344(%rbp), %rcx
-	leaq	-200(%rbp), %rdx
-	call	assignBString
+	leaq	-200(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A/2
 	# float: A/2
 	# float: A
@@ -149,21 +146,18 @@ main:
 	divsd	%xmm1, %xmm0
 	movsd	%xmm0, -384(%rbp)
 	movsd	-384(%rbp), %xmm1
-	leaq	-320(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	call	assignDouble
 	leaq	-344(%rbp), %rcx
-	leaq	-320(%rbp), %rdx
-	call	appendBString
-	leaq	-320(%rbp), %rcx
-	call	freeBString
-	movq	-344(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-344(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
 	# str: "END"
-	movq	-224(%rbp), %rcx
-	call	puts
+	leaq	-224(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

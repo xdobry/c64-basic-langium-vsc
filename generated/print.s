@@ -113,24 +113,20 @@ main:
 	movq	%rsi, -104(%rbp)
 	# PRINT A$ B$ C%
 	# str: A$
-	leaq	-392(%rbp), %rcx
-	leaq	-24(%rbp), %rdx
-	call	assignBString
+	leaq	-24(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: B$
-	leaq	-392(%rbp), %rcx
-	leaq	-72(%rbp), %rdx
-	call	appendBString
+	leaq	-72(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: C%
-	leaq	-368(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	movq	-104(%rbp), %rdx
 	call	assignInt
 	leaq	-392(%rbp), %rcx
-	leaq	-368(%rbp), %rdx
-	call	appendBString
-	leaq	-368(%rbp), %rcx
-	call	freeBString
-	movq	-392(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-392(%rbp), %rcx
 	call	freeBString
 	# LET MSG$=A$+B$
@@ -150,8 +146,9 @@ main:
 	call	freeBString
 	# PRINT MSG$
 	# str: MSG$
-	movq	-128(%rbp), %rcx
-	call	puts
+	leaq	-128(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# LET MSG2$=A$+"TEST"
 	# str: A$+"TEST"
 	# str: A$
@@ -169,16 +166,19 @@ main:
 	call	freeBString
 	# PRINT MSG2$
 	# str: MSG2$
-	movq	-152(%rbp), %rcx
-	call	puts
+	leaq	-152(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# PRINT "HALLO"
 	# str: "HALLO"
-	movq	-200(%rbp), %rcx
-	call	puts
+	leaq	-200(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# PRINT "WORLD"
 	# str: "WORLD"
-	movq	-224(%rbp), %rcx
-	call	puts
+	leaq	-224(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# LET C%=0
 	# int: 0 - %rsi
 	movq	$0, %rsi
@@ -186,20 +186,16 @@ main:
 .loop:
 	# PRINT "IF LOOP ",C%
 	# str: "IF LOOP ",
-	leaq	-392(%rbp), %rcx
-	leaq	-248(%rbp), %rdx
-	call	assignBString
+	leaq	-248(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: C%
-	leaq	-368(%rbp), %rcx
+	leaq	-392(%rbp), %rcx
 	movq	-104(%rbp), %rdx
 	call	assignInt
 	leaq	-392(%rbp), %rcx
-	leaq	-368(%rbp), %rdx
-	call	appendBString
-	leaq	-368(%rbp), %rcx
-	call	freeBString
-	movq	-392(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-392(%rbp), %rcx
 	call	freeBString
 	# C%=C%+1
@@ -227,8 +223,9 @@ main:
 .ifnot0:
 	# PRINT "END"
 	# str: "END"
-	movq	-272(%rbp), %rcx
-	call	puts
+	leaq	-272(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

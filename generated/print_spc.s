@@ -71,8 +71,9 @@ main:
 	call	assignFromConst
 	# PRINT "START"
 	# str: "START"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# A=20
 	# float: 20
 	# int: 20 - %rsi
@@ -83,64 +84,57 @@ main:
 	movsd	%xmm0, -32(%rbp)
 	# PRINT "TEST";SPC(5);A
 	# str: "TEST";
-	leaq	-256(%rbp), %rcx
-	leaq	-56(%rbp), %rdx
-	call	assignBString
+	leaq	-56(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: SPC(5);
 	# int: 5 - %rdx
 	movq	$5, %rdx
-	leaq	-232(%rbp), %rcx
+	leaq	-256(%rbp), %rcx
 	call	bstrSpc
 	leaq	-256(%rbp), %rcx
-	leaq	-232(%rbp), %rdx
-	call	appendBString
-	leaq	-232(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
+	leaq	-256(%rbp), %rcx
 	call	freeBString
 	# str: A
-	leaq	-232(%rbp), %rcx
+	leaq	-256(%rbp), %rcx
 	movsd	-32(%rbp), %xmm1
 	call	assignDouble
 	leaq	-256(%rbp), %rcx
-	leaq	-232(%rbp), %rdx
-	call	appendBString
-	leaq	-232(%rbp), %rcx
-	call	freeBString
-	movq	-256(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-256(%rbp), %rcx
 	call	freeBString
 	# PRINT "TEST";TAB(10);A
 	# str: "TEST";
-	leaq	-256(%rbp), %rcx
-	leaq	-80(%rbp), %rdx
-	call	assignBString
+	leaq	-80(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: TAB(10);
 	# int: 10 - %rdx
 	movq	$10, %rdx
-	leaq	-232(%rbp), %rcx
+	leaq	-256(%rbp), %rcx
 	call	bstrTab
 	leaq	-256(%rbp), %rcx
-	leaq	-232(%rbp), %rdx
-	call	appendBString
-	leaq	-232(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
+	leaq	-256(%rbp), %rcx
 	call	freeBString
 	# str: A
-	leaq	-232(%rbp), %rcx
+	leaq	-256(%rbp), %rcx
 	movsd	-32(%rbp), %xmm1
 	call	assignDouble
 	leaq	-256(%rbp), %rcx
-	leaq	-232(%rbp), %rdx
-	call	appendBString
-	leaq	-232(%rbp), %rcx
-	call	freeBString
-	movq	-256(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-256(%rbp), %rcx
 	call	freeBString
 	# PRINT "TEST";
 	# str: "TEST";
-	movq	-104(%rbp), %rcx
-	call	puts
+	leaq	-104(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# A%=POS(0)
 	# int: POS(0) - %rsi
 	movq	$0, %rsi
@@ -150,14 +144,16 @@ main:
 	leaq	-256(%rbp), %rcx
 	movq	-112(%rbp), %rdx
 	call	assignInt
-	movq	-256(%rbp), %rcx
-	call	puts
+	leaq	-256(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-256(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
 	# str: "END"
-	movq	-136(%rbp), %rcx
-	call	puts
+	leaq	-136(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

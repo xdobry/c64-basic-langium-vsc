@@ -113,20 +113,16 @@ main:
 	movq	%rsi, -16(%rbp)
 	# PRINT "A% ";A%
 	# str: "A% ";
-	leaq	-400(%rbp), %rcx
-	leaq	-40(%rbp), %rdx
-	call	assignBString
+	leaq	-40(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: A%
-	leaq	-376(%rbp), %rcx
+	leaq	-400(%rbp), %rcx
 	movq	-16(%rbp), %rdx
 	call	assignInt
 	leaq	-400(%rbp), %rcx
-	leaq	-376(%rbp), %rdx
-	call	appendBString
-	leaq	-376(%rbp), %rcx
-	call	freeBString
-	movq	-400(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-400(%rbp), %rcx
 	call	freeBString
 	# IF A%<>23 THEN PRINT "ERROR"
@@ -143,8 +139,9 @@ main:
 	je	.ifnot0
 	# PRINT "ERROR"
 	# str: "ERROR"
-	movq	-64(%rbp), %rcx
-	call	puts
+	leaq	-64(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot0:
 	# DIM A$(12)
 	cmpq	$0, -96(%rbp)
@@ -179,8 +176,9 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR2"
 	# str: "ERROR2"
-	movq	-136(%rbp), %rcx
-	call	puts
+	leaq	-136(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot1:
 	# A$(10)="TEST"
 	# str: "TEST"
@@ -194,20 +192,16 @@ main:
 	call	assignBString
 	# PRINT "=I% ";I%
 	# str: "=I% ";
-	leaq	-400(%rbp), %rcx
-	leaq	-184(%rbp), %rdx
-	call	assignBString
+	leaq	-184(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: I%
-	leaq	-376(%rbp), %rcx
+	leaq	-400(%rbp), %rcx
 	movq	-112(%rbp), %rdx
 	call	assignInt
 	leaq	-400(%rbp), %rcx
-	leaq	-376(%rbp), %rdx
-	call	appendBString
-	leaq	-376(%rbp), %rcx
-	call	freeBString
-	movq	-400(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-400(%rbp), %rcx
 	call	freeBString
 	# A$(I%)="EST"
@@ -222,32 +216,28 @@ main:
 	call	assignBString
 	# PRINT "I% ";A$(I%)
 	# str: "I% ";
-	leaq	-400(%rbp), %rcx
-	leaq	-232(%rbp), %rdx
-	call	assignBString
+	leaq	-232(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: A$(I%)
 	# int: I% - %rsi
 	movq	-112(%rbp), %rsi
 	movq	%rsi, -72(%rbp)
 	lea	-96(%rbp), %rcx
 	call	c64_get_str_item_ptr
-	leaq	-376(%rbp), %rcx
+	leaq	-400(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBString
 	leaq	-400(%rbp), %rcx
-	leaq	-376(%rbp), %rdx
-	call	appendBString
-	leaq	-376(%rbp), %rcx
-	call	freeBString
-	movq	-400(%rbp), %rcx
-	call	puts
+	movq	$8, %rdx
+	call	printBString
 	leaq	-400(%rbp), %rcx
 	call	freeBString
 	# PRINT "I ";A$(I)
 	# str: "I ";
-	leaq	-400(%rbp), %rcx
-	leaq	-256(%rbp), %rdx
-	call	assignBString
+	leaq	-256(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: A$(I)
 	# int: I - %rsi
 	# float: I
@@ -256,22 +246,19 @@ main:
 	movq	%rsi, -72(%rbp)
 	lea	-96(%rbp), %rcx
 	call	c64_get_str_item_ptr
-	leaq	-376(%rbp), %rcx
+	leaq	-400(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBString
 	leaq	-400(%rbp), %rcx
-	leaq	-376(%rbp), %rdx
-	call	appendBString
-	leaq	-376(%rbp), %rcx
-	call	freeBString
-	movq	-400(%rbp), %rcx
-	call	puts
+	movq	$8, %rdx
+	call	printBString
 	leaq	-400(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
 	# str: "END"
-	movq	-280(%rbp), %rcx
-	call	puts
+	leaq	-280(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

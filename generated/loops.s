@@ -240,20 +240,16 @@ main:
 .for0:
 	# PRINT "FLOAT ",A
 	# str: "FLOAT ",
-	leaq	-888(%rbp), %rcx
-	leaq	-48(%rbp), %rdx
-	call	assignBString
+	leaq	-48(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT
@@ -294,20 +290,16 @@ main:
 .for1:
 	# PRINT "FLOAT ",A
 	# str: "FLOAT ",
-	leaq	-888(%rbp), %rcx
-	leaq	-88(%rbp), %rdx
-	call	assignBString
+	leaq	-88(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT
@@ -348,20 +340,16 @@ main:
 .for2:
 	# PRINT "FLOAT ",A
 	# str: "FLOAT ",
-	leaq	-888(%rbp), %rcx
-	leaq	-128(%rbp), %rdx
-	call	assignBString
+	leaq	-128(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT
@@ -384,28 +372,25 @@ main:
 .for3:
 	# PRINT "INT ",A%
 	# str: "INT ",
-	leaq	-888(%rbp), %rcx
-	leaq	-160(%rbp), %rdx
-	call	assignBString
+	leaq	-160(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A%
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext3
 	# PRINT " REAL 0 to 2.0"
 	# str: " REAL 0 to 2.0"
-	movq	-184(%rbp), %rcx
-	call	puts
+	leaq	-184(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# FOR A=0 TO 2.0
 	# float: 0
 	# int: 0 - %rsi
@@ -431,20 +416,16 @@ main:
 .for4:
 	# PRINT "REAL ",A
 	# str: "REAL ",
-	leaq	-888(%rbp), %rcx
-	leaq	-216(%rbp), %rdx
-	call	assignBString
+	leaq	-216(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT
@@ -459,8 +440,9 @@ main:
 	movsd	%xmm0, -24(%rbp)
 	# PRINT " REAL 0 to 2"
 	# str: " REAL 0 to 2"
-	movq	-240(%rbp), %rcx
-	call	puts
+	leaq	-240(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# FOR A=0 TO 2
 	# float: 0
 	# int: 0 - %rsi
@@ -483,28 +465,25 @@ main:
 .for5:
 	# PRINT "REAL 2 ",A
 	# str: "REAL 2 ",
-	leaq	-888(%rbp), %rcx
-	leaq	-264(%rbp), %rdx
-	call	assignBString
+	leaq	-264(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext5
 	# PRINT " REAL 0 to 3 STEP 0.5 VARS"
 	# str: " REAL 0 to 3 STEP 0.5 VARS"
-	movq	-288(%rbp), %rcx
-	call	puts
+	leaq	-288(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# S=0.5
 	# float: 0.5
 	movsd	.LF11(%rip), %xmm0
@@ -552,28 +531,25 @@ main:
 .for6:
 	# PRINT "REAL 3 ",A
 	# str: "REAL 3 ",
-	leaq	-888(%rbp), %rcx
-	leaq	-344(%rbp), %rdx
-	call	assignBString
+	leaq	-344(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext6
 	# PRINT " STEP 2"
 	# str: " STEP 2"
-	movq	-368(%rbp), %rcx
-	call	puts
+	leaq	-368(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# FOR A%=0 TO 10 STEP 2
 	# int: 0 - %rsi
 	movq	$0, %rsi
@@ -592,20 +568,16 @@ main:
 .for7:
 	# PRINT "STEP-2 ",A%
 	# str: "STEP-2 ",
-	leaq	-888(%rbp), %rcx
-	leaq	-392(%rbp), %rdx
-	call	assignBString
+	leaq	-392(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A%
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
@@ -648,28 +620,25 @@ main:
 .for8:
 	# PRINT "STEP-b2 ",A%
 	# str: "STEP-b2 ",
-	leaq	-888(%rbp), %rcx
-	leaq	-440(%rbp), %rdx
-	call	assignBString
+	leaq	-440(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A%
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
 	call	.forNext8
 	# PRINT " NESTED 2 NEXT"
 	# str: " NESTED 2 NEXT"
-	movq	-464(%rbp), %rcx
-	call	puts
+	leaq	-464(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# FOR A%=0 TO 2
 	# int: 0 - %rsi
 	movq	$0, %rsi
@@ -704,33 +673,29 @@ main:
 .for10:
 	# PRINT "A=",A%," B=",B%
 	# str: "A=",
-	leaq	-888(%rbp), %rcx
-	leaq	-496(%rbp), %rdx
-	call	assignBString
+	leaq	-496(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A%,
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
+	movq	$5, %rdx
+	call	printBString
+	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# str: " B=",
-	leaq	-888(%rbp), %rcx
-	leaq	-520(%rbp), %rdx
-	call	appendBString
+	leaq	-520(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: B%
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movq	-472(%rbp), %rdx
 	call	assignInt
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT B%
@@ -739,8 +704,9 @@ main:
 	call	.forNext9
 	# PRINT " NESTED NEXT WITH 2 VARIABLES"
 	# str: " NESTED NEXT WITH 2 VARIABLES"
-	movq	-544(%rbp), %rcx
-	call	puts
+	leaq	-544(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# FOR A%=0 TO 2
 	# int: 0 - %rsi
 	movq	$0, %rsi
@@ -775,33 +741,29 @@ main:
 .for12:
 	# PRINT "A=",A%," B=",B%
 	# str: "A=",
-	leaq	-888(%rbp), %rcx
-	leaq	-568(%rbp), %rdx
-	call	assignBString
+	leaq	-568(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A%,
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
+	movq	$5, %rdx
+	call	printBString
+	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# str: " B=",
-	leaq	-888(%rbp), %rcx
-	leaq	-592(%rbp), %rdx
-	call	appendBString
+	leaq	-592(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: B%
-	leaq	-864(%rbp), %rcx
+	leaq	-888(%rbp), %rcx
 	movq	-472(%rbp), %rdx
 	call	assignInt
 	leaq	-888(%rbp), %rcx
-	leaq	-864(%rbp), %rdx
-	call	appendBString
-	leaq	-864(%rbp), %rcx
-	call	freeBString
-	movq	-888(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT B%, A%
@@ -809,8 +771,9 @@ main:
 	call	.forNext11
 	# PRINT " REVERSE FLOAT LOOP"
 	# str: " REVERSE FLOAT LOOP"
-	movq	-616(%rbp), %rcx
-	call	puts
+	leaq	-616(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# FOR A=10 TO 0 STEP -1
 	# float: 10
 	# int: 10 - %rsi
@@ -855,8 +818,9 @@ main:
 	leaq	-888(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	movq	-888(%rbp), %rcx
-	call	puts
+	leaq	-888(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT A
@@ -884,8 +848,9 @@ main:
 	movsd	%xmm0, -304(%rbp)
 	# PRINT " REVERSE FLOAT LOOP2"
 	# str: " REVERSE FLOAT LOOP2"
-	movq	-648(%rbp), %rcx
-	call	puts
+	leaq	-648(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# FOR A=10 TO T STEP S
 	# float: 10
 	# int: 10 - %rsi
@@ -924,16 +889,18 @@ main:
 	leaq	-888(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	movq	-888(%rbp), %rcx
-	call	puts
+	leaq	-888(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT A
 	call	.forNext14
 	# PRINT " REVERSE INT LOOP2"
 	# str: " REVERSE INT LOOP2"
-	movq	-688(%rbp), %rcx
-	call	puts
+	leaq	-688(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# FOR A%=10 TO 0 STEP -1
 	# int: 10 - %rsi
 	movq	$10, %rsi
@@ -966,8 +933,9 @@ main:
 	leaq	-888(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
-	movq	-888(%rbp), %rcx
-	call	puts
+	leaq	-888(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
@@ -984,8 +952,9 @@ main:
 	movq	%rsi, -704(%rbp)
 	# PRINT " REVERSE INT LOOP3"
 	# str: " REVERSE INT LOOP3"
-	movq	-728(%rbp), %rcx
-	call	puts
+	leaq	-728(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# FOR A%=10 TO T% STEP S%
 	# int: 10 - %rsi
 	movq	$10, %rsi
@@ -1019,16 +988,18 @@ main:
 	leaq	-888(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
-	movq	-888(%rbp), %rcx
-	call	puts
+	leaq	-888(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-888(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
 	call	.forNext16
 	# PRINT "END"
 	# str: "END"
-	movq	-768(%rbp), %rcx
-	call	puts
+	leaq	-768(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

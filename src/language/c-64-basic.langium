@@ -138,7 +138,7 @@ terminal INT_VARNAME returns string: /(?!PRINT|LET|REM|IF|THEN|ELSE|FOR|TO|STEP|
 terminal LABEL_NAME returns string: /(?<=[\n\r])([A-Za-z][A-Za-z0-9]+):/;
 terminal STRING_VARNAME returns string: /(?!PRINT|REM|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)[A-Z][A-Z0-9]*\$/i;
 terminal FLOAT_VARNAME returns string: /(?!PRINT|REM|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT)[A-Za-z][A-Za-z0-9]*/i;
-terminal FLOAT returns number: /[0-9]+\.[0-9]+/;
+terminal FLOAT returns number: /[0-9]*\.[0-9]+(E-?[0-9]+)?/;
 terminal INT_NUMBER returns string: /[0-9]+/;
 terminal STRING: /"(\\.|[^"\\])*"/;
 terminal COLON: ':';

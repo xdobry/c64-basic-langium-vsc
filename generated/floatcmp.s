@@ -139,8 +139,9 @@ main:
 	je	.ifnot0
 	# PRINT "ERROR1"
 	# str: "ERROR1"
-	movq	-56(%rbp), %rcx
-	call	puts
+	leaq	-56(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot0:
 	# IF A=A1 THEN PRINT "ERROR2"
 	# int: A=A1 - %rsi
@@ -156,8 +157,9 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR2"
 	# str: "ERROR2"
-	movq	-80(%rbp), %rcx
-	call	puts
+	leaq	-80(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot1:
 	# IF B<A THEN PRINT "ERROR3"
 	# int: B<A - %rsi
@@ -173,8 +175,9 @@ main:
 	je	.ifnot2
 	# PRINT "ERROR3"
 	# str: "ERROR3"
-	movq	-104(%rbp), %rcx
-	call	puts
+	leaq	-104(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot2:
 	# IF B<=A THEN PRINT "ERROR4"
 	# int: B<=A - %rsi
@@ -190,8 +193,9 @@ main:
 	je	.ifnot3
 	# PRINT "ERROR4"
 	# str: "ERROR4"
-	movq	-128(%rbp), %rcx
-	call	puts
+	leaq	-128(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot3:
 	# IF A>B THEN PRINT "ERROR5"
 	# int: A>B - %rsi
@@ -207,8 +211,9 @@ main:
 	je	.ifnot4
 	# PRINT "ERROR5"
 	# str: "ERROR5"
-	movq	-152(%rbp), %rcx
-	call	puts
+	leaq	-152(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot4:
 	# IF A>=B THEN PRINT "ERROR6"
 	# int: A>=B - %rsi
@@ -224,8 +229,9 @@ main:
 	je	.ifnot5
 	# PRINT "ERROR6"
 	# str: "ERROR6"
-	movq	-176(%rbp), %rcx
-	call	puts
+	leaq	-176(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot5:
 	# IF A+B+C>=A1+B+C THEN PRINT "ERROR7"
 	# int: A+B+C>=A1+B+C - %rsi
@@ -265,13 +271,15 @@ main:
 	je	.ifnot6
 	# PRINT "ERROR7"
 	# str: "ERROR7"
-	movq	-200(%rbp), %rcx
-	call	puts
+	leaq	-200(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot6:
 	# PRINT "END"
 	# str: "END"
-	movq	-224(%rbp), %rcx
-	call	puts
+	leaq	-224(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

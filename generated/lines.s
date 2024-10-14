@@ -64,20 +64,16 @@ main:
 .line20:
 	# PRINT "Hallo ",L%
 	# str: "Hallo ",
-	leaq	-200(%rbp), %rcx
-	leaq	-32(%rbp), %rdx
-	call	assignBString
+	leaq	-32(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: L%
-	leaq	-176(%rbp), %rcx
+	leaq	-200(%rbp), %rcx
 	movq	-8(%rbp), %rdx
 	call	assignInt
 	leaq	-200(%rbp), %rcx
-	leaq	-176(%rbp), %rdx
-	call	appendBString
-	leaq	-176(%rbp), %rcx
-	call	freeBString
-	movq	-200(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-200(%rbp), %rcx
 	call	freeBString
 	# L%=L%+1
@@ -110,15 +106,17 @@ main:
 .line55:
 	# PRINT "HALLO"
 	# str: "HALLO"
-	movq	-56(%rbp), %rcx
-	call	puts
+	leaq	-56(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# PRINT L%
 	# str: L%
 	leaq	-200(%rbp), %rcx
 	movq	-8(%rbp), %rdx
 	call	assignInt
-	movq	-200(%rbp), %rcx
-	call	puts
+	leaq	-200(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-200(%rbp), %rcx
 	call	freeBString
 	# L%=L%+1
@@ -145,8 +143,9 @@ main:
 .ifnot1:
 	# PRINT "END"
 	# str: "END"
-	movq	-80(%rbp), %rcx
-	call	puts
+	leaq	-80(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

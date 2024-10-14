@@ -97,8 +97,9 @@ main:
 	call	assignFromConst
 	# PRINT "STARTING INPUT"
 	# str: "STARTING INPUT"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# INPUT "GIVE STRING" ; A$(0)
 	leaq	-48(%rbp), %rcx
 	leaq	.LC1(%rip), %rdx
@@ -125,8 +126,9 @@ main:
 	leaq	-352(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBString
-	movq	-352(%rbp), %rcx
-	call	puts
+	leaq	-352(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	leaq	-352(%rbp), %rcx
 	call	freeBString
 	# IF A$(0)<>"STR" THEN PRINT "ERROR"
@@ -152,8 +154,9 @@ main:
 	je	.ifnot0
 	# PRINT "ERROR"
 	# str: "ERROR"
-	movq	-128(%rbp), %rcx
-	call	puts
+	leaq	-128(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot0:
 	# INPUT "GIVE A NUMBER";A(1)
 	leaq	-152(%rbp), %rcx
@@ -195,13 +198,15 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR1"
 	# str: "ERROR1"
-	movq	-208(%rbp), %rcx
-	call	puts
+	leaq	-208(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot1:
 	# PRINT "END"
 	# str: "END"
-	movq	-232(%rbp), %rcx
-	call	puts
+	leaq	-232(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

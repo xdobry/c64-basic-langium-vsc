@@ -65,8 +65,9 @@ main:
 	call	assignFromConst
 	# PRINT "START"
 	# str: "START"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# MTIME=TI
 	# float: TI
 	# int: TI - %rsi
@@ -79,47 +80,40 @@ main:
 	movsd	%xmm0, -32(%rbp)
 	# PRINT "TIME ";MTIME
 	# str: "TIME ";
-	leaq	-224(%rbp), %rcx
-	leaq	-56(%rbp), %rdx
-	call	assignBString
+	leaq	-56(%rbp), %rcx
+	movq	$0, %rdx
+	call	printBString
 	# str: MTIME
-	leaq	-200(%rbp), %rcx
+	leaq	-224(%rbp), %rcx
 	movsd	-32(%rbp), %xmm1
 	call	assignDouble
 	leaq	-224(%rbp), %rcx
-	leaq	-200(%rbp), %rdx
-	call	appendBString
-	leaq	-200(%rbp), %rcx
-	call	freeBString
-	movq	-224(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-224(%rbp), %rcx
 	call	freeBString
 	# PRINT "TIME INT ",TI
 	# str: "TIME INT ",
-	leaq	-224(%rbp), %rcx
-	leaq	-80(%rbp), %rdx
-	call	assignBString
+	leaq	-80(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: TI
 	# int: TI - %rdx
 	xor	%rcx, %rcx
 	call	time
 	movq	%rax, %rdx
-	leaq	-200(%rbp), %rcx
+	leaq	-224(%rbp), %rcx
 	call	assignInt
 	leaq	-224(%rbp), %rcx
-	leaq	-200(%rbp), %rdx
-	call	appendBString
-	leaq	-200(%rbp), %rcx
-	call	freeBString
-	movq	-224(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-224(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
 	# str: "END"
-	movq	-104(%rbp), %rcx
-	call	puts
+	leaq	-104(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

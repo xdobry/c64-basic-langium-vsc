@@ -73,8 +73,9 @@ main:
 	call	assignFromConst
 	# PRINT "ENTER1"
 	# str: "ENTER1"
-	movq	-24(%rbp), %rcx
-	call	puts
+	leaq	-24(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# A%=0
 	# int: 0 - %rsi
 	movq	$0, %rsi
@@ -86,15 +87,17 @@ main:
 .gosubCont0:
 	# PRINT "ENTER2"
 	# str: "ENTER2"
-	movq	-56(%rbp), %rcx
-	call	puts
+	leaq	-56(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# PRINT A%
 	# str: A%
 	leaq	-248(%rbp), %rcx
 	movq	-32(%rbp), %rdx
 	call	assignInt
-	movq	-248(%rbp), %rcx
-	call	puts
+	leaq	-248(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-248(%rbp), %rcx
 	call	freeBString
 	# A%=1
@@ -111,14 +114,16 @@ main:
 	leaq	-248(%rbp), %rcx
 	movq	-32(%rbp), %rdx
 	call	assignInt
-	movq	-248(%rbp), %rcx
-	call	puts
+	leaq	-248(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-248(%rbp), %rcx
 	call	freeBString
 	# PRINT "END"
 	# str: "END"
-	movq	-80(%rbp), %rcx
-	call	puts
+	leaq	-80(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# END
 	jmp	.basicend
 .mysub:
@@ -140,21 +145,24 @@ main:
 	movsd	-288(%rbp), %xmm1
 	leaq	-248(%rbp), %rcx
 	call	assignDouble
-	movq	-248(%rbp), %rcx
-	call	puts
+	leaq	-248(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	leaq	-248(%rbp), %rcx
 	call	freeBString
 	# PRINT "HA"
 	# str: "HA"
-	movq	-104(%rbp), %rcx
-	call	puts
+	leaq	-104(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 	# RETURN
 	call	popEntry
 	jmp	*%rax
 	# PRINT "ERROR"
 	# str: "ERROR"
-	movq	-128(%rbp), %rcx
-	call	puts
+	leaq	-128(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax

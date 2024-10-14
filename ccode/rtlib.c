@@ -316,6 +316,26 @@ size_t bstrCmp(struct BString* c1, struct BString* c2, size_t operator)
     return res;
 };
 
+// flags
+// 1 - comma ,
+// 2 - semicolon ;
+// 4 - number
+// 8 - end print
+void printBString(struct BString* str,int flags) {
+    if (str->data) {
+        fwrite(str->data, 1, str->length, stdout);
+    }
+    if (flags & 8) {
+        putc('\n', stdout);
+    } else {
+        if (flags & 1) {
+            putc('\t',stdout);
+        } else if (flags & 4) {
+            putc(' ',stdout);
+        }
+    }
+}
+
 void inputBString(struct BString* str) {
     printf("Enter a string: ");
     char buffer[100];

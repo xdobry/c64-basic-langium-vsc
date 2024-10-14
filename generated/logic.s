@@ -203,9 +203,9 @@ main:
 	movq	%rsi, -24(%rbp)
 	# PRINT "-1 OR -1 ", -1 OR -1
 	# str: "-1 OR -1 ",
-	leaq	-760(%rbp), %rcx
-	leaq	-48(%rbp), %rdx
-	call	assignBString
+	leaq	-48(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: -1 OR -1
 	# int: -1 OR -1 - %rdx
 	# int: -1 - %rdx
@@ -217,22 +217,18 @@ main:
 	movq	$1, %rsi
 	negq	%rsi
 	orq	%rsi, %rdx
-	leaq	-736(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	assignInt
 	leaq	-760(%rbp), %rcx
-	leaq	-736(%rbp), %rdx
-	call	appendBString
-	leaq	-736(%rbp), %rcx
-	call	freeBString
-	movq	-760(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# PRINT "-1 AND 0 ", -1 AND 0
 	# str: "-1 AND 0 ",
-	leaq	-760(%rbp), %rcx
-	leaq	-72(%rbp), %rdx
-	call	assignBString
+	leaq	-72(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: -1 AND 0
 	# int: -1 AND 0 - %rdx
 	# int: -1 - %rdx
@@ -242,22 +238,18 @@ main:
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	andq	%rsi, %rdx
-	leaq	-736(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	assignInt
 	leaq	-760(%rbp), %rcx
-	leaq	-736(%rbp), %rdx
-	call	appendBString
-	leaq	-736(%rbp), %rcx
-	call	freeBString
-	movq	-760(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# PRINT "-1 AND -1 ", -1 AND -1
 	# str: "-1 AND -1 ",
-	leaq	-760(%rbp), %rcx
-	leaq	-96(%rbp), %rdx
-	call	assignBString
+	leaq	-96(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: -1 AND -1
 	# int: -1 AND -1 - %rdx
 	# int: -1 - %rdx
@@ -269,15 +261,11 @@ main:
 	movq	$1, %rsi
 	negq	%rsi
 	andq	%rsi, %rdx
-	leaq	-736(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	assignInt
 	leaq	-760(%rbp), %rcx
-	leaq	-736(%rbp), %rdx
-	call	appendBString
-	leaq	-736(%rbp), %rcx
-	call	freeBString
-	movq	-760(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# IF B%<A% OR C%<A% THEN PRINT "ERROR2"
@@ -305,8 +293,9 @@ main:
 	je	.ifnot0
 	# PRINT "ERROR2"
 	# str: "ERROR2"
-	movq	-120(%rbp), %rcx
-	call	puts
+	leaq	-120(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot0:
 	# IF C%<A% OR B%<A% THEN PRINT "ERROR3"
 	# int: C%<A% OR B%<A% - %rsi
@@ -333,8 +322,9 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR3"
 	# str: "ERROR3"
-	movq	-144(%rbp), %rcx
-	call	puts
+	leaq	-144(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot1:
 	# IF B%<A% AND C%>A% THEN PRINT "ERROR4"
 	# int: B%<A% AND C%>A% - %rsi
@@ -361,8 +351,9 @@ main:
 	je	.ifnot2
 	# PRINT "ERROR4"
 	# str: "ERROR4"
-	movq	-168(%rbp), %rcx
-	call	puts
+	leaq	-168(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot2:
 	# IF C%>A% AND B%<A% THEN PRINT "ERROR5"
 	# int: C%>A% AND B%<A% - %rsi
@@ -389,8 +380,9 @@ main:
 	je	.ifnot3
 	# PRINT "ERROR5"
 	# str: "ERROR5"
-	movq	-192(%rbp), %rcx
-	call	puts
+	leaq	-192(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot3:
 	# D% = A%>B% OR A%>C%
 	# int: A%>B% OR A%>C% - %rsi
@@ -428,8 +420,9 @@ main:
 	je	.ifnot4
 	# PRINT "ERROR6"
 	# str: "ERROR6"
-	movq	-224(%rbp), %rcx
-	call	puts
+	leaq	-224(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot4:
 	# D% = A%<B% AND A%<C%
 	# int: A%<B% AND A%<C% - %rsi
@@ -467,14 +460,15 @@ main:
 	je	.ifnot5
 	# PRINT "ERROR7"
 	# str: "ERROR7"
-	movq	-248(%rbp), %rcx
-	call	puts
+	leaq	-248(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot5:
 	# PRINT "A%>B% OR A%>C% ", A%>B% OR A%>C%
 	# str: "A%>B% OR A%>C% ",
-	leaq	-760(%rbp), %rcx
-	leaq	-272(%rbp), %rdx
-	call	assignBString
+	leaq	-272(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A%>B% OR A%>C%
 	# int: A%>B% OR A%>C% - %rdx
 	# int: A%>B% - %rdx
@@ -496,22 +490,18 @@ main:
 	movzbq	%al, %rsi
 	negq	%rsi
 	orq	%rsi, %rdx
-	leaq	-736(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	assignInt
 	leaq	-760(%rbp), %rcx
-	leaq	-736(%rbp), %rdx
-	call	appendBString
-	leaq	-736(%rbp), %rcx
-	call	freeBString
-	movq	-760(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# PRINT "A%<B% AND C%<A% ", A%<B% AND C%<A%
 	# str: "A%<B% AND C%<A% ",
-	leaq	-760(%rbp), %rcx
-	leaq	-296(%rbp), %rdx
-	call	assignBString
+	leaq	-296(%rbp), %rcx
+	movq	$1, %rdx
+	call	printBString
 	# str: A%<B% AND C%<A%
 	# int: A%<B% AND C%<A% - %rdx
 	# int: A%<B% - %rdx
@@ -533,15 +523,11 @@ main:
 	movzbq	%al, %rsi
 	negq	%rsi
 	andq	%rsi, %rdx
-	leaq	-736(%rbp), %rcx
+	leaq	-760(%rbp), %rcx
 	call	assignInt
 	leaq	-760(%rbp), %rcx
-	leaq	-736(%rbp), %rdx
-	call	appendBString
-	leaq	-736(%rbp), %rcx
-	call	freeBString
-	movq	-760(%rbp), %rcx
-	call	puts
+	movq	$12, %rdx
+	call	printBString
 	leaq	-760(%rbp), %rcx
 	call	freeBString
 	# IF 3 AND 1 <> 1 THEN PRINT "ERROR8"
@@ -562,8 +548,9 @@ main:
 	je	.ifnot6
 	# PRINT "ERROR8"
 	# str: "ERROR8"
-	movq	-320(%rbp), %rcx
-	call	puts
+	leaq	-320(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot6:
 	# D% = 1 OR 2 <> 3
 	# int: 1 OR 2 <> 3 - %rsi
@@ -594,8 +581,9 @@ main:
 	je	.ifnot7
 	# PRINT "ERROR9"
 	# str: "ERROR9"
-	movq	-344(%rbp), %rcx
-	call	puts
+	leaq	-344(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot7:
 	# IF NOT 0 <> -1 THEN PRINT "ERROR10"
 	# int: NOT 0 <> -1 - %rsi
@@ -615,8 +603,9 @@ main:
 	je	.ifnot8
 	# PRINT "ERROR10"
 	# str: "ERROR10"
-	movq	-368(%rbp), %rcx
-	call	puts
+	leaq	-368(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot8:
 	# IF NOT -1 <> 0 THEN PRINT "ERROR11"
 	# int: NOT -1 <> 0 - %rsi
@@ -636,8 +625,9 @@ main:
 	je	.ifnot9
 	# PRINT "ERROR11"
 	# str: "ERROR11"
-	movq	-392(%rbp), %rcx
-	call	puts
+	leaq	-392(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot9:
 	# IF NOT 2 <> -3 THEN PRINT "ERROR12"
 	# int: NOT 2 <> -3 - %rsi
@@ -657,8 +647,9 @@ main:
 	je	.ifnot10
 	# PRINT "ERROR12"
 	# str: "ERROR12"
-	movq	-416(%rbp), %rcx
-	call	puts
+	leaq	-416(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot10:
 	# A%=0
 	# int: 0 - %rsi
@@ -671,8 +662,9 @@ main:
 	je	.ifnot11
 	# PRINT "ERROR13"
 	# str: "ERROR13"
-	movq	-440(%rbp), %rcx
-	call	puts
+	leaq	-440(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot11:
 	# A=0
 	# float: 0
@@ -691,8 +683,9 @@ main:
 	je	.ifnot12
 	# PRINT "ERROR14"
 	# str: "ERROR14"
-	movq	-472(%rbp), %rcx
-	call	puts
+	leaq	-472(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot12:
 	# A%=-1
 	# int: -1 - %rsi
@@ -709,8 +702,9 @@ main:
 	je	.ifnot13
 	# PRINT "ERROR15"
 	# str: "ERROR15"
-	movq	-496(%rbp), %rcx
-	call	puts
+	leaq	-496(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot13:
 	# A=-1
 	# float: -1
@@ -736,8 +730,9 @@ main:
 	je	.ifnot14
 	# PRINT "ERROR16"
 	# str: "ERROR16"
-	movq	-520(%rbp), %rcx
-	call	puts
+	leaq	-520(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot14:
 	# A=3
 	# float: 3
@@ -779,8 +774,9 @@ main:
 	je	.ifnot16
 	# PRINT "ERROR17"
 	# str: "ERROR17"
-	movq	-544(%rbp), %rcx
-	call	puts
+	leaq	-544(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot16:
 	# IF NOT A <> -2 THEN PRINT "ERROR 18"
 	# int: NOT A <> -2 - %rsi
@@ -807,8 +803,9 @@ main:
 	je	.ifnot17
 	# PRINT "ERROR 18"
 	# str: "ERROR 18"
-	movq	-568(%rbp), %rcx
-	call	puts
+	leaq	-568(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot17:
 	# D%=NOT 2>3
 	# int: NOT 2>3 - %rsi
@@ -839,8 +836,9 @@ main:
 	je	.ifnot18
 	# PRINT "ERROR19"
 	# str: "ERROR19"
-	movq	-592(%rbp), %rcx
-	call	puts
+	leaq	-592(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot18:
 	# D%=(NOT 2)>3
 	# int: (NOT 2)>3 - %rsi
@@ -870,13 +868,15 @@ main:
 	je	.ifnot19
 	# PRINT "ERROR20"
 	# str: "ERROR20"
-	movq	-616(%rbp), %rcx
-	call	puts
+	leaq	-616(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 .ifnot19:
 	# PRINT "END"
 	# str: "END"
-	movq	-640(%rbp), %rcx
-	call	puts
+	leaq	-640(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
 
 .basicend:
     movl	$0, %eax
