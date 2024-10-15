@@ -654,6 +654,7 @@ main:
 	# float: A
 	# float: LEN("TEST")
 	# int: LEN("TEST") - %rsi
+	# str: "TEST"
 	movq	-576(%rbp), %rax
 	movq	%rax, -800(%rbp)
 	movq	-800(%rbp), %rsi

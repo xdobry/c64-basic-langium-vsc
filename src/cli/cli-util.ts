@@ -16,7 +16,12 @@ export async function extractDocument(fileName: string, services: LangiumCoreSer
         process.exit(1);
     }
 
-    const document = await services.shared.workspace.LangiumDocuments.getOrCreateDocument(URI.file(path.resolve(fileName)));
+    const content = fs.readFileSync(fileName);
+    // We need to remove the BOM character at the beginning of the file
+    // it is regulary put by windows notepad and will cause the parser to fail
+    const contentWithoutHeader = content.toString().replace(/^\uFEFF/, '');
+    const document = await services.shared.workspace.LangiumDocumentFactory.fromString(contentWithoutHeader, URI.file(path.resolve(fileName)));
+    // const document = await services.shared.workspace.LangiumDocuments.getOrCreateDocument(URI.file(path.resolve(fileName)));
     await services.shared.workspace.DocumentBuilder.build([document], { validation: true });
 
     const validationErrors = (document.diagnostics ?? []).filter(e => e.severity === 1);

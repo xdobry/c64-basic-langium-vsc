@@ -116,7 +116,6 @@ The compiler will break with error if some unsupported keyword is used
 
 * TI$
 * OPEN, INPUT#, GET#, PRINT#
-* PRINT , and ;
 * Math Potenz ^
 * Can not GET to array GET A$(0)
 
@@ -124,7 +123,6 @@ The compiler will break with error if some unsupported keyword is used
   - set all stack mem to 0 (init)
   - check division by zero
   - probleme mit parsing label und FOR :AZ=1:....
-  - case insensitive parsing
   - own float and str tmp stack for DEF FN (own local ebp pointer needed?)
   - optimize resuing of str memory
 
@@ -188,3 +186,62 @@ TI pseudo variable gives unix time and it cannot be set.
 For compilation test you need gcc (64 bit) in your path
 
     $env:PATH += ";C:\devsoft\mingw64win\mingw64\bin"
+
+# Lesson Learned
+
+As I have started the project I have not expected that it will be so hard to get it right and build
+real compatible c64 basic compiler.
+The first try were very promesing. I could parse and compile hello world basic program into running executable only in 1 day.
+But defining the c64 grammar with langium was not so easy to be compatible with original parser.
+
+## Define C64 basic grammar with langium
+
+It is also more difficult than expected.
+The parsing of basic is quite easy to program from scratch but tricky in detail and do not match exectly with lexer, grammar approach of regular well designed language.
+
+There problem was also that the tokenizer needs to support different modes if DATA is parsed.
+I have needed to hack langium tokenizer to use modes of [chevrotain](https://chevrotain.io/docs/features/lexer_modes.html) lexer.
+
+## How to create executable from source
+
+My knoweldge about building compiler was quite old and I have unfortunatelly started to code without resarching the current state of the art.
+Traditionally the compiler emit assembly code from ast (abstract syntax tree).
+So I have started to generate [GAS](https://de.wikipedia.org/wiki/GNU_Assembler) assembly code.
+This assembly code can be compiled to executable using mingw tool quite easy.
+What I have not know is that x64 code for Windows differes from Linux code. This make it quite hard to get right help how to make it right.
+I needed to get to know about stack aligning, shadow space and windows x64 [c-calling convention](https://learn.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170).
+Because the programs break a lot I needed to debug at assembly level and learn how to use the debugger.
+I have choosen not the easiest tool for it [radare2](https://github.com/radareorg/radare2) (You need 64bit version for debugging).
+
+I have learned a lot about x64 assembly which was my target but it was not the easy way.
+At the end the compiler can produce code only for windows x64 bit. And the generator is very platform specific (windows and x64).
+The current state of art will be to use some [intermediate represenation](https://en.wikipedia.org/wiki/Intermediate_representation) and reuse existing compiler backend to create platform specific assembly code.
+This is done using [llmv](https://llvm.org/) or also (gcc gimple)[https://gcc.gnu.org/onlinedocs/gccint/GIMPLE.html]
+
+At the end the best thing would be just to generate c-code and compile it with gcc or clang to whatever you want.
+I whould get the platform independency and optimization for free.
+There are planty another options which also could make the things easier: [RPython](https://rpython.readthedocs.io/en/latest/),
+
+The only one good decision was to write runtime code in c. Anyway at the beginning I have not supposed that I need some runtime code anyway because the c64 basic is so easy.
+
+Anyway I have learned much about compiler internals anyway.
+
+## Getting c64 programs to behave the same on windows
+
+This was also the thing that I have expected at the beging but ignored it because it is fun project.
+The problem is that very many c64 basic programs are indeed not pure basic programs.
+C64 Basic allows to use SYS, PEEK, POKE, WAIT and operate with hardware at very low level.
+So the most c64 basic code that you have (for example almost all games) will not run properly after compilation.
+This limits the usage of the program a lot.
+
+One could image that write additional compibility layer that maps graphic and memory similar to c64 but at the end
+we will have to emulate c64 more and more and the result will be [VICE](https://vice-emu.sourceforge.io/).
+
+So yes. You can make your c64 basic program to real windows executable that will run as fast as possible but only if you use
+real basic commands and do not assume c64 hardware.
+
+Anyway there are a lot of teaching and fun c64 basic programs that are indeed not using hardware tricks.
+[C64 Example Programs](https://github.com/robfromoz/C64-BASIC)
+So you can also have a lot fun with it.
+
+

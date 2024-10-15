@@ -37,8 +37,8 @@ describe('Compilation', () => {
                 console.log("compile: "+file)
                 document = await parse(content);
                 expect(
-                    checkDocumentValid(document) || document?.diagnostics?.map(diagnosticToString)?.join('\n')
-                ).toHaveLength(0);
+                    checkDocumentValid(document) || document?.diagnostics?.map(diagnosticToString)?.join('\n'),
+                    `error found in ${file}`).toHaveLength(0);
                 const baseName = file.substring(0,file.length-5)
                 const sFile = path.join('generated',baseName+".s");
                 const outFile = path.join('generated',baseName+".exe");  

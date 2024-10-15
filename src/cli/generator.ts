@@ -603,7 +603,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
             } else if (isData(node)) {
                 const dataNode: Data = node
                 for (const dataLiteral of dataNode.values) {
-                    const text = isStringLiteral(dataLiteral) ? dataLiteral.val : dataLiteral.$cstNode?.text
+                    const text = dataLiteral.startsWith('"') && dataLiteral.endsWith('"') ? dataLiteral.substring(1,dataLiteral.length-1) : dataLiteral
                     if (text) {
                         progContext.dataDefinition += `\t.align 4\n`
                         progContext.dataDefinition += `\t.quad ${text.length}\n`
@@ -1169,6 +1169,7 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
     } else if (isLen(expr)) {
         const lenExpr : Len = expr
         const strResult = exprAsBString(lenExpr.param, progContext);
+        stmts += strResult.code
         // Access length of BString structure
         stmts += genOpCode("movq", `${strResult.varOffset+8}(%rbp)`,"%rax");
         stmts += genOpCode("movq", "%rax",`${progContext.tmpOffset}(%rbp)`);

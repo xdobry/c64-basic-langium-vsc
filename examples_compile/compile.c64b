@@ -1,10 +1,6 @@
-print "start"
-print
-print
-print "line"
-print "10";
-print " is great"
-a=10
-print "Zahl";a;"ist gleich"
-for i=0to10:print "#";:next:print
-print "END"
+PRINT "SE"
+READ A$:PRINT A$
+READ A$:PRINT A$
+READ A$:PRINT A$
+DATA W,"AR TUR",23
+PRINT "END"

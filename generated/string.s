@@ -106,6 +106,12 @@
 	.ascii "TEST"
 	.byte 0
 .LC34:
+	.ascii "TEST"
+	.byte 0
+.LC35:
+	.ascii "ERROR-LEN"
+	.byte 0
+.LC36:
 	.ascii "END"
 	.byte 0
 	.align 8
@@ -117,36 +123,40 @@
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$1088, %rsp
+	subq	$1168, %rsp
 	# init variable A$
 	movq	$0, -24(%rbp)
 	movq	$0, -16(%rbp)
 	movq	$0, -8(%rbp)
+	# init variable T$
+	movq	$0, -880(%rbp)
+	movq	$0, -872(%rbp)
+	movq	$0, -864(%rbp)
 	# init variable strtmp0$
-	movq	$0, -904(%rbp)
-	movq	$0, -896(%rbp)
-	movq	$0, -888(%rbp)
-	# init variable strtmp1$
-	movq	$0, -928(%rbp)
-	movq	$0, -920(%rbp)
-	movq	$0, -912(%rbp)
-	# init variable strtmp2$
-	movq	$0, -952(%rbp)
-	movq	$0, -944(%rbp)
-	movq	$0, -936(%rbp)
-	# init variable strtmp3$
 	movq	$0, -976(%rbp)
 	movq	$0, -968(%rbp)
 	movq	$0, -960(%rbp)
-	# init variable strtmp4$
+	# init variable strtmp1$
 	movq	$0, -1000(%rbp)
 	movq	$0, -992(%rbp)
 	movq	$0, -984(%rbp)
+	# init variable strtmp2$
+	movq	$0, -1024(%rbp)
+	movq	$0, -1016(%rbp)
+	movq	$0, -1008(%rbp)
+	# init variable strtmp3$
+	movq	$0, -1048(%rbp)
+	movq	$0, -1040(%rbp)
+	movq	$0, -1032(%rbp)
+	# init variable strtmp4$
+	movq	$0, -1072(%rbp)
+	movq	$0, -1064(%rbp)
+	movq	$0, -1056(%rbp)
 	# set rounding mode to floor to be compatible with c64 rounding
-	stmxcsr	-1048(%rbp)
-	andl	$0xFFFF9FFF, -1048(%rbp)
-	orl	$0x2000, -1048(%rbp)
-	ldmxcsr	-1048(%rbp)
+	stmxcsr	-1120(%rbp)
+	andl	$0xFFFF9FFF, -1120(%rbp)
+	orl	$0x2000, -1120(%rbp)
+	ldmxcsr	-1120(%rbp)
 	 # init bstring constants
 	leaq	-48(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
@@ -250,8 +260,14 @@ main:
 	leaq	-856(%rbp), %rcx
 	leaq	.LC33(%rip), %rdx
 	call	assignFromConst
-	leaq	-880(%rbp), %rcx
+	leaq	-904(%rbp), %rcx
 	leaq	.LC34(%rip), %rdx
+	call	assignFromConst
+	leaq	-928(%rbp), %rcx
+	leaq	.LC35(%rip), %rdx
+	call	assignFromConst
+	leaq	-952(%rbp), %rcx
+	leaq	.LC36(%rip), %rdx
 	call	assignFromConst
 	# A$="TEST"
 	# str: "TEST"
@@ -266,50 +282,51 @@ main:
 	# PRINT LEN(A$)
 	# str: LEN(A$)
 	# int: LEN(A$) - %rdx
+	# str: A$
 	movq	-16(%rbp), %rax
-	movq	%rax, -1048(%rbp)
-	movq	-1048(%rbp), %rdx
-	leaq	-1000(%rbp), %rcx
+	movq	%rax, -1120(%rbp)
+	movq	-1120(%rbp), %rdx
+	leaq	-1072(%rbp), %rcx
 	call	assignInt
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# PRINT ASC("A")
 	# str: ASC("A")
 	# int: ASC("A") - %rdx
 	movq	-72(%rbp), %rax
 	movzbl	(%eax), %rax
-	movq	%rax, -1048(%rbp)
-	movq	-1048(%rbp), %rdx
-	leaq	-1000(%rbp), %rcx
+	movq	%rax, -1120(%rbp)
+	movq	-1120(%rbp), %rdx
+	leaq	-1072(%rbp), %rcx
 	call	assignInt
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# PRINT CHR$(65),CHR$(66)
 	# str: CHR$(65),
 	# int: 65 - %rdx
 	movq	$65, %rdx
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	assignChar
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$1, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# str: CHR$(66)
 	# int: 66 - %rdx
 	movq	$66, %rdx
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	assignChar
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# Z%=70
 	# int: 70 - %rsi
@@ -317,13 +334,13 @@ main:
 	movq	%rsi, -80(%rbp)
 	# PRINT Z%,"=",CHR$(Z%)
 	# str: Z%,
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	-80(%rbp), %rdx
 	call	assignInt
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# str: "=",
 	leaq	-104(%rbp), %rcx
@@ -332,12 +349,12 @@ main:
 	# str: CHR$(Z%)
 	# int: Z% - %rdx
 	movq	-80(%rbp), %rdx
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	assignChar
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# FOR A%=65 TO 80
 	# int: 65 - %rsi
@@ -357,13 +374,13 @@ main:
 .for0:
 	# PRINT A%,"=",CHR$(A%)
 	# str: A%,
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	-112(%rbp), %rdx
 	call	assignInt
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# str: "=",
 	leaq	-136(%rbp), %rcx
@@ -372,12 +389,12 @@ main:
 	# str: CHR$(A%)
 	# int: A% - %rdx
 	movq	-112(%rbp), %rdx
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	assignChar
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
 	call	.forNext0
@@ -386,13 +403,13 @@ main:
 	# str: "TEST"
 	# int: 2 - %r8
 	movq	$2, %r8
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-160(%rbp), %rdx
 	call	bstrRight
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# IF RIGHT$("TEST",2)<>"ST" THEN PRINT "ERROR3"
 	# int: RIGHT$("TEST",2)<>"ST" - %rsi
@@ -400,16 +417,16 @@ main:
 	# str: "TEST"
 	# int: 2 - %r8
 	movq	$2, %r8
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-184(%rbp), %rdx
 	call	bstrRight
 	# str: "ST"
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-208(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot0
@@ -425,16 +442,16 @@ main:
 	# str: "TEST"
 	# int: 1 - %r8
 	movq	$1, %r8
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-256(%rbp), %rdx
 	call	bstrRight
 	# str: "T"
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-280(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot1
@@ -449,13 +466,13 @@ main:
 	# str: "TEST"
 	# int: 2 - %r8
 	movq	$2, %r8
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-328(%rbp), %rdx
 	call	bstrLeft
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# IF LEFT$("TEST",2)<>"TE" THEN PRINT "ERROR5"
 	# int: LEFT$("TEST",2)<>"TE" - %rsi
@@ -463,16 +480,16 @@ main:
 	# str: "TEST"
 	# int: 2 - %r8
 	movq	$2, %r8
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-352(%rbp), %rdx
 	call	bstrLeft
 	# str: "TE"
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-376(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot2
@@ -488,16 +505,16 @@ main:
 	# str: "TEST"
 	# int: 1 - %r8
 	movq	$1, %r8
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-424(%rbp), %rdx
 	call	bstrLeft
 	# str: "T"
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-448(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot3
@@ -513,13 +530,13 @@ main:
 	# int: 2 - %r8
 	movq	$2, %r8
 	movq	$0, %r9
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-496(%rbp), %rdx
 	call	bstrMid
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# IF MID$("TEST",2)<>"EST" THEN PRINT "ERROR"
 	# int: MID$("TEST",2)<>"EST" - %rsi
@@ -528,16 +545,16 @@ main:
 	# int: 2 - %r8
 	movq	$2, %r8
 	movq	$0, %r9
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-520(%rbp), %rdx
 	call	bstrMid
 	# str: "EST"
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-544(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot4
@@ -558,13 +575,13 @@ main:
 	movq	$1, %r8
 	# int: 1 - %r9
 	movq	$1, %r9
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-616(%rbp), %rdx
 	call	bstrMid
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	# IF MID$("TEST",1,1)<>"T" THEN PRINT "ERROR-1"
 	# int: MID$("TEST",1,1)<>"T" - %rsi
@@ -574,16 +591,16 @@ main:
 	movq	$1, %r8
 	# int: 1 - %r9
 	movq	$1, %r9
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-640(%rbp), %rdx
 	call	bstrMid
 	# str: "T"
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-664(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot5
@@ -601,16 +618,16 @@ main:
 	movq	$2, %r8
 	# int: 1 - %r9
 	movq	$1, %r9
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-712(%rbp), %rdx
 	call	bstrMid
 	# str: "E"
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-736(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot6
@@ -628,16 +645,16 @@ main:
 	movq	$2, %r8
 	# int: 10 - %r9
 	movq	$10, %r9
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-784(%rbp), %rdx
 	call	bstrMid
 	# str: "EST"
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-808(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot7
@@ -654,17 +671,52 @@ main:
 	movq	$1, %r8
 	# int: 1 - %r9
 	movq	$1, %r9
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	leaq	-856(%rbp), %rdx
 	call	bstrMid
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1000(%rbp), %rcx
+	leaq	-1072(%rbp), %rcx
 	call	freeBString
+	# T$="TEST"
+	# str: "TEST"
+	leaq	-880(%rbp), %rcx
+	leaq	-904(%rbp), %rdx
+	call	assignBString
+	# IF LEN(MID$(T$,2))<>3 THEN PRINT "ERROR-LEN"
+	# int: LEN(MID$(T$,2))<>3 - %rsi
+	# int: LEN(MID$(T$,2)) - %rsi
+	# str: MID$(T$,2)
+	# str: T$
+	# int: 2 - %r8
+	movq	$2, %r8
+	movq	$0, %r9
+	leaq	-1072(%rbp), %rcx
+	leaq	-880(%rbp), %rdx
+	call	bstrMid
+	movq	-1064(%rbp), %rax
+	movq	%rax, -1120(%rbp)
+	leaq	-1072(%rbp), %rcx
+	call	freeBString
+	movq	-1120(%rbp), %rsi
+	# int: 3 - %rdi
+	movq	$3, %rdi
+	cmpq	%rdi, %rsi
+	setne	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	cmpq	$0, %rsi
+	je	.ifnot8
+	# PRINT "ERROR-LEN"
+	# str: "ERROR-LEN"
+	leaq	-928(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot8:
 	# PRINT "END"
 	# str: "END"
-	leaq	-880(%rbp), %rcx
+	leaq	-952(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 

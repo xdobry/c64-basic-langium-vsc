@@ -1,7 +1,7 @@
 grammar C64Basic
 
 entry Model:
-    (lines+=Line? NEWLINE)+ (lines+=Line)?;
+    (lines+=Line? (NEWLINE_DI|NEWLINE))+ (lines+=Line)?;
 
 Line: (linenum=INT_NUMBER? stmts+=Stmt (COLON stmts+=Stmt)* COLON?) | linenum=INT_NUMBER;
 
@@ -37,7 +37,7 @@ Get: "GET" var=StringVar;
 
 Read: "READ" vars+=Var (',' vars+=Var)*;
 
-Data: "DATA" values+=DataLiteral (',' values+=DataLiteral)*;
+Data: "DATA" values+=DATA_ITEM*;
 
 Poke: "POKE" addr=Expr ',' value=Expr;
 
@@ -128,8 +128,6 @@ IntNumber: val=INT_NUMBER;
 FloatNumber: val=FLOAT;
 PiConst: {infer PiConst} 'π';
 
-DataLiteral: StringLiteral | IntNumber | FloatNumber | FLOAT_VARNAME;
-
 hidden terminal WS: /[ \t]+/;
 
 // terminal BASIC_KEYWORDS returns string: /PRINT|LET|IF|THEN|ELSE|FOR|TO|STEP|NEXT|END|GOTO|GOSUB|RETURN|DIM|ON|GOSUB|DEF|FN|INPUT|GET|READ|DATA|RESTORE|POKE|TI|ASC|CHR|LEFT|RIGHT|MID|STR|LEN|VAL|RND|ABS|SGN|INT|SQR|LOG|EXP|COS|SIN|TAN|ATN|PEEK|AND|OR|NOT/;
@@ -143,6 +141,8 @@ terminal INT_NUMBER returns string: /[0-9]+/;
 terminal STRING: /"(\\.|[^"\\])*"/;
 terminal COLON: ':';
 terminal NEWLINE: /[\n\r]+/;
+terminal NEWLINE_DI: /##_placeholder2_##/;
+terminal DATA_ITEM: /##_placeholder_##/;
 
 // hidden terminal REM_COMMENT: /:?\s*?#[^\n\r]*/;
 hidden terminal SL_COMMENT: /REM[^\n\r]*/i;

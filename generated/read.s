@@ -45,17 +45,12 @@
 .LC13:
 	.ascii "END"
 	.byte 0
-.LC14:
-	.ascii "ONE"
-	.byte 0
 	.align 8
 .LONE:
 	.double 1.0
 .LF0:
 	.double 1.2
 .LF1:
-	.double 1.2
-.LF2:
 	.double 1.2
 	.align 4
 dataDefinition:
@@ -74,45 +69,60 @@ dataDefinition:
 	.double NaN
 	.quad 0
 	.ascii "ONE"
+	.align 4
+	.quad 4
+	.double NaN
+	.quad 0
+	.ascii "AR-3"
+	.align 4
+	.quad 10
+	.double NaN
+	.quad 0
+	.ascii "TEST SPACE"
+	.align 4
+	.quad 12
+	.double NaN
+	.quad 0
+	.ascii "TEST, ME NOW"
 
     .text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$496, %rsp
+	subq	$480, %rsp
 	# init variable A$
 	movq	$0, -88(%rbp)
 	movq	$0, -80(%rbp)
 	movq	$0, -72(%rbp)
 	# init variable strtmp0$
+	movq	$0, -280(%rbp)
+	movq	$0, -272(%rbp)
+	movq	$0, -264(%rbp)
+	# init variable strtmp1$
 	movq	$0, -304(%rbp)
 	movq	$0, -296(%rbp)
 	movq	$0, -288(%rbp)
-	# init variable strtmp1$
+	# init variable strtmp2$
 	movq	$0, -328(%rbp)
 	movq	$0, -320(%rbp)
 	movq	$0, -312(%rbp)
-	# init variable strtmp2$
+	# init variable strtmp3$
 	movq	$0, -352(%rbp)
 	movq	$0, -344(%rbp)
 	movq	$0, -336(%rbp)
-	# init variable strtmp3$
+	# init variable strtmp4$
 	movq	$0, -376(%rbp)
 	movq	$0, -368(%rbp)
 	movq	$0, -360(%rbp)
-	# init variable strtmp4$
-	movq	$0, -400(%rbp)
-	movq	$0, -392(%rbp)
-	movq	$0, -384(%rbp)
 	# init data pointer
 	lea	dataDefinition(%rip), %rax
-	movq	%rax, -456(%rbp)
+	movq	%rax, -432(%rbp)
 	# set rounding mode to floor to be compatible with c64 rounding
-	stmxcsr	-448(%rbp)
-	andl	$0xFFFF9FFF, -448(%rbp)
-	orl	$0x2000, -448(%rbp)
-	ldmxcsr	-448(%rbp)
+	stmxcsr	-424(%rbp)
+	andl	$0xFFFF9FFF, -424(%rbp)
+	orl	$0x2000, -424(%rbp)
+	ldmxcsr	-424(%rbp)
 	 # init bstring constants
 	leaq	-32(%rbp), %rcx
 	leaq	.LC1(%rip), %rdx
@@ -141,11 +151,8 @@ main:
 	leaq	-256(%rbp), %rcx
 	leaq	.LC13(%rip), %rdx
 	call	assignFromConst
-	leaq	-280(%rbp), %rcx
-	leaq	.LC14(%rip), %rdx
-	call	assignFromConst
 	# READ A%
-	leaq	-456(%rbp), %rcx
+	leaq	-432(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
 	leaq	-8(%rbp), %r8
 	call	readData
@@ -168,7 +175,7 @@ main:
 	call	printBString
 .ifnot0:
 	# READ A
-	leaq	-456(%rbp), %rcx
+	leaq	-432(%rbp), %rcx
 	leaq	.LC2(%rip), %rdx
 	leaq	-40(%rbp), %r8
 	call	readData
@@ -191,7 +198,7 @@ main:
 	call	printBString
 .ifnot1:
 	# READ A$
-	leaq	-456(%rbp), %rcx
+	leaq	-432(%rbp), %rcx
 	leaq	.LC4(%rip), %rdx
 	leaq	-88(%rbp), %r8
 	call	readData
@@ -214,9 +221,9 @@ main:
 .ifnot2:
 	# RESTORE
 	lea	dataDefinition(%rip), %rax
-	movq	%rax, -456(%rbp)
+	movq	%rax, -432(%rbp)
 	# READ A%
-	leaq	-456(%rbp), %rcx
+	leaq	-432(%rbp), %rcx
 	leaq	.LC7(%rip), %rdx
 	leaq	-8(%rbp), %r8
 	call	readData
@@ -239,7 +246,7 @@ main:
 	call	printBString
 .ifnot3:
 	# READ A, A$
-	leaq	-456(%rbp), %rcx
+	leaq	-432(%rbp), %rcx
 	leaq	.LC9(%rip), %rdx
 	leaq	-40(%rbp), %r8
 	leaq	-88(%rbp), %r9
@@ -285,6 +292,7 @@ main:
 	movq	$8, %rdx
 	call	printBString
 	# DATA 1,1.2,"ONE"
+	# DATA AR-3,TEST SPACE,"TEST, ME NOW"
 
 .basicend:
     movl	$0, %eax
