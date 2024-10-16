@@ -1,6 +1,6 @@
 {
     "name": "c64basic",
-    "description": "Please enter a brief description here",
+    "description": "c64 basic visual studio code extension and basic compiler to target win64",
     "version": "0.0.1",
     "files": [
         "bin",
@@ -28,35 +28,36 @@
         "devtrip": "npm run build && npm run clitest && npm run gcc && npm run testexe",
         "cliast": "node ./bin/cli.js ast",
         "clitokenize": "node ./bin/cli.js tokenize",
-        "cligenerate": "node ./bin/cli.js generate"
+        "c64compile": "node ./bin/cli.js generate"
     },
     "dependencies": {
-        "langium": "~3.1.0",
-        "vscode-languageclient": "~9.0.1",
-        "vscode-languageserver": "~9.0.1",
-        "chalk": "~5.3.0",
-        "commander": "~11.0.0",
         "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
         "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
+        "chalk": "~5.3.0",
+        "commander": "~11.0.0",
+        "langium": "~3.1.0",
         "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
         "monaco-editor-wrapper": "~4.0.2",
         "monaco-languageclient": "~8.1.1",
-        "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
+        "vscode-languageclient": "~9.0.1",
+        "vscode-languageserver": "~9.0.1"
     },
     "devDependencies": {
+        "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
         "@types/node": "^18.0.0",
-        "@typescript-eslint/parser": "~7.3.1",
-        "@typescript-eslint/eslint-plugin": "~7.3.1",
-        "eslint": "~8.57.0",
-        "langium-cli": "~3.1.0",
-        "typescript": "~5.1.6",
         "@types/vscode": "~1.67.0",
+        "@typescript-eslint/eslint-plugin": "~7.3.1",
+        "@typescript-eslint/parser": "~7.3.1",
         "concurrently": "~8.2.1",
         "esbuild": "~0.20.2",
-        "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
-        "vite": "~5.2.7",
+        "eslint": "~8.57.0",
         "http-server": "~14.1.1",
-        "vitest": "~1.4.0"
+        "langium-cli": "~3.1.0",
+        "typescript": "~5.1.6",
+        "vite": "~5.2.7",
+        "vitest": "~1.4.0",
+        "@vscode/vsce": "^3.1.1",
+        "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
     },
     "volta": {
         "node": "18.19.1",
@@ -78,7 +79,10 @@
                     "c64basic",
                     "c-64-basic"
                 ],
-                "extensions": [".c64b",".bas"],
+                "extensions": [
+                    ".c64b",
+                    ".bas"
+                ],
                 "configuration": "./language-configuration.json"
             }
         ],

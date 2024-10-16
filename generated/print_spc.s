@@ -137,7 +137,8 @@ main:
 	call	printBString
 	# A%=POS(0)
 	# int: POS(0) - %rsi
-	movq	$0, %rsi
+	call	get_car_pos
+	movq	%rax, %rsi
 	movq	%rsi, -112(%rbp)
 	# PRINT A%
 	# str: A%

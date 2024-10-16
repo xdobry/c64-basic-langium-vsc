@@ -85,19 +85,19 @@ void assignBString(struct BString* target, const struct BString* str) {
     target->capacity = str->length;
 }
 
-void assignInt(struct BString* target, int value) {
-    char buffer[20];
+void assignInt(struct BString* target, long long value) {
+    char buffer[24];
     if (value<0) {
-        sprintf(buffer, "%d", value);
+        sprintf(buffer, "%lld", value);
     } else {
         buffer[0] = ' ';
-        sprintf(buffer+1, "%d", value);
+        sprintf(buffer+1, "%lld", value);
     }
     assignCString(target, buffer);
 }
 
 void assignDouble(struct BString* target, double value) {
-    char buffer[20];
+    char buffer[24];
     if (value<0.0) {
         sprintf(buffer, "%g", value);
     } else {
@@ -165,7 +165,7 @@ void concatBString(struct BString* target, const struct BString* str1, const str
     }
 }
 
-void bstrRight(struct BString* target, const struct BString* str, size_t count) {
+void bstrRight(struct BString* target, const struct BString* str, long long count) {
     if (count >= str->length) {
         assignBString(target, str);
     } else {
@@ -177,7 +177,7 @@ void bstrRight(struct BString* target, const struct BString* str, size_t count) 
     }
 }
 
-void bstrLeft(struct BString* target, const struct BString* str, size_t count) {
+void bstrLeft(struct BString* target, const struct BString* str, long long count) {
     if (count >= str->length) {
         assignBString(target, str);
     } else {
@@ -189,7 +189,7 @@ void bstrLeft(struct BString* target, const struct BString* str, size_t count) {
     }
 }
 
-void bstrMid(struct BString* target, const struct BString* str, size_t pos, size_t count) {
+void bstrMid(struct BString* target, const struct BString* str, long long pos, long long count) {
     if (pos >= str->length || pos<1) {
         freeBString(target);
     } else {
@@ -201,7 +201,10 @@ void bstrMid(struct BString* target, const struct BString* str, size_t pos, size
     }
 }
 
-void bstrSpc(struct BString* target, size_t count) {
+void bstrSpc(struct BString* target, long long count) {
+    if (count<0) {
+        c64_error(9);
+    }
     if (target->capacity < count+1) {
         if (target->data==NULL) {
             target->data = malloc(count+1);
@@ -218,23 +221,35 @@ void bstrSpc(struct BString* target, size_t count) {
 }
 
 /**
- * TODO - this is only fake implementation
- * for real tab we would need cursor position add move cursor to the count
+ * hold the caret x position
+ * see printBString to see how it is set
  */
-void bstrTab(struct BString* target, size_t count) {
-    if (target->capacity < count+1) {
+long long carPos = 0;
+
+/**
+ * the current position is stored in global variable carPos
+ */
+void bstrTab(struct BString* target, long long count) {
+    if (count<0) {
+        c64_error(9);
+    }
+    size_t needPos = count-carPos;
+    if (needPos<0) {
+        needPos=0;
+    }
+    if (target->capacity < needPos+1) {
         if (target->data!=NULL) {
-            target->data = malloc(count+1);
+            target->data = malloc(needPos+1);
         } else {
-            target->data = realloc(target->data, count+1);
+            target->data = realloc(target->data, needPos+1);
         }
-        target->capacity = count+1;
+        target->capacity = needPos+1;
     }
-    target->length=count;
-    for (size_t i=0; i<count; i++) {
-        target->data[i] = '\t';
+    target->length=needPos;
+    for (size_t i=0; i<needPos; i++) {
+        target->data[i] = ' ';
     }
-    target->data[count] = '\0';
+    target->data[needPos] = '\0';
 }
 
 
@@ -316,6 +331,8 @@ size_t bstrCmp(struct BString* c1, struct BString* c2, size_t operator)
     return res;
 };
 
+
+
 // flags
 // 1 - comma ,
 // 2 - semicolon ;
@@ -324,16 +341,26 @@ size_t bstrCmp(struct BString* c1, struct BString* c2, size_t operator)
 void printBString(struct BString* str,int flags) {
     if (str->data) {
         fwrite(str->data, 1, str->length, stdout);
+        carPos+=str->length;
     }
     if (flags & 8) {
+        carPos = 0;
         putc('\n', stdout);
     } else {
         if (flags & 1) {
-            putc('\t',stdout);
+            while (carPos % 10 != 0) {
+                carPos++;
+                putc(' ',stdout);
+            }
         } else if (flags & 4) {
+            carPos++;
             putc(' ',stdout);
         }
     }
+}
+
+long long get_car_pos() {
+    return carPos;
 }
 
 void inputBString(struct BString* str) {
@@ -368,6 +395,18 @@ double bstringToDouble(struct BString* str) {
     } else {
         return 0;
     }   
+}
+
+long long int_power(long long base, long long exp) {
+    long long result = 1;
+    while (exp > 0) {
+        if (exp % 2 == 1) {
+            result *= base;
+        }
+        base *= base;
+        exp /= 2;
+    }
+    return result;
 }
 
 
@@ -472,11 +511,14 @@ double signd(double d) {
     return 0.0;
 }
 
+
+// generate random float between 0 and 1 (but never 1)
 double c64rnd(double d) {
     if (d<0.0) {
         srand(d);
     }
-    return (double) rand() / (double) RAND_MAX;
+    // The value must not be 1 so we add 1 to the devisor
+    return (double) rand() / ((double) RAND_MAX+1.0);
 }
 
 static const char* errorMessages[] = {
@@ -488,6 +530,7 @@ static const char* errorMessages[] = {
     "BAD SUBSCRIPT", // 6 - array index out of bounds
     "OVERFLOW", // 7
     "OUT OF DATA", // 8
+    "ILLEGAL QUANTITY", // 9 parameter out of range
     /*
     "BREAK",
     "NOT INPUT FILE",
@@ -506,7 +549,6 @@ static const char* errorMessages[] = {
     "TOO MANY FILES",
     "ILLEGAL DIRECT",
     "TYPE MISMATCH",
-    "ILLEGAL QUANTITY", // parameter out of range
     "LOAD",
     "UNDEF'D STATEMENT", // goto to undefined line
     "MISSING FILENAME"

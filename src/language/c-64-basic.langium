@@ -101,7 +101,7 @@ Comparison infers Expr:
 Add  infers Expr: 
     Mult ({infer BinExpr.e1=current} op=('+'|'-') e2=Mult)*;
 Mult infers Expr: 
-    PrimExpr ({infer BinExpr.e1=current} op=('*'|'/') e2=PrimExpr)*;
+    PrimExpr ({infer BinExpr.e1=current} op=('*'|'/'|'^') e2=PrimExpr)*;
 
 PrimExpr: VarRef | IntNumber | FloatNumber | GroupExpr | NotExpr | NumFunc | PiConst | Asc | Len | Val | StrComparision | FnCall | NegExpr;
 

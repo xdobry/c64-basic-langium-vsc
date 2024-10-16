@@ -76,6 +76,18 @@
 	.ascii "A%=A "
 	.byte 0
 .LC24:
+	.ascii "ERROR PI"
+	.byte 0
+.LC25:
+	.ascii "ERROR SIN PI"
+	.byte 0
+.LC26:
+	.ascii "ERROR 2^2"
+	.byte 0
+.LC27:
+	.ascii "ERROR POW(2,0.5)"
+	.byte 0
+.LC28:
 	.ascii "END"
 	.byte 0
 	.align 8
@@ -93,40 +105,58 @@
 	.double 0.23
 .LF5:
 	.double 230
+.pi_const:
+	.double 3.14159265358979323846
 .LF6:
+	.double 3.14
+.LF7:
+	.double 3.15
+.LF8:
+	.double 1.000001
+.LF9:
+	.double 0.9999999
+.LF10:
 	.double 0.003
+.LF11:
+	.double 0.5
+.LF12:
+	.double 1.41422
+.LF13:
+	.double 0.5
+.LF14:
+	.double 1.41421
 
     .text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$848, %rsp
+	subq	$944, %rsp
 	# init variable strtmp0$
-	movq	$0, -656(%rbp)
-	movq	$0, -648(%rbp)
-	movq	$0, -640(%rbp)
-	# init variable strtmp1$
-	movq	$0, -680(%rbp)
-	movq	$0, -672(%rbp)
-	movq	$0, -664(%rbp)
-	# init variable strtmp2$
-	movq	$0, -704(%rbp)
-	movq	$0, -696(%rbp)
-	movq	$0, -688(%rbp)
-	# init variable strtmp3$
-	movq	$0, -728(%rbp)
-	movq	$0, -720(%rbp)
-	movq	$0, -712(%rbp)
-	# init variable strtmp4$
 	movq	$0, -752(%rbp)
 	movq	$0, -744(%rbp)
 	movq	$0, -736(%rbp)
+	# init variable strtmp1$
+	movq	$0, -776(%rbp)
+	movq	$0, -768(%rbp)
+	movq	$0, -760(%rbp)
+	# init variable strtmp2$
+	movq	$0, -800(%rbp)
+	movq	$0, -792(%rbp)
+	movq	$0, -784(%rbp)
+	# init variable strtmp3$
+	movq	$0, -824(%rbp)
+	movq	$0, -816(%rbp)
+	movq	$0, -808(%rbp)
+	# init variable strtmp4$
+	movq	$0, -848(%rbp)
+	movq	$0, -840(%rbp)
+	movq	$0, -832(%rbp)
 	# set rounding mode to floor to be compatible with c64 rounding
-	stmxcsr	-800(%rbp)
-	andl	$0xFFFF9FFF, -800(%rbp)
-	orl	$0x2000, -800(%rbp)
-	ldmxcsr	-800(%rbp)
+	stmxcsr	-896(%rbp)
+	andl	$0xFFFF9FFF, -896(%rbp)
+	orl	$0x2000, -896(%rbp)
+	ldmxcsr	-896(%rbp)
 	 # init bstring constants
 	leaq	-24(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
@@ -203,6 +233,18 @@ main:
 	leaq	-632(%rbp), %rcx
 	leaq	.LC24(%rip), %rdx
 	call	assignFromConst
+	leaq	-656(%rbp), %rcx
+	leaq	.LC25(%rip), %rdx
+	call	assignFromConst
+	leaq	-680(%rbp), %rcx
+	leaq	.LC26(%rip), %rdx
+	call	assignFromConst
+	leaq	-704(%rbp), %rcx
+	leaq	.LC27(%rip), %rdx
+	call	assignFromConst
+	leaq	-728(%rbp), %rcx
+	leaq	.LC28(%rip), %rdx
+	call	assignFromConst
 	# PRINT "HALLO"
 	# str: "HALLO"
 	leaq	-24(%rbp), %rcx
@@ -218,13 +260,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movsd	-32(%rbp), %xmm1
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "DOUBLE"
 	# str: "DOUBLE"
@@ -235,12 +277,12 @@ main:
 	# str: 32.2
 	# float: 32.2
 	movsd	.LF1(%rip), %xmm1
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "A+1.23=",A+1.23
 	# str: "A+1.23=",
@@ -254,14 +296,14 @@ main:
 	movsd	-32(%rbp), %xmm0
 	movsd	.LF2(%rip), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -792(%rbp)
-	movsd	-792(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -888(%rbp)
+	movsd	-888(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# B=A+3.0
 	# float: A+3.0
@@ -270,8 +312,8 @@ main:
 	movsd	-32(%rbp), %xmm1
 	movsd	.LF3(%rip), %xmm2
 	addsd	%xmm2, %xmm1
-	movsd	%xmm1, -792(%rbp)
-	movsd	-792(%rbp), %xmm0
+	movsd	%xmm1, -888(%rbp)
+	movsd	-888(%rbp), %xmm0
 	movsd	%xmm0, -112(%rbp)
 	# PRINT "B=A+3.0; B=",B
 	# str: "B=A+3.0; B=",
@@ -279,13 +321,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: B
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movsd	-112(%rbp), %xmm1
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# C=A+B
 	# float: A+B
@@ -294,8 +336,8 @@ main:
 	movsd	-32(%rbp), %xmm1
 	movsd	-112(%rbp), %xmm2
 	addsd	%xmm2, %xmm1
-	movsd	%xmm1, -792(%rbp)
-	movsd	-792(%rbp), %xmm0
+	movsd	%xmm1, -888(%rbp)
+	movsd	-888(%rbp), %xmm0
 	movsd	%xmm0, -144(%rbp)
 	# PRINT "C=A+B=",C
 	# str: "C=A+B=",
@@ -303,13 +345,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: C
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movsd	-144(%rbp), %xmm1
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "A+B=",A+B
 	# str: "A+B=",
@@ -323,14 +365,14 @@ main:
 	movsd	-32(%rbp), %xmm0
 	movsd	-112(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -792(%rbp)
-	movsd	-792(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -888(%rbp)
+	movsd	-888(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "A*B=",A*B
 	# str: "A*B=",
@@ -344,14 +386,14 @@ main:
 	movsd	-32(%rbp), %xmm0
 	movsd	-112(%rbp), %xmm1
 	mulsd	%xmm1, %xmm0
-	movsd	%xmm0, -792(%rbp)
-	movsd	-792(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -888(%rbp)
+	movsd	-888(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "A-B=",A-B
 	# str: "A-B=",
@@ -365,14 +407,14 @@ main:
 	movsd	-32(%rbp), %xmm0
 	movsd	-112(%rbp), %xmm1
 	subsd	%xmm1, %xmm0
-	movsd	%xmm0, -792(%rbp)
-	movsd	-792(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -888(%rbp)
+	movsd	-888(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "A/B=",A/B
 	# str: "A/B=",
@@ -386,14 +428,14 @@ main:
 	movsd	-32(%rbp), %xmm0
 	movsd	-112(%rbp), %xmm1
 	divsd	%xmm1, %xmm0
-	movsd	%xmm0, -792(%rbp)
-	movsd	-792(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -888(%rbp)
+	movsd	-888(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "(A+B)/(A-B)=",(A+B)/(A-B)
 	# str: "(A+B)/(A-B)=",
@@ -408,25 +450,25 @@ main:
 	movsd	-32(%rbp), %xmm0
 	movsd	-112(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -792(%rbp)
+	movsd	%xmm0, -888(%rbp)
 	# float: A-B
 	# float: A
 	# float: B
-	movsd	-32(%rbp), %xmm2
-	movsd	-112(%rbp), %xmm3
-	subsd	%xmm3, %xmm2
-	movsd	%xmm2, -784(%rbp)
-	movsd	-792(%rbp), %xmm0
-	movsd	-784(%rbp), %xmm1
+	movsd	-32(%rbp), %xmm0
+	movsd	-112(%rbp), %xmm1
+	subsd	%xmm1, %xmm0
+	movsd	%xmm0, -880(%rbp)
+	movsd	-888(%rbp), %xmm0
+	movsd	-880(%rbp), %xmm1
 	divsd	%xmm1, %xmm0
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "ABS=",ABS(A)
 	# str: "ABS=",
@@ -438,14 +480,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	fabs
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "TAN=",TAN(A)
 	# str: "TAN=",
@@ -457,14 +499,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	tan
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "EXP=",EXP(A)
 	# str: "EXP=",
@@ -476,14 +518,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	exp
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "SQR=",SQR(A)
 	# str: "SQR=",
@@ -495,14 +537,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	sqrt
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "LOG=",LOG(A)
 	# str: "LOG=",
@@ -514,14 +556,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	log
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "COS=",COS(A)
 	# str: "COS=",
@@ -533,14 +575,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	cos
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "SIN=",SIN(A)
 	# str: "SIN=",
@@ -552,14 +594,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	sin
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "SGN=",SGN(A)
 	# str: "SGN=",
@@ -571,14 +613,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	signd
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "RND=",RND(A)
 	# str: "RND=",
@@ -590,14 +632,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	c64rnd
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "RND=",RND(A)
 	# str: "RND=",
@@ -609,14 +651,14 @@ main:
 	# float: A
 	movsd	-32(%rbp), %xmm0
 	call	c64rnd
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT "TYPE CONVERSION"
 	# str: "TYPE CONVERSION"
@@ -635,18 +677,18 @@ main:
 	# int: A% - %rsi
 	movq	-560(%rbp), %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -784(%rbp)
+	movsd	%xmm0, -880(%rbp)
 	movsd	-32(%rbp), %xmm0
-	movsd	-784(%rbp), %xmm1
+	movsd	-880(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT A+LEN("TEST")
 	# str: A+LEN("TEST")
@@ -656,21 +698,21 @@ main:
 	# int: LEN("TEST") - %rsi
 	# str: "TEST"
 	movq	-576(%rbp), %rax
-	movq	%rax, -800(%rbp)
-	movq	-800(%rbp), %rsi
+	movq	%rax, -896(%rbp)
+	movq	-896(%rbp), %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -784(%rbp)
+	movsd	%xmm0, -880(%rbp)
 	movsd	-32(%rbp), %xmm0
-	movsd	-784(%rbp), %xmm1
+	movsd	-880(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# PRINT A+3
 	# str: A+3
@@ -680,18 +722,18 @@ main:
 	# int: 3 - %rsi
 	movq	$3, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -784(%rbp)
+	movsd	%xmm0, -880(%rbp)
 	movsd	-32(%rbp), %xmm0
-	movsd	-784(%rbp), %xmm1
+	movsd	-880(%rbp), %xmm1
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, -784(%rbp)
-	movsd	-784(%rbp), %xmm1
-	leaq	-752(%rbp), %rcx
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm1
+	leaq	-848(%rbp), %rcx
 	call	assignDouble
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# A% = A
 	# int: A - %rsi
@@ -705,13 +747,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A%
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	-560(%rbp), %rdx
 	call	assignInt
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-752(%rbp), %rcx
+	leaq	-848(%rbp), %rcx
 	call	freeBString
 	# A=.23
 	# float: .23
@@ -721,13 +763,173 @@ main:
 	# float: 2.3E2
 	movsd	.LF5(%rip), %xmm0
 	movsd	%xmm0, -32(%rbp)
+	# IF π<3.14 OR π>3.15 THEN PRINT "ERROR PI"
+	# int: π<3.14 OR π>3.15 - %rsi
+	# int: π<3.14 - %rsi
+	# float: π
+	# float: 3.14
+	movsd	.pi_const(%rip), %xmm0
+	movsd	.LF6(%rip), %xmm1
+	comisd	%xmm1, %xmm0
+	setb	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	# int: π>3.15 - %rdi
+	# float: π
+	# float: 3.15
+	movsd	.pi_const(%rip), %xmm0
+	movsd	.LF7(%rip), %xmm1
+	comisd	%xmm1, %xmm0
+	seta	%al
+	movzbq	%al, %rdi
+	negq	%rdi
+	orq	%rdi, %rsi
+	cmpq	$0, %rsi
+	je	.ifnot0
+	# PRINT "ERROR PI"
+	# str: "ERROR PI"
+	leaq	-632(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot0:
+	# IF SIN(π/2)>1.000001 OR SIN(π/2)<0.9999999 THEN PRINT "ERROR SIN PI"
+	# int: SIN(π/2)>1.000001 OR SIN(π/2)<0.9999999 - %rsi
+	# int: SIN(π/2)>1.000001 - %rsi
+	# float: SIN(π/2)
+	# float: π/2
+	# float: π
+	# float: 2
+	# int: 2 - %rdi
+	movq	$2, %rdi
+	cvtsi2sdq	%rdi, %xmm0
+	movsd	%xmm0, -880(%rbp)
+	movsd	.pi_const(%rip), %xmm0
+	movsd	-880(%rbp), %xmm1
+	divsd	%xmm1, %xmm0
+	movsd	%xmm0, -880(%rbp)
+	movsd	-880(%rbp), %xmm0
+	call	sin
+	movsd	%xmm0, -888(%rbp)
+	# float: 1.000001
+	movsd	-888(%rbp), %xmm0
+	movsd	.LF8(%rip), %xmm1
+	comisd	%xmm1, %xmm0
+	seta	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	# int: SIN(π/2)<0.9999999 - %rdi
+	# float: SIN(π/2)
+	# float: π/2
+	# float: π
+	# float: 2
+	# int: 2 - %r8
+	movq	$2, %r8
+	cvtsi2sdq	%r8, %xmm0
+	movsd	%xmm0, -888(%rbp)
+	movsd	.pi_const(%rip), %xmm0
+	movsd	-888(%rbp), %xmm1
+	divsd	%xmm1, %xmm0
+	movsd	%xmm0, -888(%rbp)
+	movsd	-888(%rbp), %xmm0
+	call	sin
+	movsd	%xmm0, -880(%rbp)
+	# float: 0.9999999
+	movsd	-880(%rbp), %xmm0
+	movsd	.LF9(%rip), %xmm1
+	comisd	%xmm1, %xmm0
+	setb	%al
+	movzbq	%al, %rdi
+	negq	%rdi
+	orq	%rdi, %rsi
+	cmpq	$0, %rsi
+	je	.ifnot1
+	# PRINT "ERROR SIN PI"
+	# str: "ERROR SIN PI"
+	leaq	-656(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot1:
 	# A=.3E-2
 	# float: .3E-2
-	movsd	.LF6(%rip), %xmm0
+	movsd	.LF10(%rip), %xmm0
 	movsd	%xmm0, -32(%rbp)
+	# IF 2^2<>4 THEN PRINT "ERROR 2^2"
+	# int: 2^2<>4 - %rsi
+	# int: 2^2 - %rsi
+	# int: 2 - %rsi
+	movq	$2, %rsi
+	# int: 2 - %rdi
+	movq	$2, %rdi
+	movq	%rsi, %rcx
+	movq	%rdi, %rdx
+	call	int_power
+	movq	%rax, %rsi
+	# int: 4 - %rdi
+	movq	$4, %rdi
+	cmpq	%rdi, %rsi
+	setne	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	cmpq	$0, %rsi
+	je	.ifnot2
+	# PRINT "ERROR 2^2"
+	# str: "ERROR 2^2"
+	leaq	-680(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot2:
+	# IF 2^0.5>1.41422 OR 2^0.5<1.41421 THEN PRINT "ERROR POW(2,0.5)"
+	# int: 2^0.5>1.41422 OR 2^0.5<1.41421 - %rsi
+	# int: 2^0.5>1.41422 - %rsi
+	# float: 2^0.5
+	# float: 2
+	# int: 2 - %rdi
+	movq	$2, %rdi
+	cvtsi2sdq	%rdi, %xmm0
+	movsd	%xmm0, -880(%rbp)
+	# float: 0.5
+	movsd	-880(%rbp), %xmm0
+	movsd	.LF11(%rip), %xmm1
+	call	pow
+	movsd	%xmm0, -888(%rbp)
+	# float: 1.41422
+	movsd	-888(%rbp), %xmm0
+	movsd	.LF12(%rip), %xmm1
+	comisd	%xmm1, %xmm0
+	seta	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	# int: 2^0.5<1.41421 - %rdi
+	# float: 2^0.5
+	# float: 2
+	# int: 2 - %r8
+	movq	$2, %r8
+	cvtsi2sdq	%r8, %xmm0
+	movsd	%xmm0, -888(%rbp)
+	# float: 0.5
+	movsd	-888(%rbp), %xmm0
+	movsd	.LF13(%rip), %xmm1
+	call	pow
+	movsd	%xmm0, -880(%rbp)
+	# float: 1.41421
+	movsd	-880(%rbp), %xmm0
+	movsd	.LF14(%rip), %xmm1
+	comisd	%xmm1, %xmm0
+	setb	%al
+	movzbq	%al, %rdi
+	negq	%rdi
+	orq	%rdi, %rsi
+	cmpq	$0, %rsi
+	je	.ifnot3
+	# PRINT "ERROR POW(2,0.5)"
+	# str: "ERROR POW(2,0.5)"
+	leaq	-704(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot3:
 	# PRINT "END"
 	# str: "END"
-	leaq	-632(%rbp), %rcx
+	leaq	-728(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 

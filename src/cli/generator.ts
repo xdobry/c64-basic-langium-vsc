@@ -62,7 +62,8 @@ import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Pr
     isStringFunction1,
     StringFunction1,
     Var,
-    isTiVarRef} from '../language/generated/ast.js';
+    isTiVarRef,
+    isPiConst} from '../language/generated/ast.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
@@ -787,8 +788,13 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
             code += genOpCode("call", "assignDouble");
         } else {
             // console.log("str int expr")
+            const reg = allocateRegister(progContext,"%rdx");
             code += exprToInt(exprNode, "%rdx", progContext);
             code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+            if (reg!=="%rdx") {
+                code += genOpCode("movq", reg, "%rdx");
+            }
+            freeRegister(progContext,reg);
             code += genOpCode("call", "assignInt");
         }
     } else if (isSBinExpr(expr)) {
@@ -807,15 +813,25 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         const chrs : Chrs = expr;
         variableOffset = allocateStrTmp(progContext);
         tmpOffset = variableOffset
+        const reg = allocateRegister(progContext,"%rdx");
         code += exprToInt(chrs.param, "%rdx", progContext);
         code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+        if (reg!=="%rdx") {
+            code += genOpCode("movq", reg, "%rdx");
+        }
+        freeRegister(progContext,reg);
         code += genOpCode("call", "assignChar");
     } else if (isStringFunction1(expr)) {
         const stringFunction1 : StringFunction1 = expr;
         variableOffset = allocateStrTmp(progContext)
         tmpOffset = variableOffset
+        const reg = allocateRegister(progContext,"%rdx");
         code += exprToInt(expr.param, "%rdx", progContext);
         code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
+        if (reg!=="%rdx") {
+            code += genOpCode("movq", reg, "%rdx");
+        }
+        freeRegister(progContext,reg);
         if (eqStr(stringFunction1.func,"SPC")) {
             code += genOpCode("call", "bstrSpc");
         } else if (eqStr(stringFunction1.func,"TAB")) {
@@ -829,9 +845,14 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         tmpOffset = variableOffset
         const strResult = exprAsBString(stringFunction2.str, progContext);
         code += strResult.code;
+        const reg = allocateRegister(progContext,"%r8");
         code += exprToInt(stringFunction2.param, "%r8", progContext);
         code += genOpCode("leaq", `${variableOffset}(%rbp)`, "%rcx");
         code += genOpCode("leaq", `${strResult.varOffset}(%rbp)`, "%rdx");
+        if (reg!== "%r8") {
+            code += genOpCode("movq", reg, "%r8");
+        }
+        freeRegister(progContext,reg);
         if (eqStr(stringFunction2.func,"LEFT$")) {
             code += genOpCode("call", "bstrLeft");
         } else if (eqStr(stringFunction2.func,"RIGHT$")) {
@@ -891,7 +912,8 @@ function isFloatExpr(expr: Expr, progContext: ProgContext) : boolean {
         || (isBinExpr(expr) && (isFloatExpr(expr.e1,progContext) || isFloatExpr(expr.e2,progContext)) && isFloatOperator(expr.op))
         || (isNegExpr(expr) && isFloatExpr(expr.expr,progContext))
         || (isGroupExpr(expr) && isFloatExpr(expr.ge,progContext))
-        || (isFnCall(expr) && isFnFloatType(expr,progContext));
+        || (isFnCall(expr) && isFnFloatType(expr,progContext))
+        || isPiConst(expr);
 }
 
 function isNumFloatFunction(numFunc: NumFunc) : boolean {
@@ -1107,15 +1129,21 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
                 // TODO check if %rax is not null otherwise DIVISION BY ZERO error
                 // TODO store rbx and rdx before div and restore after div if necessery
                 // cqto extend rax to rdx (high part of dividend)
+                const storeValue = storeRegister(progContext, ["%rbx","%rdx"],[reg2,reg])
+                stmts += storeValue.code
                 stmts += genOpCode("cqto");
                 // division of 128 bit / 64 bit 
                 // rdx - hight part of dividend
                 // rax - log part of dividend
                 // rax - result division
                 // rdx - result remainder
-                const storeValue = storeRegister(progContext, ["%rbx","%rdx"],[reg2,reg])
-                stmts += storeValue.code
                 stmts += genOpCode("idivq", reg2);
+                stmts += genOpCode("movq", "%rax", reg);
+                stmts += restoreRegister(storeValue)
+            } else if (binExpr.op==="^") {
+                const storeValue = storeRegister(progContext, notPreservedRegister,[reg2,reg],true)
+                stmts += storeValue.code
+                stmts += genCall("int_power",{cmd: "movq", source: reg},{cmd: "movq", source: reg2});
                 stmts += genOpCode("movq", "%rax", reg);
                 stmts += restoreRegister(storeValue)
             } else if (binExpr.op === "<") {
@@ -1155,7 +1183,7 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
             } else if (eqStr(binExpr.op,"AND")) {
                 stmts += genOpCode("andq", reg2,reg);
             } else {
-                throw "unknown binary operator: "+binExpr.op
+                throw "unknown int binary operator: "+binExpr.op
             }
             freeRegister(progContext, reg2)
         }
@@ -1270,8 +1298,11 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
             stmts += genOpCode("movq", `${progContext.pokeMemOffset}(%rbp)`, "%rax")
             stmts += genOpCode("movzb", `(%rax,${reg},1)`, reg)
         } else if (eqStr(numFuncNode.func,'POS')) {
-            // TODO Fake POS implementation need access to cursor position
-            stmts += genOpCode("movq", "$0", reg)
+            const storeValue = storeRegister(progContext, notPreservedRegister,[reg],true)
+            stmts += storeValue.code
+            stmts += genOpCode("call", "get_car_pos");
+            stmts += genOpCode("movq", "%rax", reg);
+            stmts += restoreRegister(storeValue)
         } else {
             throw new CompileError("unsupported int num func "+numFuncNode.func,numFuncNode.$cstNode)
         }
@@ -1368,31 +1399,43 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
         const binExpr : BinExpr = expr;
         const floatResult1 = exprToFloat(binExpr.e1, progContext);
         stmts += floatResult1.code;
-        const reg = allocateXmmRegister(progContext)
-        const reg2 = allocateXmmRegister(progContext)
         const floatResult2 = exprToFloat(binExpr.e2, progContext);
         stmts += floatResult2.code;
-        stmts += genOpCode("movsd", floatResult1.source, reg);
-        stmts += genOpCode("movsd", floatResult2.source, reg2);
-        if (binExpr.op === "+") {
-            stmts += genOpCode("addsd", reg2, reg);
-        } else if (binExpr.op === "-") {
-            stmts += genOpCode("subsd", reg2, reg);
-        } else if (binExpr.op === "*") {
-            stmts += genOpCode("mulsd", reg2, reg);
-        } else if (binExpr.op === "/") {
-            stmts += genOpCode("divsd", reg2, reg);
+        if (binExpr.op === "^") {   
+            stmts += genOpCode("movsd", floatResult1.source, "%xmm0");
+            stmts += genOpCode("movsd", floatResult2.source, "%xmm1");
+            stmts += genOpCode("call", "pow");
+            const resTmpOffset = allocateFloatTmp(progContext)
+            stmts += genOpCode("movsd", "%xmm0", `${resTmpOffset}(%rbp)`);
+            tmpOffset = resTmpOffset
+            source = `${resTmpOffset}(%rbp)`
+            freeFloatTmp(progContext, floatResult1.tmpOffset);        
+            freeFloatTmp(progContext, floatResult2.tmpOffset);
         } else {
-            throw "unknown binary operator: "+binExpr.op
+            const reg = allocateXmmRegister(progContext)
+            const reg2 = allocateXmmRegister(progContext)
+            stmts += genOpCode("movsd", floatResult1.source, reg);
+            stmts += genOpCode("movsd", floatResult2.source, reg2);
+            if (binExpr.op === "+") {
+                stmts += genOpCode("addsd", reg2, reg);
+            } else if (binExpr.op === "-") {
+                stmts += genOpCode("subsd", reg2, reg);
+            } else if (binExpr.op === "*") {
+                stmts += genOpCode("mulsd", reg2, reg);
+            } else if (binExpr.op === "/") {
+                stmts += genOpCode("divsd", reg2, reg);
+            } else {
+                throw "unknown binary operator: "+binExpr.op
+            }
+            freeFloatTmp(progContext, floatResult1.tmpOffset);        
+            freeFloatTmp(progContext, floatResult2.tmpOffset);
+            const resTmpOffset = allocateFloatTmp(progContext)
+            stmts += genOpCode("movsd", reg, `${resTmpOffset}(%rbp)`);
+            tmpOffset = resTmpOffset
+            source = `${resTmpOffset}(%rbp)`
+            freeXmmRegister(progContext, reg)
+            freeXmmRegister(progContext, reg2)
         }
-        freeFloatTmp(progContext, floatResult1.tmpOffset);        
-        freeFloatTmp(progContext, floatResult2.tmpOffset);
-        const resTmpOffset = allocateFloatTmp(progContext)
-        stmts += genOpCode("movsd", reg, `${resTmpOffset}(%rbp)`);
-        tmpOffset = resTmpOffset
-        source = `${resTmpOffset}(%rbp)`
-        freeXmmRegister(progContext, reg)
-        freeXmmRegister(progContext, reg2)
     } else if (isGroupExpr(expr)) {
         const groupExpr : GroupExpr = expr
         return exprToFloat(groupExpr.ge,progContext)
@@ -1460,6 +1503,8 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
         stmts += genOpCode("subsd", "%xmm0","%xmm1")
         stmts += genOpCode("movsd","%xmm1",source)
         freeFloatTmp(progContext, floatResult.tmpOffset);
+    } else if (isPiConst(expr)) {
+        source = `.pi_const(%rip)`
     } else {
         if (!isFloatExpr(expr,progContext)) {
             const reg2 = allocateRegister(progContext)
@@ -1743,6 +1788,7 @@ function generateFloatLiterals(model: Model): string {
     literals += "\t.align 8\n"
     literals += ".LONE:\n\t.double 1.0\n"
     let labelCounter = 0;
+    let hasPi = false
     for (const node of AstUtils.streamAllContents(model)) {
         if (isFloatNumber(node)) {
             const label = `.LF${labelCounter++}`;
@@ -1772,6 +1818,11 @@ function generateFloatLiterals(model: Model): string {
                     console.log("for node int label float3",forNode.end.$type)
                 } 
             }
+        } else if  (isPiConst(node)) {
+            if (!hasPi) {
+                literals += `.pi_const:\n\t.double 3.14159265358979323846\n`;
+                hasPi = true
+            }
         }
     }
     return literals;
@@ -1790,7 +1841,13 @@ function initStringConstants(model: Model, progContext: ProgContext) : string {
     return stmts;
 }
 
-function allocateRegister(progContext: ProgContext) : string {
+function allocateRegister(progContext: ProgContext, wishRegister? : string) : string {
+    if (wishRegister) {
+        if (!progContext.usedRegisters.includes(wishRegister)) {
+            progContext.usedRegisters.push(wishRegister);
+            return wishRegister
+        }
+    }
     const freeRegister = registers.find(r => !progContext.usedRegisters.includes(r));
     if (freeRegister) {
         progContext.usedRegisters.push(freeRegister);
