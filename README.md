@@ -188,11 +188,11 @@ But this will not run on original c64.
 For-Next loop might work differently for special cases.
 Following code will work on original c64 basic but will not compile with this compiler
 
-   10 GOTO 50
-   20 PRINT I: NEXT I
-   30 END
-   50 FOR I=0 TO 5
-   60 GOTO 20
+    10 GOTO 50
+    20 PRINT I: NEXT I
+    30 END
+    50 FOR I=0 TO 5
+    60 GOTO 20
 
 Some commands are not implementated because they make no sense in compiled language or on windows platform.
 * RUN

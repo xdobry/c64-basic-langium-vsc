@@ -190,7 +190,7 @@ void bstrLeft(struct BString* target, const struct BString* str, long long count
 }
 
 void bstrMid(struct BString* target, const struct BString* str, long long pos, long long count) {
-    if (pos >= str->length || pos<1) {
+    if (pos > str->length || pos<1) {
         freeBString(target);
     } else {
         struct BString temp;
@@ -339,7 +339,7 @@ size_t bstrCmp(struct BString* c1, struct BString* c2, size_t operator)
 // 4 - number
 // 8 - end print
 void printBString(struct BString* str,int flags) {
-    if (str->data) {
+    if (str && str->data) {
         fwrite(str->data, 1, str->length, stdout);
         carPos+=str->length;
     }

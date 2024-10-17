@@ -23,7 +23,7 @@ GoTo: "GOTO" (label=[Label:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
 
 GoSub: "GOSUB" (label=[Label:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
 
-If: "IF" cond=Expr "THEN" ((stmts+=Stmt (COLON stmts+=Stmt)*) | label=[Label:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
+If: "IF" cond=Expr "THEN" ((stmts+=Stmt (COLON stmts+=Stmt)* COLON?) | label=[Label:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
 
 For: "FOR" name=Var "=" start=Expr "TO" end=Expr ("STEP" step=Expr)?;
 
