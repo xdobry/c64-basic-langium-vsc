@@ -76,6 +76,69 @@
 	.ascii "ERROR20"
 	.byte 0
 .LC24:
+	.ascii "w"
+	.byte 0
+.LC25:
+	.ascii "w"
+	.byte 0
+.LC26:
+	.ascii "a"
+	.byte 0
+.LC27:
+	.ascii "s"
+	.byte 0
+.LC28:
+	.ascii "ERROR L1"
+	.byte 0
+.LC29:
+	.ascii "a"
+	.byte 0
+.LC30:
+	.ascii "w"
+	.byte 0
+.LC31:
+	.ascii "s"
+	.byte 0
+.LC32:
+	.ascii "ERROR L2"
+	.byte 0
+.LC33:
+	.ascii "a"
+	.byte 0
+.LC34:
+	.ascii "s"
+	.byte 0
+.LC35:
+	.ascii "w"
+	.byte 0
+.LC36:
+	.ascii "ERROR L2"
+	.byte 0
+.LC37:
+	.ascii "a"
+	.byte 0
+.LC38:
+	.ascii "w"
+	.byte 0
+.LC39:
+	.ascii "a"
+	.byte 0
+.LC40:
+	.ascii "ERROR L2"
+	.byte 0
+.LC41:
+	.ascii "d"
+	.byte 0
+.LC42:
+	.ascii "a"
+	.byte 0
+.LC43:
+	.ascii "w"
+	.byte 0
+.LC44:
+	.ascii "ERROR L2"
+	.byte 0
+.LC45:
 	.ascii "END"
 	.byte 0
 	.align 8
@@ -87,32 +150,40 @@
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$848, %rsp
+	subq	$1408, %rsp
+	# init variable A$
+	movq	$0, -640(%rbp)
+	movq	$0, -632(%rbp)
+	movq	$0, -624(%rbp)
+	# init variable B$
+	movq	$0, -984(%rbp)
+	movq	$0, -976(%rbp)
+	movq	$0, -968(%rbp)
 	# init variable strtmp0$
-	movq	$0, -664(%rbp)
-	movq	$0, -656(%rbp)
-	movq	$0, -648(%rbp)
+	movq	$0, -1224(%rbp)
+	movq	$0, -1216(%rbp)
+	movq	$0, -1208(%rbp)
 	# init variable strtmp1$
-	movq	$0, -688(%rbp)
-	movq	$0, -680(%rbp)
-	movq	$0, -672(%rbp)
+	movq	$0, -1248(%rbp)
+	movq	$0, -1240(%rbp)
+	movq	$0, -1232(%rbp)
 	# init variable strtmp2$
-	movq	$0, -712(%rbp)
-	movq	$0, -704(%rbp)
-	movq	$0, -696(%rbp)
+	movq	$0, -1272(%rbp)
+	movq	$0, -1264(%rbp)
+	movq	$0, -1256(%rbp)
 	# init variable strtmp3$
-	movq	$0, -736(%rbp)
-	movq	$0, -728(%rbp)
-	movq	$0, -720(%rbp)
+	movq	$0, -1296(%rbp)
+	movq	$0, -1288(%rbp)
+	movq	$0, -1280(%rbp)
 	# init variable strtmp4$
-	movq	$0, -760(%rbp)
-	movq	$0, -752(%rbp)
-	movq	$0, -744(%rbp)
+	movq	$0, -1320(%rbp)
+	movq	$0, -1312(%rbp)
+	movq	$0, -1304(%rbp)
 	# set rounding mode to floor to be compatible with c64 rounding
-	stmxcsr	-808(%rbp)
-	andl	$0xFFFF9FFF, -808(%rbp)
-	orl	$0x2000, -808(%rbp)
-	ldmxcsr	-808(%rbp)
+	stmxcsr	-1368(%rbp)
+	andl	$0xFFFF9FFF, -1368(%rbp)
+	orl	$0x2000, -1368(%rbp)
+	ldmxcsr	-1368(%rbp)
 	 # init bstring constants
 	leaq	-48(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
@@ -186,8 +257,71 @@ main:
 	leaq	-616(%rbp), %rcx
 	leaq	.LC23(%rip), %rdx
 	call	assignFromConst
-	leaq	-640(%rbp), %rcx
+	leaq	-664(%rbp), %rcx
 	leaq	.LC24(%rip), %rdx
+	call	assignFromConst
+	leaq	-696(%rbp), %rcx
+	leaq	.LC25(%rip), %rdx
+	call	assignFromConst
+	leaq	-720(%rbp), %rcx
+	leaq	.LC26(%rip), %rdx
+	call	assignFromConst
+	leaq	-744(%rbp), %rcx
+	leaq	.LC27(%rip), %rdx
+	call	assignFromConst
+	leaq	-768(%rbp), %rcx
+	leaq	.LC28(%rip), %rdx
+	call	assignFromConst
+	leaq	-792(%rbp), %rcx
+	leaq	.LC29(%rip), %rdx
+	call	assignFromConst
+	leaq	-816(%rbp), %rcx
+	leaq	.LC30(%rip), %rdx
+	call	assignFromConst
+	leaq	-840(%rbp), %rcx
+	leaq	.LC31(%rip), %rdx
+	call	assignFromConst
+	leaq	-864(%rbp), %rcx
+	leaq	.LC32(%rip), %rdx
+	call	assignFromConst
+	leaq	-888(%rbp), %rcx
+	leaq	.LC33(%rip), %rdx
+	call	assignFromConst
+	leaq	-912(%rbp), %rcx
+	leaq	.LC34(%rip), %rdx
+	call	assignFromConst
+	leaq	-936(%rbp), %rcx
+	leaq	.LC35(%rip), %rdx
+	call	assignFromConst
+	leaq	-960(%rbp), %rcx
+	leaq	.LC36(%rip), %rdx
+	call	assignFromConst
+	leaq	-1008(%rbp), %rcx
+	leaq	.LC37(%rip), %rdx
+	call	assignFromConst
+	leaq	-1032(%rbp), %rcx
+	leaq	.LC38(%rip), %rdx
+	call	assignFromConst
+	leaq	-1056(%rbp), %rcx
+	leaq	.LC39(%rip), %rdx
+	call	assignFromConst
+	leaq	-1080(%rbp), %rcx
+	leaq	.LC40(%rip), %rdx
+	call	assignFromConst
+	leaq	-1104(%rbp), %rcx
+	leaq	.LC41(%rip), %rdx
+	call	assignFromConst
+	leaq	-1128(%rbp), %rcx
+	leaq	.LC42(%rip), %rdx
+	call	assignFromConst
+	leaq	-1152(%rbp), %rcx
+	leaq	.LC43(%rip), %rdx
+	call	assignFromConst
+	leaq	-1176(%rbp), %rcx
+	leaq	.LC44(%rip), %rdx
+	call	assignFromConst
+	leaq	-1200(%rbp), %rcx
+	leaq	.LC45(%rip), %rdx
 	call	assignFromConst
 	# A%=1
 	# int: 1 - %rsi
@@ -217,12 +351,12 @@ main:
 	movq	$1, %rsi
 	negq	%rsi
 	orq	%rsi, %rdx
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	assignInt
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	freeBString
 	# PRINT "-1 AND 0 ", -1 AND 0
 	# str: "-1 AND 0 ",
@@ -238,12 +372,12 @@ main:
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	andq	%rsi, %rdx
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	assignInt
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	freeBString
 	# PRINT "-1 AND -1 ", -1 AND -1
 	# str: "-1 AND -1 ",
@@ -261,12 +395,12 @@ main:
 	movq	$1, %rsi
 	negq	%rsi
 	andq	%rsi, %rdx
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	assignInt
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	freeBString
 	# IF B%<A% OR C%<A% THEN PRINT "ERROR2"
 	# int: B%<A% OR C%<A% - %rsi
@@ -282,9 +416,9 @@ main:
 	# int: C%<A% - %rdi
 	# int: C% - %rdi
 	movq	-24(%rbp), %rdi
-	# int: A% - %r8
-	movq	-8(%rbp), %r8
-	cmpq	%r8, %rdi
+	# int: A% - %r12
+	movq	-8(%rbp), %r12
+	cmpq	%r12, %rdi
 	setl	%al
 	movzbq	%al, %rdi
 	negq	%rdi
@@ -311,9 +445,9 @@ main:
 	# int: B%<A% - %rdi
 	# int: B% - %rdi
 	movq	-16(%rbp), %rdi
-	# int: A% - %r8
-	movq	-8(%rbp), %r8
-	cmpq	%r8, %rdi
+	# int: A% - %r12
+	movq	-8(%rbp), %r12
+	cmpq	%r12, %rdi
 	setl	%al
 	movzbq	%al, %rdi
 	negq	%rdi
@@ -340,9 +474,9 @@ main:
 	# int: C%>A% - %rdi
 	# int: C% - %rdi
 	movq	-24(%rbp), %rdi
-	# int: A% - %r8
-	movq	-8(%rbp), %r8
-	cmpq	%r8, %rdi
+	# int: A% - %r12
+	movq	-8(%rbp), %r12
+	cmpq	%r12, %rdi
 	setg	%al
 	movzbq	%al, %rdi
 	negq	%rdi
@@ -369,9 +503,9 @@ main:
 	# int: B%<A% - %rdi
 	# int: B% - %rdi
 	movq	-16(%rbp), %rdi
-	# int: A% - %r8
-	movq	-8(%rbp), %r8
-	cmpq	%r8, %rdi
+	# int: A% - %r12
+	movq	-8(%rbp), %r12
+	cmpq	%r12, %rdi
 	setl	%al
 	movzbq	%al, %rdi
 	negq	%rdi
@@ -398,9 +532,9 @@ main:
 	# int: A%>C% - %rdi
 	# int: A% - %rdi
 	movq	-8(%rbp), %rdi
-	# int: C% - %r8
-	movq	-24(%rbp), %r8
-	cmpq	%r8, %rdi
+	# int: C% - %r12
+	movq	-24(%rbp), %r12
+	cmpq	%r12, %rdi
 	setg	%al
 	movzbq	%al, %rdi
 	negq	%rdi
@@ -438,9 +572,9 @@ main:
 	# int: A%<C% - %rdi
 	# int: A% - %rdi
 	movq	-8(%rbp), %rdi
-	# int: C% - %r8
-	movq	-24(%rbp), %r8
-	cmpq	%r8, %rdi
+	# int: C% - %r12
+	movq	-24(%rbp), %r12
+	cmpq	%r12, %rdi
 	setl	%al
 	movzbq	%al, %rdi
 	negq	%rdi
@@ -490,12 +624,12 @@ main:
 	movzbq	%al, %rsi
 	negq	%rsi
 	orq	%rsi, %rdx
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	assignInt
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	freeBString
 	# PRINT "A%<B% AND C%<A% ", A%<B% AND C%<A%
 	# str: "A%<B% AND C%<A% ",
@@ -523,12 +657,12 @@ main:
 	movzbq	%al, %rsi
 	negq	%rsi
 	andq	%rsi, %rdx
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	assignInt
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-760(%rbp), %rcx
+	leaq	-1320(%rbp), %rcx
 	call	freeBString
 	# IF 3 AND 1 <> 1 THEN PRINT "ERROR8"
 	# int: 3 AND 1 <> 1 - %rsi
@@ -537,9 +671,9 @@ main:
 	# int: 1 <> 1 - %rdi
 	# int: 1 - %rdi
 	movq	$1, %rdi
-	# int: 1 - %r8
-	movq	$1, %r8
-	cmpq	%r8, %rdi
+	# int: 1 - %r12
+	movq	$1, %r12
+	cmpq	%r12, %rdi
 	setne	%al
 	movzbq	%al, %rdi
 	negq	%rdi
@@ -559,9 +693,9 @@ main:
 	# int: 2 <> 3 - %rdi
 	# int: 2 - %rdi
 	movq	$2, %rdi
-	# int: 3 - %r8
-	movq	$3, %r8
-	cmpq	%r8, %rdi
+	# int: 3 - %r12
+	movq	$3, %r12
+	cmpq	%r12, %rdi
 	setne	%al
 	movzbq	%al, %rdi
 	negq	%rdi
@@ -671,8 +805,8 @@ main:
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -800(%rbp)
-	movsd	-800(%rbp), %xmm0
+	movsd	%xmm0, -1360(%rbp)
+	movsd	-1360(%rbp), %xmm0
 	movsd	%xmm0, -448(%rbp)
 	# IF A THEN PRINT "ERROR14"
 	# int: A - %rsi
@@ -712,12 +846,12 @@ main:
 	# int: 1 - %rsi
 	movq	$1, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -800(%rbp)
-	movsd	-800(%rbp), %xmm0
+	movsd	%xmm0, -1360(%rbp)
+	movsd	-1360(%rbp), %xmm0
 	xorpd	%xmm1, %xmm1
 	subsd	%xmm0, %xmm1
-	movsd	%xmm1, -792(%rbp)
-	movsd	-792(%rbp), %xmm0
+	movsd	%xmm1, -1352(%rbp)
+	movsd	-1352(%rbp), %xmm0
 	movsd	%xmm0, -448(%rbp)
 	# IF NOT A THEN PRINT "ERROR16"
 	# int: NOT A - %rsi
@@ -739,8 +873,8 @@ main:
 	# int: 3 - %rsi
 	movq	$3, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -792(%rbp)
-	movsd	-792(%rbp), %xmm0
+	movsd	%xmm0, -1352(%rbp)
+	movsd	-1352(%rbp), %xmm0
 	movsd	%xmm0, -448(%rbp)
 	# D%=0
 	# int: 0 - %rsi
@@ -787,13 +921,13 @@ main:
 	# int: 2 - %rdi
 	movq	$2, %rdi
 	cvtsi2sdq	%rdi, %xmm0
-	movsd	%xmm0, -792(%rbp)
-	movsd	-792(%rbp), %xmm0
+	movsd	%xmm0, -1352(%rbp)
+	movsd	-1352(%rbp), %xmm0
 	xorpd	%xmm1, %xmm1
 	subsd	%xmm0, %xmm1
-	movsd	%xmm1, -800(%rbp)
+	movsd	%xmm1, -1360(%rbp)
 	movsd	-448(%rbp), %xmm0
-	movsd	-800(%rbp), %xmm1
+	movsd	-1360(%rbp), %xmm1
 	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi
@@ -872,9 +1006,304 @@ main:
 	movq	$8, %rdx
 	call	printBString
 .ifnot19:
+	# A$="w"
+	# str: "w"
+	leaq	-640(%rbp), %rcx
+	leaq	-664(%rbp), %rdx
+	call	assignBString
+	# R%=0
+	# int: 0 - %rsi
+	movq	$0, %rsi
+	movq	%rsi, -672(%rbp)
+	# IF A$="w" OR A$="a" OR A$="s" THEN R%=1
+	# int: A$="w" OR A$="a" OR A$="s" - %rsi
+	# int: A$="w" OR A$="a" - %rsi
+	# int: A$="w" - %rsi
+	# str: A$
+	# str: "w"
+	leaq	-640(%rbp), %rcx
+	leaq	-696(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rsi
+	# int: A$="a" - %rdi
+	# str: A$
+	# str: "a"
+	leaq	-640(%rbp), %rcx
+	leaq	-720(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rdi
+	orq	%rdi, %rsi
+	# int: A$="s" - %rdi
+	# str: A$
+	# str: "s"
+	leaq	-640(%rbp), %rcx
+	leaq	-744(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rdi
+	orq	%rdi, %rsi
+	cmpq	$0, %rsi
+	je	.ifnot20
+	# R%=1
+	# int: 1 - %rsi
+	movq	$1, %rsi
+	movq	%rsi, -672(%rbp)
+.ifnot20:
+	# IF R%=0 THEN PRINT "ERROR L1"
+	# int: R%=0 - %rsi
+	# int: R% - %rsi
+	movq	-672(%rbp), %rsi
+	# int: 0 - %rdi
+	movq	$0, %rdi
+	cmpq	%rdi, %rsi
+	sete	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	cmpq	$0, %rsi
+	je	.ifnot21
+	# PRINT "ERROR L1"
+	# str: "ERROR L1"
+	leaq	-768(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot21:
+	# R%=0
+	# int: 0 - %rsi
+	movq	$0, %rsi
+	movq	%rsi, -672(%rbp)
+	# IF A$="a" OR A$="w" OR A$="s" THEN R%=1
+	# int: A$="a" OR A$="w" OR A$="s" - %rsi
+	# int: A$="a" OR A$="w" - %rsi
+	# int: A$="a" - %rsi
+	# str: A$
+	# str: "a"
+	leaq	-640(%rbp), %rcx
+	leaq	-792(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rsi
+	# int: A$="w" - %rdi
+	# str: A$
+	# str: "w"
+	leaq	-640(%rbp), %rcx
+	leaq	-816(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rdi
+	orq	%rdi, %rsi
+	# int: A$="s" - %rdi
+	# str: A$
+	# str: "s"
+	leaq	-640(%rbp), %rcx
+	leaq	-840(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rdi
+	orq	%rdi, %rsi
+	cmpq	$0, %rsi
+	je	.ifnot22
+	# R%=1
+	# int: 1 - %rsi
+	movq	$1, %rsi
+	movq	%rsi, -672(%rbp)
+.ifnot22:
+	# IF R%=0 THEN PRINT "ERROR L2"
+	# int: R%=0 - %rsi
+	# int: R% - %rsi
+	movq	-672(%rbp), %rsi
+	# int: 0 - %rdi
+	movq	$0, %rdi
+	cmpq	%rdi, %rsi
+	sete	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	cmpq	$0, %rsi
+	je	.ifnot23
+	# PRINT "ERROR L2"
+	# str: "ERROR L2"
+	leaq	-864(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot23:
+	# R%=0
+	# int: 0 - %rsi
+	movq	$0, %rsi
+	movq	%rsi, -672(%rbp)
+	# IF A$="a" OR A$="s" OR A$="w" THEN R%=1
+	# int: A$="a" OR A$="s" OR A$="w" - %rsi
+	# int: A$="a" OR A$="s" - %rsi
+	# int: A$="a" - %rsi
+	# str: A$
+	# str: "a"
+	leaq	-640(%rbp), %rcx
+	leaq	-888(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rsi
+	# int: A$="s" - %rdi
+	# str: A$
+	# str: "s"
+	leaq	-640(%rbp), %rcx
+	leaq	-912(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rdi
+	orq	%rdi, %rsi
+	# int: A$="w" - %rdi
+	# str: A$
+	# str: "w"
+	leaq	-640(%rbp), %rcx
+	leaq	-936(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rdi
+	orq	%rdi, %rsi
+	cmpq	$0, %rsi
+	je	.ifnot24
+	# R%=1
+	# int: 1 - %rsi
+	movq	$1, %rsi
+	movq	%rsi, -672(%rbp)
+.ifnot24:
+	# IF R%=0 THEN PRINT "ERROR L2"
+	# int: R%=0 - %rsi
+	# int: R% - %rsi
+	movq	-672(%rbp), %rsi
+	# int: 0 - %rdi
+	movq	$0, %rdi
+	cmpq	%rdi, %rsi
+	sete	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	cmpq	$0, %rsi
+	je	.ifnot25
+	# PRINT "ERROR L2"
+	# str: "ERROR L2"
+	leaq	-960(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot25:
+	# R%=0
+	# int: 0 - %rsi
+	movq	$0, %rsi
+	movq	%rsi, -672(%rbp)
+	# B$="a"
+	# str: "a"
+	leaq	-984(%rbp), %rcx
+	leaq	-1008(%rbp), %rdx
+	call	assignBString
+	# IF A$="w" AND B$="a" THEN R%=1
+	# int: A$="w" AND B$="a" - %rsi
+	# int: A$="w" - %rsi
+	# str: A$
+	# str: "w"
+	leaq	-640(%rbp), %rcx
+	leaq	-1032(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rsi
+	# int: B$="a" - %rdi
+	# str: B$
+	# str: "a"
+	leaq	-984(%rbp), %rcx
+	leaq	-1056(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rdi
+	andq	%rdi, %rsi
+	cmpq	$0, %rsi
+	je	.ifnot26
+	# R%=1
+	# int: 1 - %rsi
+	movq	$1, %rsi
+	movq	%rsi, -672(%rbp)
+.ifnot26:
+	# IF R%=0 THEN PRINT "ERROR L2"
+	# int: R%=0 - %rsi
+	# int: R% - %rsi
+	movq	-672(%rbp), %rsi
+	# int: 0 - %rdi
+	movq	$0, %rdi
+	cmpq	%rdi, %rsi
+	sete	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	cmpq	$0, %rsi
+	je	.ifnot27
+	# PRINT "ERROR L2"
+	# str: "ERROR L2"
+	leaq	-1080(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot27:
+	# R%=0
+	# int: 0 - %rsi
+	movq	$0, %rsi
+	movq	%rsi, -672(%rbp)
+	# IF A$="d" OR (B$="a" AND A$="w") THEN R%=1
+	# int: A$="d" OR (B$="a" AND A$="w") - %rsi
+	# int: A$="d" - %rsi
+	# str: A$
+	# str: "d"
+	leaq	-640(%rbp), %rcx
+	leaq	-1104(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rsi
+	# int: (B$="a" AND A$="w") - %rdi
+	# int: B$="a" AND A$="w" - %rdi
+	# int: B$="a" - %rdi
+	# str: B$
+	# str: "a"
+	leaq	-984(%rbp), %rcx
+	leaq	-1128(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %rdi
+	# int: A$="w" - %r12
+	# str: A$
+	# str: "w"
+	leaq	-640(%rbp), %rcx
+	leaq	-1152(%rbp), %rdx
+	movq	$0, %r8
+	call	bstrCmp
+	movq	%rax, %r12
+	andq	%r12, %rdi
+	orq	%rdi, %rsi
+	cmpq	$0, %rsi
+	je	.ifnot28
+	# R%=1
+	# int: 1 - %rsi
+	movq	$1, %rsi
+	movq	%rsi, -672(%rbp)
+.ifnot28:
+	# IF R%=0 THEN PRINT "ERROR L2"
+	# int: R%=0 - %rsi
+	# int: R% - %rsi
+	movq	-672(%rbp), %rsi
+	# int: 0 - %rdi
+	movq	$0, %rdi
+	cmpq	%rdi, %rsi
+	sete	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	cmpq	$0, %rsi
+	je	.ifnot29
+	# PRINT "ERROR L2"
+	# str: "ERROR L2"
+	leaq	-1176(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot29:
+	# R%=0
+	# int: 0 - %rsi
+	movq	$0, %rsi
+	movq	%rsi, -672(%rbp)
 	# PRINT "END"
 	# str: "END"
-	leaq	-640(%rbp), %rcx
+	leaq	-1200(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 

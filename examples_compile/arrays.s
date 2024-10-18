@@ -255,7 +255,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# IF A(0,0)<>0.0 THEN PRINT "ERROR UNINITIALIZED VALUE NOT 0.0"
 	# int: A(0,0)<>0.0 - %rsi
@@ -372,7 +372,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " Y=",
 	leaq	-232(%rbp), %rcx
@@ -385,7 +385,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " = ",
 	leaq	-256(%rbp), %rcx
@@ -398,7 +398,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# T(X,Y) = V
 	# float: V
@@ -491,7 +491,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " Y=",
 	leaq	-320(%rbp), %rcx
@@ -504,7 +504,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " = ",
 	leaq	-344(%rbp), %rcx
@@ -527,7 +527,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# IF V<>T(X%,Y%) THEN PRINT "ERROR VALUE"
 	# int: V<>T(X%,Y%) - %rsi
@@ -632,7 +632,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " Y=",
 	leaq	-496(%rbp), %rcx
@@ -645,7 +645,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " = ",
 	leaq	-520(%rbp), %rcx
@@ -658,7 +658,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# T%(X%,Y%) = V%
 	# int: X% - %rsi
@@ -732,7 +732,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " Y=",
 	leaq	-568(%rbp), %rcx
@@ -745,7 +745,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " = ",
 	leaq	-592(%rbp), %rcx
@@ -758,7 +758,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# IF V%<>T%(X%,Y%) THEN PRINT "ERROR INT VALUE"
 	# int: V%<>T%(X%,Y%) - %rsi
@@ -837,12 +837,12 @@ main:
 	leaq	-984(%rbp), %rcx
 	leaq	-960(%rbp), %rdx
 	call	appendBString
-	leaq	-960(%rbp), %rcx
+	movq	-960(%rbp), %rcx
 	call	freeBString
 	leaq	-696(%rbp), %rcx
 	leaq	-984(%rbp), %rdx
 	call	assignBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# PRINT " X=",X%," = ",E$
 	# str: " X=",
@@ -856,7 +856,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " = ",
 	leaq	-768(%rbp), %rcx
@@ -911,7 +911,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# str: " ",
 	leaq	-840(%rbp), %rcx
@@ -929,7 +929,7 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
+	movq	-984(%rbp), %rcx
 	call	freeBString
 	# NEXT X%
 	call	.forNext9

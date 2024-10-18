@@ -378,6 +378,10 @@ void inputBString(struct BString* str) {
 
 void readChar(struct BString* str) {
     char mc = _getch();
+    if (mc==3) {
+        // ctrl-c was pressed, so exit here
+        exit(0);
+    }
     assignChar(str, mc);
 }
 

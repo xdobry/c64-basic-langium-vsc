@@ -73,6 +73,9 @@
 	.ascii " REVERSE INT LOOP3"
 	.byte 0
 .LC23:
+	.ascii "ERROR ENDSTAND"
+	.byte 0
+.LC24:
 	.ascii "END"
 	.byte 0
 	.align 8
@@ -104,38 +107,40 @@
 	.double 0.5
 .LF12:
 	.double 0
+.LF13:
+	.double 10
 
     .text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$976, %rsp
+	subq	$1008, %rsp
 	# init variable strtmp0$
-	movq	$0, -792(%rbp)
-	movq	$0, -784(%rbp)
-	movq	$0, -776(%rbp)
-	# init variable strtmp1$
+	movq	$0, -824(%rbp)
 	movq	$0, -816(%rbp)
 	movq	$0, -808(%rbp)
-	movq	$0, -800(%rbp)
-	# init variable strtmp2$
+	# init variable strtmp1$
+	movq	$0, -848(%rbp)
 	movq	$0, -840(%rbp)
 	movq	$0, -832(%rbp)
-	movq	$0, -824(%rbp)
-	# init variable strtmp3$
+	# init variable strtmp2$
+	movq	$0, -872(%rbp)
 	movq	$0, -864(%rbp)
 	movq	$0, -856(%rbp)
-	movq	$0, -848(%rbp)
-	# init variable strtmp4$
+	# init variable strtmp3$
+	movq	$0, -896(%rbp)
 	movq	$0, -888(%rbp)
 	movq	$0, -880(%rbp)
-	movq	$0, -872(%rbp)
+	# init variable strtmp4$
+	movq	$0, -920(%rbp)
+	movq	$0, -912(%rbp)
+	movq	$0, -904(%rbp)
 	# set rounding mode to floor to be compatible with c64 rounding
-	stmxcsr	-936(%rbp)
-	andl	$0xFFFF9FFF, -936(%rbp)
-	orl	$0x2000, -936(%rbp)
-	ldmxcsr	-936(%rbp)
+	stmxcsr	-968(%rbp)
+	andl	$0xFFFF9FFF, -968(%rbp)
+	orl	$0x2000, -968(%rbp)
+	ldmxcsr	-968(%rbp)
 	 # init bstring constants
 	leaq	-48(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
@@ -206,8 +211,11 @@ main:
 	leaq	-728(%rbp), %rcx
 	leaq	.LC22(%rip), %rdx
 	call	assignFromConst
-	leaq	-768(%rbp), %rcx
+	leaq	-776(%rbp), %rcx
 	leaq	.LC23(%rip), %rdx
+	call	assignFromConst
+	leaq	-800(%rbp), %rcx
+	leaq	.LC24(%rip), %rdx
 	call	assignFromConst
 	# FOR A=0.0 TO 2.0 STEP 1.0
 	# float: 0.0
@@ -244,13 +252,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext0
@@ -264,8 +272,8 @@ main:
 	movsd	.LF5(%rip), %xmm0
 	xorpd	%xmm1, %xmm1
 	subsd	%xmm0, %xmm1
-	movsd	%xmm1, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm1, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -56(%rbp)
 	# float: 0.0
 	movsd	.LF4(%rip), %xmm0
@@ -294,13 +302,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext1
@@ -310,8 +318,8 @@ main:
 	movsd	.LF6(%rip), %xmm0
 	xorpd	%xmm1, %xmm1
 	subsd	%xmm0, %xmm1
-	movsd	%xmm1, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm1, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -24(%rbp)
 # stepoffset -96 tooffset -104
 	# float: 1.0
@@ -344,13 +352,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext2
@@ -376,13 +384,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A%
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext3
@@ -396,8 +404,8 @@ main:
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -24(%rbp)
 # stepoffset undefined tooffset -192
 	# float: 2.0
@@ -420,13 +428,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext4
@@ -435,8 +443,8 @@ main:
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -24(%rbp)
 	# PRINT " REAL 0 to 2"
 	# str: " REAL 0 to 2"
@@ -448,8 +456,8 @@ main:
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -24(%rbp)
 # stepoffset undefined tooffset undefined
 	jmp	.for5
@@ -469,13 +477,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext5
@@ -493,16 +501,16 @@ main:
 	# int: 3 - %rsi
 	movq	$3, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -304(%rbp)
 	# FOR A=0 TO T STEP S
 	# float: 0
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -24(%rbp)
 # stepoffset -312 tooffset -320
 	# float: S
@@ -535,13 +543,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT
 	call	.forNext6
@@ -572,13 +580,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A%
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
 	call	.forNext7
@@ -624,13 +632,13 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A%
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
 	call	.forNext8
@@ -677,26 +685,26 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A%,
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# str: " B=",
 	leaq	-520(%rbp), %rcx
 	movq	$1, %rdx
 	call	printBString
 	# str: B%
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	-472(%rbp), %rdx
 	call	assignInt
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT B%
 	call	.forNext10
@@ -745,26 +753,26 @@ main:
 	movq	$1, %rdx
 	call	printBString
 	# str: A%,
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# str: " B=",
 	leaq	-592(%rbp), %rcx
 	movq	$1, %rdx
 	call	printBString
 	# str: B%
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	-472(%rbp), %rdx
 	call	assignInt
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT B%, A%
 	call	.forNext12
@@ -779,8 +787,8 @@ main:
 	# int: 10 - %rsi
 	movq	$10, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -24(%rbp)
 # stepoffset -624 tooffset undefined
 	# float: -1
@@ -788,12 +796,12 @@ main:
 	# int: 1 - %rsi
 	movq	$1, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	xorpd	%xmm1, %xmm1
 	subsd	%xmm0, %xmm1
-	movsd	%xmm1, -920(%rbp)
-	movsd	-920(%rbp), %xmm0
+	movsd	%xmm1, -952(%rbp)
+	movsd	-952(%rbp), %xmm0
 	movsd	%xmm0, -624(%rbp)
 	jmp	.for13
 .forNext13:
@@ -815,13 +823,13 @@ main:
 .for13:
 	# PRINT A
 	# str: A
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT A
 	call	.forNext13
@@ -831,20 +839,20 @@ main:
 	# int: 1 - %rsi
 	movq	$1, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -920(%rbp)
-	movsd	-920(%rbp), %xmm0
+	movsd	%xmm0, -952(%rbp)
+	movsd	-952(%rbp), %xmm0
 	xorpd	%xmm1, %xmm1
 	subsd	%xmm0, %xmm1
-	movsd	%xmm1, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm1, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -296(%rbp)
 	# T=0
 	# float: 0
 	# int: 0 - %rsi
 	movq	$0, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -304(%rbp)
 	# PRINT " REVERSE FLOAT LOOP2"
 	# str: " REVERSE FLOAT LOOP2"
@@ -856,8 +864,8 @@ main:
 	# int: 10 - %rsi
 	movq	$10, %rsi
 	cvtsi2sdq	%rsi, %xmm0
-	movsd	%xmm0, -928(%rbp)
-	movsd	-928(%rbp), %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
 	movsd	%xmm0, -24(%rbp)
 # stepoffset -656 tooffset -664
 	# float: S
@@ -886,13 +894,13 @@ main:
 .for14:
 	# PRINT A
 	# str: A
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movsd	-24(%rbp), %xmm1
 	call	assignDouble
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT A
 	call	.forNext14
@@ -930,13 +938,13 @@ main:
 .for15:
 	# PRINT A%
 	# str: A%
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
 	call	.forNext15
@@ -985,19 +993,73 @@ main:
 .for16:
 	# PRINT A%
 	# str: A%
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	-136(%rbp), %rdx
 	call	assignInt
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-888(%rbp), %rcx
+	leaq	-920(%rbp), %rcx
 	call	freeBString
 	# NEXT A%
 	call	.forNext16
+	# FOR I=1 TO 10
+	# float: 1
+	# int: 1 - %rsi
+	movq	$1, %rsi
+	cvtsi2sdq	%rsi, %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-960(%rbp), %xmm0
+	movsd	%xmm0, -752(%rbp)
+# stepoffset undefined tooffset undefined
+	jmp	.for17
+.forNext17:
+	movq	-752(%rbp), %xmm0
+	addsd	.LONE(%rip), %xmm0
+	ucomisd	.LF13(%rip), %xmm0
+	jbe	.forCont17
+	ret
+.forCont17:
+	movq	%xmm0, -752(%rbp)
+	pop	%rax
+.for17:
+	# PRINT I
+	# str: I
+	leaq	-920(%rbp), %rcx
+	movsd	-752(%rbp), %xmm1
+	call	assignDouble
+	leaq	-920(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
+	leaq	-920(%rbp), %rcx
+	call	freeBString
+	# NEXT I
+	call	.forNext17
+	# IF I<>11 THEN PRINT "ERROR ENDSTAND"
+	# int: I<>11 - %rsi
+	# float: I
+	# float: 11
+	# int: 11 - %rdi
+	movq	$11, %rdi
+	cvtsi2sdq	%rdi, %xmm0
+	movsd	%xmm0, -960(%rbp)
+	movsd	-752(%rbp), %xmm0
+	movsd	-960(%rbp), %xmm1
+	comisd	%xmm1, %xmm0
+	setne	%al
+	movzbq	%al, %rsi
+	negq	%rsi
+	cmpq	$0, %rsi
+	je	.ifnot0
+	# PRINT "ERROR ENDSTAND"
+	# str: "ERROR ENDSTAND"
+	leaq	-776(%rbp), %rcx
+	movq	$8, %rdx
+	call	printBString
+.ifnot0:
 	# PRINT "END"
 	# str: "END"
-	leaq	-768(%rbp), %rcx
+	leaq	-800(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 

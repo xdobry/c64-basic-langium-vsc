@@ -119,7 +119,7 @@ interface ForEntry {
 // RCX, RDX, R8, R9, Stack
 
 // Register to be used (beside %rax)
-const registers : string[] = ["%rsi","%rdi","%r8","%r9","%r10","%r11","%r12","%r13","%r14","%r15","%rbx","%rcx","%rdx"]
+const registers : string[] = ["%rsi","%rdi","%r12","%r13","%r14","%r15","%rbx","%r8","%r9","%r10","%r11","%rcx","%rdx"]
 
 const xmmRegisters : string[] = ["%xmm0","%xmm1","%xmm2","%xmm3","%xmm4","%xmm5","%xmm6","%xmm7"]
 
@@ -206,7 +206,7 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
             throw new CompileError("can not find arr variable offset for: "+key,undefined)
         }
         programmCode += `\t# init array ${key} ${value}\n`;
-        programmCode += genCall("c64_init_array",{cmd:'lea',source:`${aoffset}(%rbp)`},{cmd:'movq',source:`$${value}`})
+        programmCode += genCall("c64_init_array",progContext, {cmd:'lea',source:`${aoffset}(%rbp)`},{cmd:'movq',source:`$${value}`})
     })
     if (progContext.dataPointerOffset!==0) {
         programmCode += `\t# init data pointer\n`;
@@ -216,7 +216,7 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
     if (progContext.pokeMemOffset!==0) {
         programmCode += `\t# init peek/poke 64k memory\n`;
         // allocate 64k (2<<5) bytes for peek and poke
-        programmCode += genCall("calloc", {cmd:'movq',source:"$1"},{cmd:'movq',source:`$${2<<15}`})
+        programmCode += genCall("calloc",progContext, {cmd:'movq',source:"$1"},{cmd:'movq',source:`$${2<<15}`})
         programmCode += genOpCode("movq","%rax",`${progContext.pokeMemOffset}(%rbp)`)
     }
 
@@ -291,7 +291,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
             } else if (isPrint(node)) {
                 const print : Print = node;
                 if (print.exprs.length==0) {
-                    code += genCall("printBString",
+                    code += genCall("printBString",progContext,
                         {cmd: "movq", source: "$0"},
                         {cmd: "movq", source: "$8"}
                     )
@@ -310,7 +310,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                         if (num===print.exprs.length-1 && expr.sep!==';') {
                             flags |= 8
                         }
-                        code += genCall("printBString",
+                        code += genCall("printBString",progContext,
                             {cmd: "leaq", source: `${stringResult.varOffset}(%rbp)`},
                             {cmd: "movq", source: `$${flags}`});
                         code += freeStrTmp(progContext, stringResult.tmpOffset);
@@ -319,13 +319,13 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 }
             } else if (isGoSub(node)) {
                 const contLabel = `.gosubCont${progContext.goSubLabelCounter++}`
-                code += genCall("pushEntry",{cmd:"leaq",source:`${contLabel}(%rip)`})
+                code += genCall("pushEntry",progContext,{cmd:"leaq",source:`${contLabel}(%rip)`})
                 code += genOpCode("jmp",getJmpLabel(node.label,node.lineNumber,progContext))
                 code += `${contLabel}:\n`
             } else if (isGoTo(node)) {
                 code += genOpCode("jmp",getJmpLabel(node.label,node.lineNumber,progContext))
             } else if (isReturn(node)) {
-                code += genCall("popEntry")
+                code += genCall("popEntry",progContext)
                 code += genOpCode("jmp","*%rax");
             } else if (isLetNum(node)) {
                 const letNode : LetNum = node;
@@ -384,7 +384,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                     code += genArrIndex(varName, letNode.name.indexes, progContext)
                     code += genOpCode("lea", `${offset}(%rbp)`,"%rcx");
                     code += genOpCode("call", "c64_get_str_item_ptr");
-                    code += genCall("assignBString", 
+                    code += genCall("assignBString",progContext, 
                         {cmd: "movq", source: "%rax"},
                         {cmd: "leaq", source: `${strResult.varOffset}(%rbp)`}
                        );
@@ -392,7 +392,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 } else {
                     const strResult = exprAsBString(letNode.expr,progContext);
                     code += strResult.code;
-                    code += genCall("assignBString", 
+                    code += genCall("assignBString",progContext, 
                         {cmd: "leaq", source: `${offset}(%rbp)`}, 
                         {cmd: "leaq", source: `${strResult.varOffset}(%rbp)`});
                     code += freeStrTmp(progContext, strResult.tmpOffset);
@@ -568,7 +568,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
             } else if (isOnGoSub(node)) {
                 const onGotoNode : OnGoSub = node
                 const jumpOverLabel = ".gotoEnd"+progContext.goSubLabelCounter++
-                code += genCall("pushEntry",{cmd:"leaq",source:`${jumpOverLabel}(%rip)`})
+                code += genCall("pushEntry",progContext,{cmd:"leaq",source:`${jumpOverLabel}(%rip)`})
                 const reg = allocateRegister(progContext)
                 code += exprToInt(onGotoNode.expr, reg, progContext);
                 freeRegister(progContext,reg);
@@ -749,7 +749,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
             code += genArrIndex(varName, expr.indexes, progContext)
             code += genOpCode("lea", `${varOffset}(%rbp)`, "%rcx");
             code += genOpCode("call", "c64_get_str_item_ptr");
-            code += genCall("assignBString",{cmd:'leaq',source:`${variableOffset}(%rbp)`},{cmd:'movq',source:'%rax'});
+            code += genCall("assignBString",progContext,{cmd:'leaq',source:`${variableOffset}(%rbp)`},{cmd:'movq',source:'%rax'});
         } else {
             variableOffset = varOffset
         }
@@ -759,7 +759,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         variableOffset = allocateStrTmp(progContext);
         tmpOffset = variableOffset
         if (intVarOffset) {
-            code += genCall("assignInt",
+            code += genCall("assignInt",progContext,
                 {cmd: 'leaq', source: `${variableOffset}(%rbp)`},
                 {cmd: 'movq', source: `${intVarOffset}(%rbp)`})
         } else {
@@ -806,11 +806,11 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         tmpOffset = variableOffset
         const strResult1 =  exprAsBString(sBinExpr.e1, progContext);
         code += strResult1.code;
-        code += genCall("assignBString",{cmd: "leaq", source: `${variableOffset}(%rbp)`}, {cmd: "leaq", source: `${strResult1.varOffset}(%rbp)`});
+        code += genCall("assignBString",progContext,{cmd: "leaq", source: `${variableOffset}(%rbp)`}, {cmd: "leaq", source: `${strResult1.varOffset}(%rbp)`});
         code += freeStrTmp(progContext, strResult1.tmpOffset);
         const strResult2 =  exprAsBString(sBinExpr.e2, progContext);
         code += strResult2.code;
-        code += genCall("appendBString",{cmd: "leaq", source: `${variableOffset}(%rbp)`}, {cmd: "leaq", source: `${strResult2.varOffset}(%rbp)`});
+        code += genCall("appendBString",progContext,{cmd: "leaq", source: `${variableOffset}(%rbp)`}, {cmd: "leaq", source: `${strResult2.varOffset}(%rbp)`});
         code += freeStrTmp(progContext, strResult2.tmpOffset);
     } else if (isChrs(expr)) {
         const chrs : Chrs = expr;
@@ -898,7 +898,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
         } else {
             const reg = allocateRegister(progContext);
             code += exprToInt(strNode.param, reg, progContext);
-            code += genCall("assignInt",
+            code += genCall("assignInt",progContext,
                 {cmd: 'leaq', source: `${variableOffset}(%rbp)`},
                 {cmd: 'movq', source: reg})
             freeRegister(progContext, reg)
@@ -950,8 +950,7 @@ function freeStrTmp(progContext: ProgContext, tmpOffset?: number) : string {
         } else {
             throw new CompileError("can not find str variable name for offset: "+tmpOffset,progContext.currentNode?.$cstNode)
         }
-        stmts += genOpCode("leaq", `${tmpOffset}(%rbp)`, "%rcx");
-        stmts += genOpCode("call", "freeBString");
+        stmts += genCall("freeBString",progContext,{cmd: "leaq", source: `${tmpOffset}(%rbp)`});
     }
     return stmts;
 }
@@ -1137,7 +1136,7 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
             } else if (binExpr.op==="^") {
                 const storeValue = storeRegister(progContext, notPreservedRegister,[reg2,reg],true)
                 stmts += storeValue.code
-                stmts += genCall("int_power",{cmd: "movq", source: reg},{cmd: "movq", source: reg2});
+                stmts += genCall("int_power",progContext,{cmd: "movq", source: reg},{cmd: "movq", source: reg2});
                 stmts += genOpCode("movq", "%rax", reg);
                 stmts += restoreRegister(storeValue)
             } else if (binExpr.op === "<") {
@@ -1262,7 +1261,7 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         } else {
             throw  new CompileError("unknown string comparision operator: "+strComp.operator,expr.$cstNode)
         }
-        stmts += genCall("bstrCmp",
+        stmts += genCall("bstrCmp",progContext,
             {cmd: "leaq", source: `${strResult1.varOffset}(%rbp)`},
             {cmd: "leaq", source: `${strResult2.varOffset}(%rbp)`},
             {cmd: "movq", source: "$"+opNum}
@@ -1275,7 +1274,7 @@ function exprToInt(expr: Expr, reg: string, progContext: ProgContext) : string {
         const strResult = exprAsBString(valNode.param, progContext)
         stmts += strResult.code
         freeStrTmp(progContext, strResult.tmpOffset)
-        stmts += genCall("bstringToInt",{cmd: 'lea',source: `${strResult.varOffset}(%rbp)`})
+        stmts += genCall("bstringToInt",progContext,{cmd: 'lea',source: `${strResult.varOffset}(%rbp)`})
         stmts += genOpCode("movq","%rax",reg)
         valNode.param
     } else if (isNotExpr(expr)) {
@@ -1483,7 +1482,7 @@ function exprToFloat(expr: Expr, progContext: ProgContext) : FloatResult {
         const resTmpOffset = allocateFloatTmp(progContext)
         tmpOffset = resTmpOffset
         source = `${resTmpOffset}(%rbp)`
-        stmts += genCall("bstringToDouble",{cmd: 'lea',source: `${strResult.varOffset}(%rbp)`})
+        stmts += genCall("bstringToDouble",progContext,{cmd: 'lea',source: `${strResult.varOffset}(%rbp)`})
         stmts += genOpCode("movq","%xmm0",source)
     } else if (isNegExpr(expr)) {
         const negNode : NegExpr = expr
@@ -1530,8 +1529,10 @@ interface CallParameter {
     source: string,
 }
 
-function genCall(cmd: string, ...parameters: CallParameter[]) {
+function genCall(cmd: string, progContext: ProgContext, ...parameters: CallParameter[]) {
     let code = ""
+    const store = storeRegister(progContext, notPreservedRegister, [], true)
+    code += store.code
     for (const [index, par] of parameters.entries()) {
         const targetRegister = regParameters[index]
         if (targetRegister) {
@@ -1542,6 +1543,7 @@ function genCall(cmd: string, ...parameters: CallParameter[]) {
         }
     }
     code += genOpCode("call", cmd);
+    code += restoreRegister(store)
     return code;
 }
 
@@ -1854,7 +1856,7 @@ function initStringConstants(model: Model, progContext: ProgContext) : string {
     for (const node of AstUtils.streamAllContents(model)) {
         if (isStringLiteral(node)) {
             const lNode : LabeledNode = node;
-            stmts += genCall("assignFromConst",
+            stmts += genCall("assignFromConst",progContext,
                 {cmd:"leaq", source:`${lNode._variableOffset}(%rbp)`},
                 {cmd:"leaq", source:`${lNode._label}(%rip)`});
         }

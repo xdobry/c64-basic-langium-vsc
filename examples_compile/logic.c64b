@@ -42,4 +42,23 @@ IF D%<>-1 THEN PRINT "ERROR19"
 D%=(NOT 2)>3
 IF D%<>0 THEN PRINT "ERROR20"
 
+A$="w"
+R%=0
+IF A$="w" OR A$="a" OR A$="s" THEN R%=1
+IF R%=0 THEN PRINT "ERROR L1"
+R%=0
+IF A$="a" OR A$="w" OR A$="s" THEN R%=1
+IF R%=0 THEN PRINT "ERROR L2"
+R%=0
+IF A$="a" OR A$="s" OR A$="w" THEN R%=1
+IF R%=0 THEN PRINT "ERROR L2"
+R%=0
+B$="a"
+IF A$="w" AND B$="a" THEN R%=1
+IF R%=0 THEN PRINT "ERROR L2"
+R%=0
+IF A$="d" OR (B$="a" AND A$="w") THEN R%=1
+IF R%=0 THEN PRINT "ERROR L2"
+R%=0
+
 PRINT "END"

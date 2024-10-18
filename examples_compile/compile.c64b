@@ -1,9 +1,6 @@
-f$="testero"
-m$="proertt"
-l$="tetttt"
-b$="vpwrert"
-n$=left$(f$,3)+left$(l$,2)+" "+left$(m$,2)+left$(b$,3)+", "
-print n$
-
-
-
+PRINT "START"
+X=10
+B=5
+FOR I=X TO X+B:PRINT I:NEXT I
+PRINT I
+PRINT "END"

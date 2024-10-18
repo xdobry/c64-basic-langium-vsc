@@ -822,9 +822,9 @@ main:
 	# float: π/2
 	# float: π
 	# float: 2
-	# int: 2 - %r8
-	movq	$2, %r8
-	cvtsi2sdq	%r8, %xmm0
+	# int: 2 - %r12
+	movq	$2, %r12
+	cvtsi2sdq	%r12, %xmm0
 	movsd	%xmm0, -888(%rbp)
 	movsd	.pi_const(%rip), %xmm0
 	movsd	-888(%rbp), %xmm1
@@ -902,9 +902,9 @@ main:
 	# int: 2^0.5<1.41421 - %rdi
 	# float: 2^0.5
 	# float: 2
-	# int: 2 - %r8
-	movq	$2, %r8
-	cvtsi2sdq	%r8, %xmm0
+	# int: 2 - %r12
+	movq	$2, %r12
+	cvtsi2sdq	%r12, %xmm0
 	movsd	%xmm0, -888(%rbp)
 	# float: 0.5
 	movsd	-888(%rbp), %xmm0
