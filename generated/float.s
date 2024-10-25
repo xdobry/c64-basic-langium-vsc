@@ -266,8 +266,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "DOUBLE"
 	# str: "DOUBLE"
 	leaq	-80(%rbp), %rcx
@@ -282,8 +280,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "A+1.23=",A+1.23
 	# str: "A+1.23=",
 	leaq	-104(%rbp), %rcx
@@ -303,8 +299,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# B=A+3.0
 	# float: A+3.0
 	# float: A
@@ -327,8 +321,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# C=A+B
 	# float: A+B
 	# float: A
@@ -351,8 +343,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "A+B=",A+B
 	# str: "A+B=",
 	leaq	-192(%rbp), %rcx
@@ -372,8 +362,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "A*B=",A*B
 	# str: "A*B=",
 	leaq	-216(%rbp), %rcx
@@ -393,8 +381,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "A-B=",A-B
 	# str: "A-B=",
 	leaq	-240(%rbp), %rcx
@@ -414,8 +400,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "A/B=",A/B
 	# str: "A/B=",
 	leaq	-264(%rbp), %rcx
@@ -435,8 +419,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "(A+B)/(A-B)=",(A+B)/(A-B)
 	# str: "(A+B)/(A-B)=",
 	leaq	-288(%rbp), %rcx
@@ -468,8 +450,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "ABS=",ABS(A)
 	# str: "ABS=",
 	leaq	-312(%rbp), %rcx
@@ -487,8 +467,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "TAN=",TAN(A)
 	# str: "TAN=",
 	leaq	-336(%rbp), %rcx
@@ -506,8 +484,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "EXP=",EXP(A)
 	# str: "EXP=",
 	leaq	-360(%rbp), %rcx
@@ -525,8 +501,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "SQR=",SQR(A)
 	# str: "SQR=",
 	leaq	-384(%rbp), %rcx
@@ -544,8 +518,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "LOG=",LOG(A)
 	# str: "LOG=",
 	leaq	-408(%rbp), %rcx
@@ -563,8 +535,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "COS=",COS(A)
 	# str: "COS=",
 	leaq	-432(%rbp), %rcx
@@ -582,8 +552,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "SIN=",SIN(A)
 	# str: "SIN=",
 	leaq	-456(%rbp), %rcx
@@ -601,8 +569,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "SGN=",SGN(A)
 	# str: "SGN=",
 	leaq	-480(%rbp), %rcx
@@ -620,8 +586,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "RND=",RND(A)
 	# str: "RND=",
 	leaq	-504(%rbp), %rcx
@@ -639,8 +603,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "RND=",RND(A)
 	# str: "RND=",
 	leaq	-528(%rbp), %rcx
@@ -658,8 +620,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT "TYPE CONVERSION"
 	# str: "TYPE CONVERSION"
 	leaq	-552(%rbp), %rcx
@@ -688,8 +648,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT A+LEN("TEST")
 	# str: A+LEN("TEST")
 	# float: A+LEN("TEST")
@@ -712,8 +670,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# PRINT A+3
 	# str: A+3
 	# float: A+3
@@ -733,8 +689,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# A% = A
 	# int: A - %rsi
 	# float: A
@@ -753,8 +707,6 @@ main:
 	leaq	-848(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-848(%rbp), %rcx
-	call	freeBString
 	# A=.23
 	# float: .23
 	movsd	.LF4(%rip), %xmm0

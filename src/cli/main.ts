@@ -19,7 +19,7 @@ export const generateAction = async (fileName: string, opts: GenerateOptions): P
     const services = createC64BasicServices(NodeFileSystem).C64Basic;
     const model = await extractAstNode<Model>(fileName, services);
     try {
-        const generatedFilePath = generateAssemblerCode(model, fileName, opts.destination);
+        const generatedFilePath = generateAssemblerCode(model, fileName, opts);
         console.log(chalk.green(`Assembly code generated successfully: ${generatedFilePath}`));
         if (!opts.suppress_compiling) {
             const outPutFile = path.join(path.dirname(generatedFilePath), path.basename(generatedFilePath, path.extname(generatedFilePath)) + '.exe');
@@ -76,6 +76,7 @@ export const tokenizeAction = async (fileName: string): Promise<void> => {
 export type GenerateOptions = {
     destination?: string;
     suppress_compiling?: boolean;
+    eager_free_memory?: boolean
 }
 
 export default function(): void {
@@ -89,7 +90,8 @@ export default function(): void {
         .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
         .option('-d, --destination <dir>', 'destination directory of generating')
         .option('-s, --suppress_compiling','supress compiling assembler code to executable using mingw')
-        .description('generates assemble code')
+        .option('--eager_free_memory','eager free memory for temporary string')
+        .description('generates assembler code')
         .action(generateAction);
 
     program

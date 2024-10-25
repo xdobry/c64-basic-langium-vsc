@@ -9,3 +9,4 @@ src/language/generated/
 syntaxes/
 *.exe
 **/*.exe
+*.vsix

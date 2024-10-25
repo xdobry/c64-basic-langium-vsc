@@ -132,8 +132,6 @@ main:
 	leaq	-192(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-192(%rbp), %rcx
-	call	freeBString
 .ifnot1:
 	# PRINT "END"
 	# str: "END"

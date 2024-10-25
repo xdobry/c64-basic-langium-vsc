@@ -186,11 +186,11 @@ main:
 .forNext0:
 	movq	-64(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -64(%rbp)
 	cmpq	$5, %rax
 	jle	.forCont0
 	ret
 .forCont0:
-	movq	%rax, -64(%rbp)
 	pop	%rax
 .for0:
 	# PRINT "READ ";X%
@@ -205,8 +205,6 @@ main:
 	leaq	-432(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-432(%rbp), %rcx
-	call	freeBString
 	# READ A(X%)
 	leaq	-488(%rbp), %rcx
 	leaq	.LC2(%rip), %rdx
@@ -300,11 +298,11 @@ main:
 .forNext1:
 	movq	-64(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -64(%rbp)
 	cmpq	$2, %rax
 	jle	.forCont1
 	ret
 .forCont1:
-	movq	%rax, -64(%rbp)
 	pop	%rax
 .for1:
 	# PRINT "READ2 ";X%
@@ -319,8 +317,6 @@ main:
 	leaq	-432(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-432(%rbp), %rcx
-	call	freeBString
 	# READ A$(X%)
 	leaq	-488(%rbp), %rcx
 	leaq	.LC6(%rip), %rdx
@@ -349,15 +345,13 @@ main:
 	call	c64_get_str_item_ptr
 	leaq	-432(%rbp), %rcx
 	movq	%rax, %rdx
-	call	assignBString
+	call	assignBStringAsConst
 	# str: "A"
 	leaq	-432(%rbp), %rcx
 	leaq	-216(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-432(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot2
 	# PRINT "ERROR3"
@@ -376,15 +370,13 @@ main:
 	call	c64_get_str_item_ptr
 	leaq	-432(%rbp), %rcx
 	movq	%rax, %rdx
-	call	assignBString
+	call	assignBStringAsConst
 	# str: "C"
 	leaq	-432(%rbp), %rcx
 	leaq	-264(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-432(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot3
 	# PRINT "ERROR4"

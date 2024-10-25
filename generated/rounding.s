@@ -123,8 +123,6 @@ main:
 	leaq	-400(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-400(%rbp), %rcx
-	call	freeBString
 	# IF A%<>23 THEN PRINT "ERROR"
 	# int: A%<>23 - %rsi
 	# int: A% - %rsi
@@ -202,8 +200,6 @@ main:
 	leaq	-400(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-400(%rbp), %rcx
-	call	freeBString
 	# A$(I%)="EST"
 	# str: "EST"
 	# int: I% - %rsi
@@ -227,12 +223,10 @@ main:
 	call	c64_get_str_item_ptr
 	leaq	-400(%rbp), %rcx
 	movq	%rax, %rdx
-	call	assignBString
+	call	assignBStringAsConst
 	leaq	-400(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-400(%rbp), %rcx
-	call	freeBString
 	# PRINT "I ";A$(I)
 	# str: "I ";
 	leaq	-256(%rbp), %rcx
@@ -248,12 +242,10 @@ main:
 	call	c64_get_str_item_ptr
 	leaq	-400(%rbp), %rcx
 	movq	%rax, %rdx
-	call	assignBString
+	call	assignBStringAsConst
 	leaq	-400(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-400(%rbp), %rcx
-	call	freeBString
 	# PRINT "END"
 	# str: "END"
 	leaq	-280(%rbp), %rcx

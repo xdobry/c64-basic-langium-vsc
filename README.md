@@ -1,4 +1,4 @@
-# This is Basic Compiler-64 
+# C-64 Basic VSC Plugin and Windows 64bit Compiler
 
 It reimplement [C64 Basic V2](https://en.wikipedia.org/wiki/Commodore_BASIC) as [langium](https://langium.org/) DSL project.
 
@@ -22,7 +22,7 @@ It support validation for keywords, grammar, cross-references und types with imm
 # Setup and install
 
 You need [node.js](https://nodejs.org/)
-Change to the project directory and use npm or pnpm from command prompt
+Change to the project directory and use npm from command prompt
 
     npm install
     npm run langium:generate
@@ -34,11 +34,11 @@ have gcc available. You can do it systemwide or directly in console. Here we ass
 
 CMD
 
-    set PATH=%PATH%;C:\mingw
+    set PATH=%PATH%;C:\mingw64\bin
 
 Powershell
 
-    $env:PATH += ";C:\devsoft\mingw64win\mingw64\bin"
+    $env:PATH += ";C:\mingw64\bin"
 
 Test in gcc is available. Test if you see also the 64 bit version.
 
@@ -52,34 +52,41 @@ You can compile your c64 basic programs to windows executable using following co
 You have to be in working directory of the project or pass the location of c64basic (this project) home directory as parameter.
 
 
-   npm run c64compile your_dir/your_project.bas
+    npm run c64compile your_dir/your_project.bas
 
 If you have the basic program as original prj file. You will need to convert it to the text first using for example [petcat tool](https://www.c64-wiki.de/wiki/Petcat) from VICE.
 
 
 # Installing the Visual Studio Code c64basic plugin
 
+You need to install the [vsce visual studio code extension](https://github.com/microsoft/vscode-vsce) first.
+
+    npm install -g @vscode/vsce
+
 After bilding the system with `npm run build` you can install the c64basic as visual studio plugin.
 
-TODO
+    npm run build
+    vsce package --baseContentUrl https://github.com/xdobry/c64-basic-langium-vsc/tree/main/
 
+You can install the created vsix file directly in [visual studio code](https://langium.org/docs/learn/minilogo/building_an_extension/#installing)
 
-
-# How to compile c64 basic files to windo
-
-# HOW TO Run
+# Runing vsce extension as extension developer
 
 From visual studion code
 
-* rebuild language: pnpm run langium:generate
-* pnpm run build
+* rebuild language: npm run langium:generate
+* npm run build
 * lunch debugger from visuals studio code. Open c64b file (see examples)
 
 # Alternatives
 
-There is quite a lot alternatives to cross develop C64 Basic on moder platform.
+There is quite a lot alternatives to cross develop C64 Basic on modern platforms.
 Please check them first.
 This project is in early state.
+
+*  
+* [FreeBasic]() - free basic compiler for many platforms
+*
 
 # Project Structure
 

@@ -95,8 +95,6 @@ main:
 	leaq	-256(%rbp), %rcx
 	movq	$0, %rdx
 	call	printBString
-	leaq	-256(%rbp), %rcx
-	call	freeBString
 	# str: A
 	leaq	-256(%rbp), %rcx
 	movsd	-32(%rbp), %xmm1
@@ -104,8 +102,6 @@ main:
 	leaq	-256(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-256(%rbp), %rcx
-	call	freeBString
 	# PRINT "TEST";TAB(10);A
 	# str: "TEST";
 	leaq	-80(%rbp), %rcx
@@ -119,8 +115,6 @@ main:
 	leaq	-256(%rbp), %rcx
 	movq	$0, %rdx
 	call	printBString
-	leaq	-256(%rbp), %rcx
-	call	freeBString
 	# str: A
 	leaq	-256(%rbp), %rcx
 	movsd	-32(%rbp), %xmm1
@@ -128,8 +122,6 @@ main:
 	leaq	-256(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-256(%rbp), %rcx
-	call	freeBString
 	# PRINT "TEST";
 	# str: "TEST";
 	leaq	-104(%rbp), %rcx
@@ -148,8 +140,6 @@ main:
 	leaq	-256(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-256(%rbp), %rcx
-	call	freeBString
 	# PRINT "END"
 	# str: "END"
 	leaq	-136(%rbp), %rcx

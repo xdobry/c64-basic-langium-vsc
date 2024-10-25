@@ -176,8 +176,6 @@ main:
 	leaq	-64(%rbp), %rcx
 	leaq	-592(%rbp), %rdx
 	call	assignBString
-	leaq	-592(%rbp), %rcx
-	call	freeBString
 	# PRINT "STR$ INT=",A$
 	# str: "STR$ INT=",
 	leaq	-88(%rbp), %rcx
@@ -196,8 +194,6 @@ main:
 	leaq	-64(%rbp), %rcx
 	leaq	-592(%rbp), %rdx
 	call	assignBString
-	leaq	-592(%rbp), %rcx
-	call	freeBString
 	# PRINT "STR$ FLOAT=",A$
 	# str: "STR$ FLOAT=",
 	leaq	-112(%rbp), %rcx
@@ -296,8 +292,6 @@ main:
 	leaq	-280(%rbp), %rcx
 	leaq	-592(%rbp), %rdx
 	call	assignBString
-	leaq	-592(%rbp), %rcx
-	call	freeBString
 	# IF S1$<>"ABC" THEN PRINT "ERROR APPEND"
 	# int: S1$<>"ABC" - %rsi
 	# str: S1$
@@ -328,8 +322,6 @@ main:
 	leaq	-280(%rbp), %rcx
 	leaq	-592(%rbp), %rdx
 	call	assignBString
-	leaq	-592(%rbp), %rcx
-	call	freeBString
 	# IF S1$<>"DABC" THEN PRINT "ERROR PREPPEND"
 	# int: S1$<>"DABC" - %rsi
 	# str: S1$

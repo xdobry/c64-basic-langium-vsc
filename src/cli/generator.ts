@@ -69,6 +69,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractDestinationAndName } from './cli-util.js';
 import { AstNode, AstUtils, CstNode, Reference } from 'langium';
+import { GenerateOptions } from './main.js';
 
 interface ProgContext {
     stackAllocation: number
@@ -98,6 +99,7 @@ interface ProgContext {
     jmpTables: string
     dataDefinition: string
     currentNode?: AstNode
+    reuseTmpStrMem: boolean
 }
 
 interface ForEntry {
@@ -146,8 +148,8 @@ export class CompileError extends Error {
     }
 }
 
-export function generateAssemblerCode(model: Model, filePath: string, destination: string | undefined): string {
-    const data = extractDestinationAndName(filePath, destination);
+export function generateAssemblerCode(model: Model, filePath: string, opt: GenerateOptions): string {
+    const data = extractDestinationAndName(filePath, opt.destination);
     const generatedFilePath = `${path.join(data.destination, data.name)}.s`;
 
     const preamble  = `
@@ -185,6 +187,7 @@ export function generateAssemblerCode(model: Model, filePath: string, destinatio
         dataDefinition: '',
         floatTmps: [],
         stringTmps: [],
+        reuseTmpStrMem: !opt.eager_free_memory
     }
     generateVariables(model, progContext)
     // TODO compute how many tmp str variables are needed
@@ -749,7 +752,7 @@ function exprAsBString(expr: SExprt | SExpr, progContext: ProgContext) : BString
             code += genArrIndex(varName, expr.indexes, progContext)
             code += genOpCode("lea", `${varOffset}(%rbp)`, "%rcx");
             code += genOpCode("call", "c64_get_str_item_ptr");
-            code += genCall("assignBString",progContext,{cmd:'leaq',source:`${variableOffset}(%rbp)`},{cmd:'movq',source:'%rax'});
+            code += genCall("assignBStringAsConst",progContext,{cmd:'leaq',source:`${variableOffset}(%rbp)`},{cmd:'movq',source:'%rax'});
         } else {
             variableOffset = varOffset
         }
@@ -950,7 +953,9 @@ function freeStrTmp(progContext: ProgContext, tmpOffset?: number) : string {
         } else {
             throw new CompileError("can not find str variable name for offset: "+tmpOffset,progContext.currentNode?.$cstNode)
         }
-        stmts += genCall("freeBString",progContext,{cmd: "leaq", source: `${tmpOffset}(%rbp)`});
+        if (!progContext.reuseTmpStrMem) {
+            stmts += genCall("freeBString",progContext,{cmd: "leaq", source: `${tmpOffset}(%rbp)`});
+        }
     }
     return stmts;
 }
@@ -2024,14 +2029,17 @@ class ForGenerator {
     if (this.isIntVar) {
       if (this.labelNode._stepOffset) {
         this.code += genOpCode("addq",`${this.labelNode._stepOffset}(%rbp)`,"%rax");
+        this.code += genOpCode("movq", this.primaryReg, `${this.varOffset}(%rbp)`);
         this.code += genOpCode("cmpq","$0",`${this.labelNode._stepOffset}(%rbp)`);
         this.code += genOpCode("js", this.condStepNegLabel);
       } else {
         this.code += genOpCode("addq", `$${this.stepConstant}`, "%rax");
-      }
+        this.code += genOpCode("movq", this.primaryReg, `${this.varOffset}(%rbp)`);
+    }
     } else {
       if (this.labelNode._stepOffset) {
         this.code += genOpCode("addsd",`${this.labelNode._stepOffset}(%rbp)`,"%xmm0");
+        this.code += genOpCode("movq", this.primaryReg, `${this.varOffset}(%rbp)`);
         // Test if step var negative
         this.code += genOpCode("xorpd","%xmm1","%xmm1");
         this.code += genOpCode("comisd",`${this.labelNode._stepOffset}(%rbp)`, "%xmm1");
@@ -2043,6 +2051,7 @@ class ForGenerator {
           const lNode: LabeledNode = this.forNode.step!;
           this.code += genOpCode("addsd", `${lNode._label}(%rip)`, "%xmm0");
         }
+        this.code += genOpCode("movq", this.primaryReg, `${this.varOffset}(%rbp)`);
       }
     }
     this.genVarComp()
@@ -2055,7 +2064,6 @@ class ForGenerator {
       this.code += genOpCode("ret");
     }
     this.code += `${this.condContinue}:\n`;
-    this.code += genOpCode("movq", this.primaryReg, `${this.varOffset}(%rbp)`);
     // Reset the return address from next
     this.code += genOpCode("pop", "%rax");
     this.code += `${this.codeLabel}:\n`;

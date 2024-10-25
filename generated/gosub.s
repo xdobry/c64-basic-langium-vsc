@@ -98,8 +98,6 @@ main:
 	leaq	-248(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-248(%rbp), %rcx
-	call	freeBString
 	# A%=1
 	# int: 1 - %rsi
 	movq	$1, %rsi
@@ -117,8 +115,6 @@ main:
 	leaq	-248(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-248(%rbp), %rcx
-	call	freeBString
 	# PRINT "END"
 	# str: "END"
 	leaq	-80(%rbp), %rcx
@@ -148,8 +144,6 @@ main:
 	leaq	-248(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-248(%rbp), %rcx
-	call	freeBString
 	# PRINT "HA"
 	# str: "HA"
 	leaq	-104(%rbp), %rcx

@@ -356,8 +356,6 @@ main:
 	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-1320(%rbp), %rcx
-	call	freeBString
 	# PRINT "-1 AND 0 ", -1 AND 0
 	# str: "-1 AND 0 ",
 	leaq	-72(%rbp), %rcx
@@ -377,8 +375,6 @@ main:
 	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-1320(%rbp), %rcx
-	call	freeBString
 	# PRINT "-1 AND -1 ", -1 AND -1
 	# str: "-1 AND -1 ",
 	leaq	-96(%rbp), %rcx
@@ -400,8 +396,6 @@ main:
 	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-1320(%rbp), %rcx
-	call	freeBString
 	# IF B%<A% OR C%<A% THEN PRINT "ERROR2"
 	# int: B%<A% OR C%<A% - %rsi
 	# int: B%<A% - %rsi
@@ -629,8 +623,6 @@ main:
 	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-1320(%rbp), %rcx
-	call	freeBString
 	# PRINT "A%<B% AND C%<A% ", A%<B% AND C%<A%
 	# str: "A%<B% AND C%<A% ",
 	leaq	-296(%rbp), %rcx
@@ -662,8 +654,6 @@ main:
 	leaq	-1320(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-1320(%rbp), %rcx
-	call	freeBString
 	# IF 3 AND 1 <> 1 THEN PRINT "ERROR8"
 	# int: 3 AND 1 <> 1 - %rsi
 	# int: 3 - %rsi

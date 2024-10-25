@@ -28,6 +28,15 @@ String operationen
 
 */
 
+void *c_malloc(size_t size) {
+    void *pnt = malloc(size);
+    if (pnt==NULL) {
+        c64_error(10);
+    }
+    return pnt;
+
+}
+
 void freeBString(struct BString* str) {
     if (str->data != NULL && str->capacity>0) {
         free(str->data);
@@ -52,10 +61,12 @@ void assignFromConst(struct BString* str, const char* data) {
 void assignCString(struct BString* str, const char* data) {
     freeBString(str);
     str->length = strlen(data);
-    str->data = malloc(str->length+1);
+    str->data = c_malloc(str->length+1);
     str->capacity = str->length+1;
     strcpy(str->data, data);
 }
+
+
 
 void assignCStringLen(struct BString* str, const char* data, size_t length) {
     freeBString(str);
@@ -64,7 +75,7 @@ void assignCStringLen(struct BString* str, const char* data, size_t length) {
         str->data = NULL;
         str->capacity = 0;
     } else {
-        str->data = malloc(str->length+1);
+        str->data = c_malloc(str->length+1);
         str->capacity = str->length+1;
         strncpy(str->data, data, length);
         str->data[length] = '\0';
@@ -76,13 +87,28 @@ void assignBString(struct BString* target, const struct BString* str) {
     if (target==str) {
         return;
     }
-    // TODO just use existing mem if possible
-    freeBString(target);
-    target->data = malloc(str->length+1);
-    memcpy(target->data, str->data, str->length);
+    if (target->capacity>str->length) {
+        memcpy(target->data, str->data, str->length);
+    } else {
+        freeBString(target);
+        target->data = c_malloc(str->length+1);
+        memcpy(target->data, str->data, str->length);
+        target->capacity = str->length+1;
+    }
     target->data[str->length] = '\0';
     target->length = str->length;
-    target->capacity = str->length;
+}
+
+void assignBStringAsConst(struct BString* target, const struct BString* str) {
+    // printf("assignBString target=%p len=%ld source=%p len=%ld\n", target, target->length,str, str->length);
+    if (target==str) {
+        return;
+    }
+    // TODO just use existing mem if possible
+    freeBString(target);
+    target->data = str->data;
+    target->length = str->length;
+    target->capacity = 0;
 }
 
 void assignInt(struct BString* target, long long value) {
@@ -116,8 +142,8 @@ void assignChar(struct BString* target, char value) {
 
 void ensureNoConst(struct BString* str, size_t capacity) {
     if (str->capacity == 0 && str->length > 0) {
-        char *new_data = malloc(capacity+1);
-        memcpy(new_data, str->data, str->length+1);
+        char *new_data = c_malloc(capacity);
+        memcpy(new_data, str->data, str->length);
         str->data = new_data;
         str->capacity = capacity;
     }
@@ -129,10 +155,13 @@ void appendBString(struct BString* target, const struct BString* str) {
         return;
     }
     size_t newLength = target->length + str->length;
-    ensureNoConst(target, newLength);
-    if (target->capacity < newLength) {
+    ensureNoConst(target, newLength+1);
+    if (target->capacity < newLength+1) {
         target->data = realloc(target->data, newLength+1);
-        target->capacity = newLength;
+        if (target->data==NULL) {
+            c64_error(10);
+        }
+        target->capacity = newLength+1;
     }
     memcpy(target->data + target->length, str->data, str->length);
     target->data[newLength] = '\0';
@@ -146,10 +175,10 @@ void appendCString(struct BString* target, const char* cstr) {
     }
     size_t clen = strlen(cstr);
     size_t newLength = target->length + clen;
-    ensureNoConst(target, newLength);
-    if (target->capacity < newLength) {
+    ensureNoConst(target, newLength+1);
+    if (target->capacity < newLength+1) {
         target->data = realloc(target->data, newLength+1);
-        target->capacity = newLength;
+        target->capacity = newLength+1;
     }
     memcpy(target->data + target->length, cstr, clen);
     target->data[newLength] = '\0';
@@ -207,9 +236,12 @@ void bstrSpc(struct BString* target, long long count) {
     }
     if (target->capacity < count+1) {
         if (target->data==NULL) {
-            target->data = malloc(count+1);
+            target->data = c_malloc(count+1);
         } else {
             target->data = realloc(target->data, count+1);
+            if (target->data==NULL) {
+                c64_error(10);
+            }
         }
         target->capacity = count+1;
     }
@@ -239,9 +271,12 @@ void bstrTab(struct BString* target, long long count) {
     }
     if (target->capacity < needPos+1) {
         if (target->data!=NULL) {
-            target->data = malloc(needPos+1);
+            target->data = c_malloc(needPos+1);
         } else {
             target->data = realloc(target->data, needPos+1);
+            if (target->data==NULL) {
+                c64_error(10);
+            }
         }
         target->capacity = needPos+1;
     }
@@ -535,13 +570,13 @@ static const char* errorMessages[] = {
     "OVERFLOW", // 7
     "OUT OF DATA", // 8
     "ILLEGAL QUANTITY", // 9 parameter out of range
+    "OUT OF MEMORY",  // 10
     /*
     "BREAK",
     "NOT INPUT FILE",
     "CAN'T CONTINUE",
     "NOT OUTPUT FILE",
     "DEVICE NOT PRESENT",
-    "OUT OF MEMORY",
     "FILE DATA",
     "FILE NOT FOUND",
     "FILE NOT OPEN",

@@ -151,8 +151,6 @@ main:
 	leaq	-344(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-344(%rbp), %rcx
-	call	freeBString
 	# PRINT "END"
 	# str: "END"
 	leaq	-224(%rbp), %rcx

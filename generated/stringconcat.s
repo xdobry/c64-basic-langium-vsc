@@ -73,8 +73,6 @@ main:
 	leaq	-200(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-200(%rbp), %rcx
-	call	freeBString
 	# PRINT "HALLO"
 	# str: "HALLO"
 	leaq	-56(%rbp), %rcx
@@ -88,8 +86,6 @@ main:
 	leaq	-200(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-200(%rbp), %rcx
-	call	freeBString
 	# PRINT "END"
 	# str: "END"
 	leaq	-80(%rbp), %rcx

@@ -127,8 +127,6 @@ main:
 	leaq	-392(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-392(%rbp), %rcx
-	call	freeBString
 	# LET MSG$=A$+B$
 	# str: A$+B$
 	# str: A$
@@ -142,8 +140,6 @@ main:
 	leaq	-128(%rbp), %rcx
 	leaq	-392(%rbp), %rdx
 	call	assignBString
-	leaq	-392(%rbp), %rcx
-	call	freeBString
 	# PRINT MSG$
 	# str: MSG$
 	leaq	-128(%rbp), %rcx
@@ -162,8 +158,6 @@ main:
 	leaq	-152(%rbp), %rcx
 	leaq	-392(%rbp), %rdx
 	call	assignBString
-	leaq	-392(%rbp), %rcx
-	call	freeBString
 	# PRINT MSG2$
 	# str: MSG2$
 	leaq	-152(%rbp), %rcx
@@ -196,8 +190,6 @@ main:
 	leaq	-392(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-392(%rbp), %rcx
-	call	freeBString
 	# C%=C%+1
 	# int: C%+1 - %rsi
 	# int: C% - %rsi

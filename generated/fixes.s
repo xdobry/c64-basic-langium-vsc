@@ -166,8 +166,6 @@ main:
 	leaq	-536(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-536(%rbp), %rcx
-	call	freeBString
 	# IF A=26 THEN PRINT "ERROR"
 	# int: A=26 - %rsi
 	# float: A
@@ -220,11 +218,11 @@ main:
 .forNext0:
 	movq	-64(%rbp), %xmm0
 	addsd	.LONE(%rip), %xmm0
+	movq	%xmm0, -64(%rbp)
 	ucomisd	.LF0(%rip), %xmm0
 	jbe	.forCont0
 	ret
 .forCont0:
-	movq	%xmm0, -64(%rbp)
 	pop	%rax
 .for0:
 	# A$(I) = STR$(I)
@@ -243,8 +241,6 @@ main:
 	movq	%rax, %rcx
 	leaq	-536(%rbp), %rdx
 	call	assignBString
-	leaq	-536(%rbp), %rcx
-	call	freeBString
 	# NEXT I
 	call	.forNext0
 	# PRINT A$(RND(1)*2)
@@ -276,12 +272,10 @@ main:
 	call	c64_get_str_item_ptr
 	leaq	-536(%rbp), %rcx
 	movq	%rax, %rdx
-	call	assignBString
+	call	assignBStringAsConst
 	leaq	-536(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-536(%rbp), %rcx
-	call	freeBString
 	# D2=32
 	# float: 32
 	# int: 32 - %rsi
@@ -409,8 +403,6 @@ main:
 	leaq	-536(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-536(%rbp), %rcx
-	call	freeBString
 .ifnot3:
 	# IF 20-4/2<>18 THEN PRINT "ERROR MATH"
 	# int: 20-4/2<>18 - %rsi
@@ -463,8 +455,6 @@ main:
 	leaq	-536(%rbp), %rcx
 	movq	$0, %rdx
 	call	printBString
-	leaq	-536(%rbp), %rcx
-	call	freeBString
 	# str: "TEST"
 	leaq	-232(%rbp), %rcx
 	movq	$8, %rdx
@@ -598,15 +588,13 @@ main:
 	call	c64_get_str_item_ptr
 	leaq	-536(%rbp), %rcx
 	movq	%rax, %rdx
-	call	assignBString
+	call	assignBStringAsConst
 	# str: " "
 	leaq	-536(%rbp), %rcx
 	leaq	-368(%rbp), %rdx
 	movq	$0, %r8
 	call	bstrCmp
 	movq	%rax, %r12
-	leaq	-536(%rbp), %rcx
-	call	freeBString
 	andq	%r12, %rdi
 	orq	%rdi, %rsi
 	cmpq	$0, %rsi

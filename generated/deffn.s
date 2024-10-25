@@ -174,8 +174,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# IF D%<>20 THEN PRINT "ERROR1"
 	# int: D%<>20 - %rsi
 	# int: D% - %rsi
@@ -223,8 +221,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# IF FN C(2)<>3 THEN PRINT "ERROR2"
 	# int: FN C(2)<>3 - %rsi
 	# int: FN C(2) - %rsi
@@ -283,8 +279,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# IF F<>5 THEN PRINT "ERROR3"
 	# int: F<>5 - %rsi
 	# float: F
@@ -341,8 +335,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# PRINT "CALL FLOAT FN WIHT INT: ";FN C1(A%)
 	# str: "CALL FLOAT FN WIHT INT: ";
 	leaq	-248(%rbp), %rcx
@@ -366,8 +358,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# DEF FN R1(X) = SIN(X)+COS(X)
 	leaq	.defn_exprR1_3(%rip), %rax
 	movq	%rax, -256(%rbp)
@@ -441,8 +431,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# DEF FN I1(X%) = X%+FN R1(X%)
 	leaq	.defn_exprI1_5(%rip), %rax
 	movq	%rax, -312(%rbp)
@@ -527,8 +515,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# PRINT "I1 "; FN I1(10)
 	# str: "I1 ";
 	leaq	-384(%rbp), %rcx
@@ -547,8 +533,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# PRINT "I2 "; FN I2(10)
 	# str: "I2 ";
 	leaq	-408(%rbp), %rcx
@@ -567,8 +551,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# PRINT "NESTED INT "; 2.0+FN I2(A%)
 	# str: "NESTED INT ";
 	leaq	-432(%rbp), %rcx
@@ -597,8 +579,6 @@ main:
 	leaq	-576(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-576(%rbp), %rcx
-	call	freeBString
 	# PRINT "END"
 	# str: "END"
 	leaq	-456(%rbp), %rcx

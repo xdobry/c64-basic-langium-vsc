@@ -125,12 +125,10 @@ main:
 	call	c64_get_str_item_ptr
 	leaq	-352(%rbp), %rcx
 	movq	%rax, %rdx
-	call	assignBString
+	call	assignBStringAsConst
 	leaq	-352(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-352(%rbp), %rcx
-	call	freeBString
 	# IF A$(0)<>"STR" THEN PRINT "ERROR"
 	# int: A$(0)<>"STR" - %rsi
 	# str: A$(0)
@@ -141,15 +139,13 @@ main:
 	call	c64_get_str_item_ptr
 	leaq	-352(%rbp), %rcx
 	movq	%rax, %rdx
-	call	assignBString
+	call	assignBStringAsConst
 	# str: "STR"
 	leaq	-352(%rbp), %rcx
 	leaq	-104(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-352(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot0
 	# PRINT "ERROR"

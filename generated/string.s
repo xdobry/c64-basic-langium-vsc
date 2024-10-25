@@ -309,8 +309,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# PRINT ASC("A")
 	# str: ASC("A")
 	# int: ASC("A") - %rdx
@@ -323,8 +321,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# PRINT CHR$(65),CHR$(66)
 	# str: CHR$(65),
 	# int: 65 - %rdx
@@ -334,8 +330,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$1, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# str: CHR$(66)
 	# int: 66 - %rdx
 	movq	$66, %rdx
@@ -344,8 +338,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# Z%=70
 	# int: 70 - %rsi
 	movq	$70, %rsi
@@ -358,8 +350,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# str: "=",
 	leaq	-104(%rbp), %rcx
 	movq	$1, %rdx
@@ -372,8 +362,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# FOR A%=65 TO 80
 	# int: 65 - %rsi
 	movq	$65, %rsi
@@ -383,11 +371,11 @@ main:
 .forNext0:
 	movq	-112(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -112(%rbp)
 	cmpq	$80, %rax
 	jle	.forCont0
 	ret
 .forCont0:
-	movq	%rax, -112(%rbp)
 	pop	%rax
 .for0:
 	# PRINT A%,"=",CHR$(A%)
@@ -398,8 +386,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# str: "=",
 	leaq	-136(%rbp), %rcx
 	movq	$1, %rdx
@@ -412,8 +398,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# NEXT A%
 	call	.forNext0
 	# PRINT RIGHT$("TEST",2)
@@ -427,8 +411,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# IF RIGHT$("TEST",2)<>"ST" THEN PRINT "ERROR3"
 	# int: RIGHT$("TEST",2)<>"ST" - %rsi
 	# str: RIGHT$("TEST",2)
@@ -444,8 +426,6 @@ main:
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot0
 	# PRINT "ERROR3"
@@ -469,8 +449,6 @@ main:
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot1
 	# PRINT "ERROR4"
@@ -490,8 +468,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# IF LEFT$("TEST",2)<>"TE" THEN PRINT "ERROR5"
 	# int: LEFT$("TEST",2)<>"TE" - %rsi
 	# str: LEFT$("TEST",2)
@@ -507,8 +483,6 @@ main:
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot2
 	# PRINT "ERROR5"
@@ -532,8 +506,6 @@ main:
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot3
 	# PRINT "ERROR6"
@@ -554,8 +526,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# IF MID$("TEST",2)<>"EST" THEN PRINT "ERROR"
 	# int: MID$("TEST",2)<>"EST" - %rsi
 	# str: MID$("TEST",2)
@@ -572,8 +542,6 @@ main:
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot4
 	# PRINT "ERROR"
@@ -599,8 +567,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# IF MID$("TEST",1,1)<>"T" THEN PRINT "ERROR-1"
 	# int: MID$("TEST",1,1)<>"T" - %rsi
 	# str: MID$("TEST",1,1)
@@ -618,8 +584,6 @@ main:
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot5
 	# PRINT "ERROR-1"
@@ -645,8 +609,6 @@ main:
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot6
 	# PRINT "ERROR2"
@@ -672,8 +634,6 @@ main:
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot7
 	# PRINT "ERROR2"
@@ -699,8 +659,6 @@ main:
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	cmpq	$0, %rsi
 	je	.ifnot8
 	# PRINT "ERROR2-1"
@@ -722,8 +680,6 @@ main:
 	leaq	-1144(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	# T$="TEST"
 	# str: "TEST"
 	leaq	-952(%rbp), %rcx
@@ -742,8 +698,6 @@ main:
 	call	bstrMid
 	movq	-1136(%rbp), %rax
 	movq	%rax, -1192(%rbp)
-	leaq	-1144(%rbp), %rcx
-	call	freeBString
 	movq	-1192(%rbp), %rsi
 	# int: 3 - %rdi
 	movq	$3, %rdi

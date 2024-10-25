@@ -255,8 +255,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# IF A(0,0)<>0.0 THEN PRINT "ERROR UNINITIALIZED VALUE NOT 0.0"
 	# int: A(0,0)<>0.0 - %rsi
 	# float: A(0,0)
@@ -313,11 +311,11 @@ main:
 .forNext0:
 	movq	-168(%rbp), %xmm0
 	addsd	.LONE(%rip), %xmm0
+	movq	%xmm0, -168(%rbp)
 	ucomisd	.LF2(%rip), %xmm0
 	jbe	.forCont0
 	ret
 .forCont0:
-	movq	%xmm0, -168(%rbp)
 	pop	%rax
 .for0:
 	# FOR Y=0 TO 4
@@ -333,11 +331,11 @@ main:
 .forNext1:
 	movq	-176(%rbp), %xmm0
 	addsd	.LONE(%rip), %xmm0
+	movq	%xmm0, -176(%rbp)
 	ucomisd	.LF3(%rip), %xmm0
 	jbe	.forCont1
 	ret
 .forCont1:
-	movq	%xmm0, -176(%rbp)
 	pop	%rax
 .for1:
 	# V = X*10+Y
@@ -372,8 +370,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " Y=",
 	leaq	-232(%rbp), %rcx
 	movq	$1, %rdx
@@ -385,8 +381,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " = ",
 	leaq	-256(%rbp), %rcx
 	movq	$1, %rdx
@@ -398,8 +392,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# T(X,Y) = V
 	# float: V
 	# int: X - %rsi
@@ -428,11 +420,11 @@ main:
 .forNext2:
 	movq	-264(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -264(%rbp)
 	cmpq	$2, %rax
 	jle	.forCont2
 	ret
 .forCont2:
-	movq	%rax, -264(%rbp)
 	pop	%rax
 .for2:
 	# FOR Y%=0 TO 4
@@ -444,11 +436,11 @@ main:
 .forNext3:
 	movq	-272(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -272(%rbp)
 	cmpq	$4, %rax
 	jle	.forCont3
 	ret
 .forCont3:
-	movq	%rax, -272(%rbp)
 	pop	%rax
 .for3:
 	# V = X%*10+Y%
@@ -491,8 +483,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " Y=",
 	leaq	-320(%rbp), %rcx
 	movq	$1, %rdx
@@ -504,8 +494,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " = ",
 	leaq	-344(%rbp), %rcx
 	movq	$1, %rdx
@@ -527,8 +515,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# IF V<>T(X%,Y%) THEN PRINT "ERROR VALUE"
 	# int: V<>T(X%,Y%) - %rsi
 	# float: V
@@ -585,11 +571,11 @@ main:
 .forNext4:
 	movq	-264(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -264(%rbp)
 	cmpq	$2, %rax
 	jle	.forCont4
 	ret
 .forCont4:
-	movq	%rax, -264(%rbp)
 	pop	%rax
 .for4:
 	# FOR Y%=0 TO 4
@@ -601,11 +587,11 @@ main:
 .forNext5:
 	movq	-272(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -272(%rbp)
 	cmpq	$4, %rax
 	jle	.forCont5
 	ret
 .forCont5:
-	movq	%rax, -272(%rbp)
 	pop	%rax
 .for5:
 	# V% = X%*10+Y%
@@ -632,8 +618,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " Y=",
 	leaq	-496(%rbp), %rcx
 	movq	$1, %rdx
@@ -645,8 +629,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " = ",
 	leaq	-520(%rbp), %rcx
 	movq	$1, %rdx
@@ -658,8 +640,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# T%(X%,Y%) = V%
 	# int: X% - %rsi
 	movq	-264(%rbp), %rsi
@@ -685,11 +665,11 @@ main:
 .forNext6:
 	movq	-264(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -264(%rbp)
 	cmpq	$2, %rax
 	jle	.forCont6
 	ret
 .forCont6:
-	movq	%rax, -264(%rbp)
 	pop	%rax
 .for6:
 	# FOR Y%=0 TO 4
@@ -701,11 +681,11 @@ main:
 .forNext7:
 	movq	-272(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -272(%rbp)
 	cmpq	$4, %rax
 	jle	.forCont7
 	ret
 .forCont7:
-	movq	%rax, -272(%rbp)
 	pop	%rax
 .for7:
 	# V% = X%*10+Y%
@@ -732,8 +712,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " Y=",
 	leaq	-568(%rbp), %rcx
 	movq	$1, %rdx
@@ -745,8 +723,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " = ",
 	leaq	-592(%rbp), %rcx
 	movq	$1, %rdx
@@ -758,8 +734,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# IF V%<>T%(X%,Y%) THEN PRINT "ERROR INT VALUE"
 	# int: V%<>T%(X%,Y%) - %rsi
 	# int: V% - %rsi
@@ -812,11 +786,11 @@ main:
 .forNext8:
 	movq	-264(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -264(%rbp)
 	cmpq	$15, %rax
 	jle	.forCont8
 	ret
 .forCont8:
-	movq	%rax, -264(%rbp)
 	pop	%rax
 .for8:
 	# E$="VAL"+CHR$(65+X%)
@@ -837,13 +811,9 @@ main:
 	leaq	-984(%rbp), %rcx
 	leaq	-960(%rbp), %rdx
 	call	appendBString
-	leaq	-960(%rbp), %rcx
-	call	freeBString
 	leaq	-696(%rbp), %rcx
 	leaq	-984(%rbp), %rdx
 	call	assignBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# PRINT " X=",X%," = ",E$
 	# str: " X=",
 	leaq	-744(%rbp), %rcx
@@ -856,8 +826,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " = ",
 	leaq	-768(%rbp), %rcx
 	movq	$1, %rdx
@@ -892,11 +860,11 @@ main:
 .forNext9:
 	movq	-264(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -264(%rbp)
 	cmpq	$15, %rax
 	jle	.forCont9
 	ret
 .forCont9:
-	movq	%rax, -264(%rbp)
 	pop	%rax
 .for9:
 	# PRINT "X=",X%," ",S$(X%)
@@ -911,8 +879,6 @@ main:
 	leaq	-984(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# str: " ",
 	leaq	-840(%rbp), %rcx
 	movq	$1, %rdx
@@ -925,12 +891,10 @@ main:
 	call	c64_get_str_item_ptr
 	leaq	-984(%rbp), %rcx
 	movq	%rax, %rdx
-	call	assignBString
+	call	assignBStringAsConst
 	leaq	-984(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
-	leaq	-984(%rbp), %rcx
-	call	freeBString
 	# NEXT X%
 	call	.forNext9
 	# PRINT "END"

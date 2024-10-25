@@ -74,8 +74,6 @@ main:
 	leaq	-200(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-200(%rbp), %rcx
-	call	freeBString
 	# L%=L%+1
 	# int: L%+1 - %rsi
 	# int: L% - %rsi
@@ -117,8 +115,6 @@ main:
 	leaq	-200(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-200(%rbp), %rcx
-	call	freeBString
 	# L%=L%+1
 	# int: L%+1 - %rsi
 	# int: L% - %rsi

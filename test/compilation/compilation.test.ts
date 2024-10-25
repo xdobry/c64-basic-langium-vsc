@@ -42,7 +42,7 @@ describe('Compilation', () => {
                 const baseName = file.substring(0,file.length-5)
                 const sFile = path.join('generated',baseName+".s");
                 const outFile = path.join('generated',baseName+".exe");  
-                generateAssemblerCode(document.parseResult.value,filePath,"generated");
+                generateAssemblerCode(document.parseResult.value,filePath,{destination:"generated"});
                 console.log(`gcc ${sFile} .\\ccode\\rtlib.c -o ${outFile}`)
                 const stdout = execSync(`gcc ${sFile} .\\ccode\\rtlib.c -o ${outFile}`);
                 console.log("gcc output: " + stdout.toString());

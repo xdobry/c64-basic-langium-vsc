@@ -232,6 +232,7 @@ main:
 .forNext0:
 	movq	-24(%rbp), %xmm0
 	addsd	-8(%rbp), %xmm0
+	movq	%xmm0, -24(%rbp)
 	xorpd	%xmm1, %xmm1
 	comisd	-8(%rbp), %xmm1
 	ja	.forStepNeg0
@@ -243,7 +244,6 @@ main:
 	jnb	.forCont0
 	ret
 .forCont0:
-	movq	%xmm0, -24(%rbp)
 	pop	%rax
 .for0:
 	# PRINT "FLOAT ",A
@@ -258,8 +258,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT
 	call	.forNext0
 	# FOR A=2.0 TO 0.0 STEP -1.0
@@ -282,6 +280,7 @@ main:
 .forNext1:
 	movq	-24(%rbp), %xmm0
 	addsd	-56(%rbp), %xmm0
+	movq	%xmm0, -24(%rbp)
 	xorpd	%xmm1, %xmm1
 	comisd	-56(%rbp), %xmm1
 	ja	.forStepNeg1
@@ -293,7 +292,6 @@ main:
 	jnb	.forCont1
 	ret
 .forCont1:
-	movq	%xmm0, -24(%rbp)
 	pop	%rax
 .for1:
 	# PRINT "FLOAT ",A
@@ -308,8 +306,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT
 	call	.forNext1
 	# FOR A=-2.0 TO 2.0 STEP 1.0
@@ -332,6 +328,7 @@ main:
 .forNext2:
 	movq	-24(%rbp), %xmm0
 	addsd	-96(%rbp), %xmm0
+	movq	%xmm0, -24(%rbp)
 	xorpd	%xmm1, %xmm1
 	comisd	-96(%rbp), %xmm1
 	ja	.forStepNeg2
@@ -343,7 +340,6 @@ main:
 	jnb	.forCont2
 	ret
 .forCont2:
-	movq	%xmm0, -24(%rbp)
 	pop	%rax
 .for2:
 	# PRINT "FLOAT ",A
@@ -358,8 +354,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT
 	call	.forNext2
 	# FOR A%=0 TO 2
@@ -371,11 +365,11 @@ main:
 .forNext3:
 	movq	-136(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -136(%rbp)
 	cmpq	$2, %rax
 	jle	.forCont3
 	ret
 .forCont3:
-	movq	%rax, -136(%rbp)
 	pop	%rax
 .for3:
 	# PRINT "INT ",A%
@@ -390,8 +384,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT
 	call	.forNext3
 	# PRINT " REAL 0 to 2.0"
@@ -415,11 +407,11 @@ main:
 .forNext4:
 	movq	-24(%rbp), %xmm0
 	addsd	.LONE(%rip), %xmm0
+	movq	%xmm0, -24(%rbp)
 	ucomisd	-192(%rbp), %xmm0
 	jbe	.forCont4
 	ret
 .forCont4:
-	movq	%xmm0, -24(%rbp)
 	pop	%rax
 .for4:
 	# PRINT "REAL ",A
@@ -434,8 +426,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT
 	call	.forNext4
 	# A=0
@@ -464,11 +454,11 @@ main:
 .forNext5:
 	movq	-24(%rbp), %xmm0
 	addsd	.LONE(%rip), %xmm0
+	movq	%xmm0, -24(%rbp)
 	ucomisd	.LF10(%rip), %xmm0
 	jbe	.forCont5
 	ret
 .forCont5:
-	movq	%xmm0, -24(%rbp)
 	pop	%rax
 .for5:
 	# PRINT "REAL 2 ",A
@@ -483,8 +473,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT
 	call	.forNext5
 	# PRINT " REAL 0 to 3 STEP 0.5 VARS"
@@ -523,6 +511,7 @@ main:
 .forNext6:
 	movq	-24(%rbp), %xmm0
 	addsd	-312(%rbp), %xmm0
+	movq	%xmm0, -24(%rbp)
 	xorpd	%xmm1, %xmm1
 	comisd	-312(%rbp), %xmm1
 	ja	.forStepNeg6
@@ -534,7 +523,6 @@ main:
 	jnb	.forCont6
 	ret
 .forCont6:
-	movq	%xmm0, -24(%rbp)
 	pop	%rax
 .for6:
 	# PRINT "REAL 3 ",A
@@ -549,8 +537,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT
 	call	.forNext6
 	# PRINT " STEP 2"
@@ -567,11 +553,11 @@ main:
 .forNext7:
 	movq	-136(%rbp), %rax
 	addq	$2, %rax
+	movq	%rax, -136(%rbp)
 	cmpq	$10, %rax
 	jle	.forCont7
 	ret
 .forCont7:
-	movq	%rax, -136(%rbp)
 	pop	%rax
 .for7:
 	# PRINT "STEP-2 ",A%
@@ -586,8 +572,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT A%
 	call	.forNext7
 	# S%=3
@@ -613,6 +597,7 @@ main:
 .forNext8:
 	movq	-136(%rbp), %rax
 	addq	-408(%rbp), %rax
+	movq	%rax, -136(%rbp)
 	cmpq	$0, -408(%rbp)
 	js	.forStepNeg8
 	cmpq	-416(%rbp), %rax
@@ -623,7 +608,6 @@ main:
 	jge	.forCont8
 	ret
 .forCont8:
-	movq	%rax, -136(%rbp)
 	pop	%rax
 .for8:
 	# PRINT "STEP-b2 ",A%
@@ -638,8 +622,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT A%
 	call	.forNext8
 	# PRINT " NESTED 2 NEXT"
@@ -656,11 +638,11 @@ main:
 .forNext9:
 	movq	-136(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -136(%rbp)
 	cmpq	$2, %rax
 	jle	.forCont9
 	ret
 .forCont9:
-	movq	%rax, -136(%rbp)
 	pop	%rax
 .for9:
 	# FOR B%=0 TO 2
@@ -672,11 +654,11 @@ main:
 .forNext10:
 	movq	-472(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -472(%rbp)
 	cmpq	$2, %rax
 	jle	.forCont10
 	ret
 .forCont10:
-	movq	%rax, -472(%rbp)
 	pop	%rax
 .for10:
 	# PRINT "A=",A%," B=",B%
@@ -691,8 +673,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# str: " B=",
 	leaq	-520(%rbp), %rcx
 	movq	$1, %rdx
@@ -704,8 +684,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT B%
 	call	.forNext10
 	# NEXT A%
@@ -724,11 +702,11 @@ main:
 .forNext11:
 	movq	-136(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -136(%rbp)
 	cmpq	$2, %rax
 	jle	.forCont11
 	ret
 .forCont11:
-	movq	%rax, -136(%rbp)
 	pop	%rax
 .for11:
 	# FOR B%=0 TO 2
@@ -740,11 +718,11 @@ main:
 .forNext12:
 	movq	-472(%rbp), %rax
 	addq	$1, %rax
+	movq	%rax, -472(%rbp)
 	cmpq	$2, %rax
 	jle	.forCont12
 	ret
 .forCont12:
-	movq	%rax, -472(%rbp)
 	pop	%rax
 .for12:
 	# PRINT "A=",A%," B=",B%
@@ -759,8 +737,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$5, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# str: " B=",
 	leaq	-592(%rbp), %rcx
 	movq	$1, %rdx
@@ -772,8 +748,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT B%, A%
 	call	.forNext12
 	call	.forNext11
@@ -807,6 +781,7 @@ main:
 .forNext13:
 	movq	-24(%rbp), %xmm0
 	addsd	-624(%rbp), %xmm0
+	movq	%xmm0, -24(%rbp)
 	xorpd	%xmm1, %xmm1
 	comisd	-624(%rbp), %xmm1
 	ja	.forStepNeg13
@@ -818,7 +793,6 @@ main:
 	jnb	.forCont13
 	ret
 .forCont13:
-	movq	%xmm0, -24(%rbp)
 	pop	%rax
 .for13:
 	# PRINT A
@@ -829,8 +803,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT A
 	call	.forNext13
 	# S=-1
@@ -878,6 +850,7 @@ main:
 .forNext14:
 	movq	-24(%rbp), %xmm0
 	addsd	-656(%rbp), %xmm0
+	movq	%xmm0, -24(%rbp)
 	xorpd	%xmm1, %xmm1
 	comisd	-656(%rbp), %xmm1
 	ja	.forStepNeg14
@@ -889,7 +862,6 @@ main:
 	jnb	.forCont14
 	ret
 .forCont14:
-	movq	%xmm0, -24(%rbp)
 	pop	%rax
 .for14:
 	# PRINT A
@@ -900,8 +872,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT A
 	call	.forNext14
 	# PRINT " REVERSE INT LOOP2"
@@ -923,6 +893,7 @@ main:
 .forNext15:
 	movq	-136(%rbp), %rax
 	addq	-696(%rbp), %rax
+	movq	%rax, -136(%rbp)
 	cmpq	$0, -696(%rbp)
 	js	.forStepNeg15
 	cmpq	$0, %rax
@@ -933,7 +904,6 @@ main:
 	jge	.forCont15
 	ret
 .forCont15:
-	movq	%rax, -136(%rbp)
 	pop	%rax
 .for15:
 	# PRINT A%
@@ -944,8 +914,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT A%
 	call	.forNext15
 	# S%=-1
@@ -978,6 +946,7 @@ main:
 .forNext16:
 	movq	-136(%rbp), %rax
 	addq	-736(%rbp), %rax
+	movq	%rax, -136(%rbp)
 	cmpq	$0, -736(%rbp)
 	js	.forStepNeg16
 	cmpq	-744(%rbp), %rax
@@ -988,7 +957,6 @@ main:
 	jge	.forCont16
 	ret
 .forCont16:
-	movq	%rax, -136(%rbp)
 	pop	%rax
 .for16:
 	# PRINT A%
@@ -999,8 +967,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT A%
 	call	.forNext16
 	# FOR I=1 TO 10
@@ -1016,11 +982,11 @@ main:
 .forNext17:
 	movq	-752(%rbp), %xmm0
 	addsd	.LONE(%rip), %xmm0
+	movq	%xmm0, -752(%rbp)
 	ucomisd	.LF13(%rip), %xmm0
 	jbe	.forCont17
 	ret
 .forCont17:
-	movq	%xmm0, -752(%rbp)
 	pop	%rax
 .for17:
 	# PRINT I
@@ -1031,8 +997,6 @@ main:
 	leaq	-920(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-920(%rbp), %rcx
-	call	freeBString
 	# NEXT I
 	call	.forNext17
 	# IF I<>11 THEN PRINT "ERROR ENDSTAND"

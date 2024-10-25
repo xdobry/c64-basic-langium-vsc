@@ -90,8 +90,6 @@ main:
 	leaq	-224(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-224(%rbp), %rcx
-	call	freeBString
 	# PRINT "TIME INT ",TI
 	# str: "TIME INT ",
 	leaq	-80(%rbp), %rcx
@@ -107,8 +105,6 @@ main:
 	leaq	-224(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
-	leaq	-224(%rbp), %rcx
-	call	freeBString
 	# PRINT "END"
 	# str: "END"
 	leaq	-104(%rbp), %rcx
