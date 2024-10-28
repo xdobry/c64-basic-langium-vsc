@@ -102,25 +102,31 @@ You can see following directories:
 
 ## Langium functionality
 
-* Benutzung der Variable for Validierung
-* Probleme mit FOR NEXT
-* Falsche Benutzung der Variablen (Syntax Error)
-* Formatierung
+* Go to definition for labels, user functions and variables
+* Show symbols
+* Folding
+* Formating
   * Crunch
   * DeCrunch
 * Tool Tips
-* Basic Original Laden
-* Basic Original Speichern
+* convert to and from prg-Files - OPEN
 
-## Valdierung
+## Validation
 
-* Unbenutzte Labels
-* Unbenutzte Variablen
-* Ein For ohne Next
-* GOSUB ohne RETURN
-* Unpassende Next
-* Falsche Indexe
-* Nicht eindeutige Variable Namen
+The grammar parser makes many static checks out of the box.
+So the plugin/compiler can be used for syntax checking basic programs
+
+* all references variables must be written once in code
+* all goto and gosub lables and lines must exists
+* all used user function must be defined once in code
+* all build in function are checked for parameter and types
+* only known commands are allowed
+
+Additional checks
+
+* never read variables
+* GOSUB without RETURN
+* inconsistent variable dimensions - OPEN
 
 # Compilation to 64 bit GAS
 

@@ -309,6 +309,21 @@ main:
 	movsd	-32(%rbp), %xmm0
 	movsd	%xmm0, -120(%rbp)
 .ifnot1:
+	# PRINT N;B
+	# str: N;
+	leaq	-536(%rbp), %rcx
+	movsd	-112(%rbp), %xmm1
+	call	assignDouble
+	leaq	-536(%rbp), %rcx
+	movq	$4, %rdx
+	call	printBString
+	# str: B
+	leaq	-536(%rbp), %rcx
+	movsd	-120(%rbp), %xmm1
+	call	assignDouble
+	leaq	-536(%rbp), %rcx
+	movq	$12, %rdx
+	call	printBString
 	# LL=10.0
 	# float: 10.0
 	movsd	.LF1(%rip), %xmm0

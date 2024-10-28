@@ -4,7 +4,6 @@ A$="TESTA"
 B$="TESTB"
 A1$="TESTA1"
 C$=""
-D$="TESTB"
 
 I%=0
 AA$="TESTA"

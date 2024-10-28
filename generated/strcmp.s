@@ -19,72 +19,69 @@
 	.ascii ""
 	.byte 0
 .LC5:
-	.ascii "TESTB"
-	.byte 0
-.LC6:
 	.ascii "TESTA"
 	.byte 0
-.LC7:
+.LC6:
 	.ascii "COMPARE"
 	.byte 0
-.LC8:
+.LC7:
 	.ascii "ERROR EQ"
 	.byte 0
-.LC9:
+.LC8:
 	.ascii "ERROR EMPTY CMP"
 	.byte 0
-.LC10:
+.LC9:
 	.ascii "OK1"
 	.byte 0
-.LC11:
+.LC10:
 	.ascii ""
 	.byte 0
-.LC12:
+.LC11:
 	.ascii "ERROR EQ"
 	.byte 0
-.LC13:
+.LC12:
 	.ascii "OK2"
 	.byte 0
-.LC14:
+.LC13:
 	.ascii "ERROR >"
 	.byte 0
-.LC15:
+.LC14:
 	.ascii "OK3"
 	.byte 0
-.LC16:
+.LC15:
 	.ascii "ERROR >="
 	.byte 0
-.LC17:
+.LC16:
 	.ascii "OK4"
 	.byte 0
-.LC18:
+.LC17:
 	.ascii "ERROR >"
 	.byte 0
-.LC19:
+.LC18:
 	.ascii "ERROR <="
 	.byte 0
-.LC20:
+.LC19:
 	.ascii "ERROR > EMPTY"
 	.byte 0
-.LC21:
+.LC20:
 	.ascii "ERROR < EMPTY"
 	.byte 0
-.LC22:
+.LC21:
 	.ascii "ERROR > LEN"
 	.byte 0
-.LC23:
+.LC22:
 	.ascii "ERROR < LEN"
 	.byte 0
-.LC24:
+.LC23:
 	.ascii "ERROR = LEN"
 	.byte 0
-.LC25:
+.LC24:
 	.ascii "ERROR >= LEN"
 	.byte 0
-.LC26:
+.LC25:
 	.ascii "ERROR <= LEN"
 	.byte 0
-.LC27:
+.LC26:
 	.ascii "END"
 	.byte 0
 	.align 8
@@ -96,7 +93,7 @@
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$1056, %rsp
+	subq	$1008, %rsp
 	# init variable A$
 	movq	$0, -48(%rbp)
 	movq	$0, -40(%rbp)
@@ -113,43 +110,39 @@ main:
 	movq	$0, -192(%rbp)
 	movq	$0, -184(%rbp)
 	movq	$0, -176(%rbp)
-	# init variable D$
+	# init variable AA$
+	movq	$0, -248(%rbp)
 	movq	$0, -240(%rbp)
 	movq	$0, -232(%rbp)
-	movq	$0, -224(%rbp)
-	# init variable AA$
-	movq	$0, -296(%rbp)
-	movq	$0, -288(%rbp)
-	movq	$0, -280(%rbp)
 	# init variable NSET$
-	movq	$0, -440(%rbp)
-	movq	$0, -432(%rbp)
-	movq	$0, -424(%rbp)
+	movq	$0, -392(%rbp)
+	movq	$0, -384(%rbp)
+	movq	$0, -376(%rbp)
 	# init variable strtmp0$
+	movq	$0, -824(%rbp)
+	movq	$0, -816(%rbp)
+	movq	$0, -808(%rbp)
+	# init variable strtmp1$
+	movq	$0, -848(%rbp)
+	movq	$0, -840(%rbp)
+	movq	$0, -832(%rbp)
+	# init variable strtmp2$
 	movq	$0, -872(%rbp)
 	movq	$0, -864(%rbp)
 	movq	$0, -856(%rbp)
-	# init variable strtmp1$
+	# init variable strtmp3$
 	movq	$0, -896(%rbp)
 	movq	$0, -888(%rbp)
 	movq	$0, -880(%rbp)
-	# init variable strtmp2$
+	# init variable strtmp4$
 	movq	$0, -920(%rbp)
 	movq	$0, -912(%rbp)
 	movq	$0, -904(%rbp)
-	# init variable strtmp3$
-	movq	$0, -944(%rbp)
-	movq	$0, -936(%rbp)
-	movq	$0, -928(%rbp)
-	# init variable strtmp4$
-	movq	$0, -968(%rbp)
-	movq	$0, -960(%rbp)
-	movq	$0, -952(%rbp)
 	# set rounding mode to floor to be compatible with c64 rounding
-	stmxcsr	-1016(%rbp)
-	andl	$0xFFFF9FFF, -1016(%rbp)
-	orl	$0x2000, -1016(%rbp)
-	ldmxcsr	-1016(%rbp)
+	stmxcsr	-968(%rbp)
+	andl	$0xFFFF9FFF, -968(%rbp)
+	orl	$0x2000, -968(%rbp)
+	ldmxcsr	-968(%rbp)
 	 # init bstring constants
 	leaq	-24(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
@@ -166,74 +159,71 @@ main:
 	leaq	-216(%rbp), %rcx
 	leaq	.LC4(%rip), %rdx
 	call	assignFromConst
-	leaq	-264(%rbp), %rcx
+	leaq	-272(%rbp), %rcx
 	leaq	.LC5(%rip), %rdx
 	call	assignFromConst
-	leaq	-320(%rbp), %rcx
+	leaq	-296(%rbp), %rcx
 	leaq	.LC6(%rip), %rdx
 	call	assignFromConst
-	leaq	-344(%rbp), %rcx
+	leaq	-320(%rbp), %rcx
 	leaq	.LC7(%rip), %rdx
 	call	assignFromConst
-	leaq	-368(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	leaq	.LC8(%rip), %rdx
 	call	assignFromConst
-	leaq	-392(%rbp), %rcx
+	leaq	-368(%rbp), %rcx
 	leaq	.LC9(%rip), %rdx
 	call	assignFromConst
 	leaq	-416(%rbp), %rcx
 	leaq	.LC10(%rip), %rdx
 	call	assignFromConst
-	leaq	-464(%rbp), %rcx
+	leaq	-440(%rbp), %rcx
 	leaq	.LC11(%rip), %rdx
 	call	assignFromConst
-	leaq	-488(%rbp), %rcx
+	leaq	-464(%rbp), %rcx
 	leaq	.LC12(%rip), %rdx
 	call	assignFromConst
-	leaq	-512(%rbp), %rcx
+	leaq	-488(%rbp), %rcx
 	leaq	.LC13(%rip), %rdx
 	call	assignFromConst
-	leaq	-536(%rbp), %rcx
+	leaq	-512(%rbp), %rcx
 	leaq	.LC14(%rip), %rdx
 	call	assignFromConst
-	leaq	-560(%rbp), %rcx
+	leaq	-536(%rbp), %rcx
 	leaq	.LC15(%rip), %rdx
 	call	assignFromConst
-	leaq	-584(%rbp), %rcx
+	leaq	-560(%rbp), %rcx
 	leaq	.LC16(%rip), %rdx
 	call	assignFromConst
-	leaq	-608(%rbp), %rcx
+	leaq	-584(%rbp), %rcx
 	leaq	.LC17(%rip), %rdx
 	call	assignFromConst
-	leaq	-632(%rbp), %rcx
+	leaq	-608(%rbp), %rcx
 	leaq	.LC18(%rip), %rdx
 	call	assignFromConst
-	leaq	-656(%rbp), %rcx
+	leaq	-632(%rbp), %rcx
 	leaq	.LC19(%rip), %rdx
 	call	assignFromConst
-	leaq	-680(%rbp), %rcx
+	leaq	-656(%rbp), %rcx
 	leaq	.LC20(%rip), %rdx
 	call	assignFromConst
-	leaq	-704(%rbp), %rcx
+	leaq	-680(%rbp), %rcx
 	leaq	.LC21(%rip), %rdx
 	call	assignFromConst
-	leaq	-728(%rbp), %rcx
+	leaq	-704(%rbp), %rcx
 	leaq	.LC22(%rip), %rdx
 	call	assignFromConst
-	leaq	-752(%rbp), %rcx
+	leaq	-728(%rbp), %rcx
 	leaq	.LC23(%rip), %rdx
 	call	assignFromConst
-	leaq	-776(%rbp), %rcx
+	leaq	-752(%rbp), %rcx
 	leaq	.LC24(%rip), %rdx
 	call	assignFromConst
-	leaq	-800(%rbp), %rcx
+	leaq	-776(%rbp), %rcx
 	leaq	.LC25(%rip), %rdx
 	call	assignFromConst
-	leaq	-824(%rbp), %rcx
+	leaq	-800(%rbp), %rcx
 	leaq	.LC26(%rip), %rdx
-	call	assignFromConst
-	leaq	-848(%rbp), %rcx
-	leaq	.LC27(%rip), %rdx
 	call	assignFromConst
 	# PRINT "START"
 	# str: "START"
@@ -260,23 +250,18 @@ main:
 	leaq	-192(%rbp), %rcx
 	leaq	-216(%rbp), %rdx
 	call	assignBString
-	# D$="TESTB"
-	# str: "TESTB"
-	leaq	-240(%rbp), %rcx
-	leaq	-264(%rbp), %rdx
-	call	assignBString
 	# I%=0
 	# int: 0 - %rsi
 	movq	$0, %rsi
-	movq	%rsi, -272(%rbp)
+	movq	%rsi, -224(%rbp)
 	# AA$="TESTA"
 	# str: "TESTA"
-	leaq	-296(%rbp), %rcx
-	leaq	-320(%rbp), %rdx
+	leaq	-248(%rbp), %rcx
+	leaq	-272(%rbp), %rdx
 	call	assignBString
 	# PRINT "COMPARE"
 	# str: "COMPARE"
-	leaq	-344(%rbp), %rcx
+	leaq	-296(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 	# IF A$=AA$ THEN LET I%=1
@@ -284,7 +269,7 @@ main:
 	# str: A$
 	# str: AA$
 	leaq	-48(%rbp), %rcx
-	leaq	-296(%rbp), %rdx
+	leaq	-248(%rbp), %rdx
 	movq	$0, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
@@ -293,12 +278,12 @@ main:
 	# LET I%=1
 	# int: 1 - %rsi
 	movq	$1, %rsi
-	movq	%rsi, -272(%rbp)
+	movq	%rsi, -224(%rbp)
 .ifnot0:
 	# IF I%=0 THEN PRINT "ERROR EQ"
 	# int: I%=0 - %rsi
 	# int: I% - %rsi
-	movq	-272(%rbp), %rsi
+	movq	-224(%rbp), %rsi
 	# int: 0 - %rdi
 	movq	$0, %rdi
 	cmpq	%rdi, %rsi
@@ -309,7 +294,7 @@ main:
 	je	.ifnot1
 	# PRINT "ERROR EQ"
 	# str: "ERROR EQ"
-	leaq	-368(%rbp), %rcx
+	leaq	-320(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot1:
@@ -318,7 +303,7 @@ main:
 	# str: C$
 	# str: NSET$
 	leaq	-192(%rbp), %rcx
-	leaq	-440(%rbp), %rdx
+	leaq	-392(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
@@ -326,7 +311,7 @@ main:
 	je	.ifnot2
 	# PRINT "ERROR EMPTY CMP"
 	# str: "ERROR EMPTY CMP"
-	leaq	-392(%rbp), %rcx
+	leaq	-344(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot2:
@@ -335,7 +320,7 @@ main:
 	# str: C$
 	# str: NSET$
 	leaq	-192(%rbp), %rcx
-	leaq	-440(%rbp), %rdx
+	leaq	-392(%rbp), %rdx
 	movq	$0, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
@@ -343,14 +328,14 @@ main:
 	je	.ifnot3
 	# PRINT "OK1"
 	# str: "OK1"
-	leaq	-416(%rbp), %rcx
+	leaq	-368(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot3:
 	# NSET$=""
 	# str: ""
-	leaq	-440(%rbp), %rcx
-	leaq	-464(%rbp), %rdx
+	leaq	-392(%rbp), %rcx
+	leaq	-416(%rbp), %rdx
 	call	assignBString
 	# IF A$=B$ THEN PRINT "ERROR EQ"
 	# int: A$=B$ - %rsi
@@ -365,7 +350,7 @@ main:
 	je	.ifnot4
 	# PRINT "ERROR EQ"
 	# str: "ERROR EQ"
-	leaq	-488(%rbp), %rcx
+	leaq	-440(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot4:
@@ -382,7 +367,7 @@ main:
 	je	.ifnot5
 	# PRINT "OK2"
 	# str: "OK2"
-	leaq	-512(%rbp), %rcx
+	leaq	-464(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot5:
@@ -399,7 +384,7 @@ main:
 	je	.ifnot6
 	# PRINT "ERROR >"
 	# str: "ERROR >"
-	leaq	-536(%rbp), %rcx
+	leaq	-488(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot6:
@@ -416,7 +401,7 @@ main:
 	je	.ifnot7
 	# PRINT "OK3"
 	# str: "OK3"
-	leaq	-560(%rbp), %rcx
+	leaq	-512(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot7:
@@ -433,7 +418,7 @@ main:
 	je	.ifnot8
 	# PRINT "ERROR >="
 	# str: "ERROR >="
-	leaq	-584(%rbp), %rcx
+	leaq	-536(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot8:
@@ -450,7 +435,7 @@ main:
 	je	.ifnot9
 	# PRINT "OK4"
 	# str: "OK4"
-	leaq	-608(%rbp), %rcx
+	leaq	-560(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot9:
@@ -467,7 +452,7 @@ main:
 	je	.ifnot10
 	# PRINT "ERROR >"
 	# str: "ERROR >"
-	leaq	-632(%rbp), %rcx
+	leaq	-584(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot10:
@@ -484,7 +469,7 @@ main:
 	je	.ifnot11
 	# PRINT "ERROR <="
 	# str: "ERROR <="
-	leaq	-656(%rbp), %rcx
+	leaq	-608(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot11:
@@ -501,7 +486,7 @@ main:
 	je	.ifnot12
 	# PRINT "ERROR > EMPTY"
 	# str: "ERROR > EMPTY"
-	leaq	-680(%rbp), %rcx
+	leaq	-632(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot12:
@@ -518,7 +503,7 @@ main:
 	je	.ifnot13
 	# PRINT "ERROR < EMPTY"
 	# str: "ERROR < EMPTY"
-	leaq	-704(%rbp), %rcx
+	leaq	-656(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot13:
@@ -535,7 +520,7 @@ main:
 	je	.ifnot14
 	# PRINT "ERROR > LEN"
 	# str: "ERROR > LEN"
-	leaq	-728(%rbp), %rcx
+	leaq	-680(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot14:
@@ -552,7 +537,7 @@ main:
 	je	.ifnot15
 	# PRINT "ERROR < LEN"
 	# str: "ERROR < LEN"
-	leaq	-752(%rbp), %rcx
+	leaq	-704(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot15:
@@ -569,7 +554,7 @@ main:
 	je	.ifnot16
 	# PRINT "ERROR = LEN"
 	# str: "ERROR = LEN"
-	leaq	-776(%rbp), %rcx
+	leaq	-728(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot16:
@@ -586,7 +571,7 @@ main:
 	je	.ifnot17
 	# PRINT "ERROR >= LEN"
 	# str: "ERROR >= LEN"
-	leaq	-800(%rbp), %rcx
+	leaq	-752(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot17:
@@ -603,13 +588,13 @@ main:
 	je	.ifnot18
 	# PRINT "ERROR <= LEN"
 	# str: "ERROR <= LEN"
-	leaq	-824(%rbp), %rcx
+	leaq	-776(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot18:
 	# PRINT "END"
 	# str: "END"
-	leaq	-848(%rbp), %rcx
+	leaq	-800(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 
