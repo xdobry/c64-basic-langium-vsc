@@ -9,9 +9,8 @@ PRINT MSG2$
 PRINT "HALLO":PRINT "WORLD"
 
 LET C%=0
-loop: 
-   PRINT "IF LOOP ",C%
-   C%=C%+1
-   IF C%<5 THEN GOTO loop
+loop: PRINT "IF LOOP ",C%
+C%=C%+1
+IF C%<5 THEN GOTO loop
 
 PRINT "END"

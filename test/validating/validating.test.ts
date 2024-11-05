@@ -24,7 +24,7 @@ describe('Validating', () => {
   
     test('check no errors', async () => {
         document = await parse(`LET A$="TEST"
-LABEL P12
+P12:
 PRINT A$ 
 GOTO P12
 `);

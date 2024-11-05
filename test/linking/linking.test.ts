@@ -25,7 +25,7 @@ describe('Linking tests', () => {
 
     test('linking of greetings', async () => {
         document = await parse(`LET A$="TEST"
-LABEL P12
+P12:
 PRINT A$ 
 GOTO P12
 `);

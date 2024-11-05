@@ -1,5 +1,5 @@
 import { ReferenceInfo, Scope, ScopeProvider, AstUtils, LangiumCoreServices, AstNodeDescriptionProvider, MapScope, EMPTY_SCOPE, AstNodeDescription, AstNode } from "langium";
-import { isModel, isVarRef, isLetNum, LetNum, isLetStr, LetStr, isGoTo, isLabel, Label, isStringVarRef, isGet, isInput, Get, Input, isRead, Read, isFor, For, StrLabel, isStrLabel, isIf, isGoSub, isOnGoSub, isOnGoto, isFnCall, isDefFn, DefFn, isRun, Stmt, If } from "./generated/ast.js";
+import { isModel, isVarRef, isLetNum, LetNum, isLetStr, LetStr, isGoTo, isStringVarRef, isGet, isInput, Get, Input, isRead, Read, isFor, For, isIf, isGoSub, isOnGoSub, isOnGoto, isFnCall, isDefFn, DefFn, isRun, Stmt, If } from "./generated/ast.js";
 
 export class C64BasicScopeProvider implements ScopeProvider {
     private astNodeDescriptionProvider: AstNodeDescriptionProvider;
@@ -69,16 +69,9 @@ export class C64BasicScopeProvider implements ScopeProvider {
             const model = AstUtils.getContainerOfType(context.container, isModel)!;
             const descriptions : AstNodeDescription[] = []
             model.lines.forEach(line => {
-                line.stmts.forEach(p => {
-                    if (isLabel(p)) {
-                        const l : Label = p as Label;
-                        descriptions.push(this.astNodeDescriptionProvider.createDescription(l, l.name))
-                    } else if (isStrLabel(p)) {
-                        const l : StrLabel = p as StrLabel;
-                        descriptions.push(this.astNodeDescriptionProvider.createDescription(l, l.name.substring(0, l.name.length-1)))
-                    }
-                });
-    
+                if (line.lineLabel) {
+                    descriptions.push(this.astNodeDescriptionProvider.createDescription(line, line.lineLabel.substring(0,line.lineLabel.length-1)))
+                }
             })
             //create the scope
             return new MapScope(descriptions);
@@ -96,16 +89,9 @@ export class C64BasicScopeProvider implements ScopeProvider {
             const model = AstUtils.getContainerOfType(context.container, isModel)!;
             const descriptions : AstNodeDescription[] = []
             model.lines.forEach(line => {
-                line.stmts.forEach(p => {
-                    if (isLabel(p)) {
-                        const l : Label = p as Label;
-                        descriptions.push(this.astNodeDescriptionProvider.createDescription(l, l.name))
-                    } else if (isStrLabel(p)) {
-                        const l : StrLabel = p as StrLabel;
-                        descriptions.push(this.astNodeDescriptionProvider.createDescription(l, l.name.substring(0, l.name.length-1)))
-                    }
-                });
-    
+                if (line.lineLabel) {
+                    descriptions.push(this.astNodeDescriptionProvider.createDescription(line, line.lineLabel.substring(0,line.lineLabel.length-1)))
+                }
             })
             return new MapScope(descriptions);
         } else if ((isOnGoSub(context.container) || isOnGoto(context.container)) && context.property === 'lineNumbers') {

@@ -3,11 +3,11 @@ grammar C64Basic
 entry Model:
     (lines+=Line? (NEWLINE_DI|NEWLINE))+ (lines+=Line)?;
 
-Line: (linenum=INT_NUMBER? stmts+=Stmt (COLON stmts+=Stmt)* COLON?) | linenum=INT_NUMBER;
+Line: (linenum=INT_NUMBER? lineLabel=LABEL_NAME? stmts+=Stmt (COLON stmts+=Stmt)* COLON?) | linenum=INT_NUMBER | lineLabel=LABEL_NAME;
 
-Stmt: Cmd | StrLabel;
+Stmt: Cmd;
 
-Cmd: Print | LetStr | LetNum | Label | GoTo | If | For | Next | End | Input | Get | Read | Data | Restore | Poke | Return | GoSub | Dim | OnGoto | OnGoSub | DefFn | Wait | Run;
+Cmd: Print | LetStr | LetNum | GoTo | If | For | Next | End | Input | Get | Read | Data | Restore | Poke | Return | GoSub | Dim | OnGoto | OnGoSub | DefFn | Wait | Run;
 
 Print: "PRINT" (exprs+=SExprt)*;
 
@@ -15,15 +15,11 @@ LetStr: "LET"? name=StringVar "=" expr=SExpr;
 
 LetNum: "LET"? name=(IntVar | FloatVar) "=" expr=Expr;
 
-Label: "LABEL" name=FLOAT_VARNAME;
+GoTo: "GOTO" (label=[Line:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
 
-StrLabel: name=LABEL_NAME;
+GoSub: "GOSUB" (label=[Line:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
 
-GoTo: "GOTO" (label=[Label:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
-
-GoSub: "GOSUB" (label=[Label:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
-
-If: "IF" cond=Expr "THEN" ((stmts+=Stmt (COLON stmts+=Stmt)* COLON?) | label=[Label:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
+If: "IF" cond=Expr "THEN" ((stmts+=Stmt (COLON stmts+=Stmt)* COLON?) | label=[Line:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
 
 For: "FOR" name=Var "=" start=Expr "TO" end=Expr ("STEP" step=Expr)?;
 
@@ -45,13 +41,13 @@ Restore: {infer Restore} "RESTORE";
 
 Return: {infer Return} "RETURN";
 
-Run: "RUN" (label=[Label:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
+Run: "RUN" (label=[Line:FLOAT_VARNAME] | lineNumber=[Line:INT_NUMBER]);
 
 Dim: "DIM" vars+=(IntVar | FloatVar | StringVar) (',' vars+=(IntVar | FloatVar | StringVar) )*;
 
-OnGoto: "ON" expr=Expr "GOTO" ((labels+=[Label:FLOAT_VARNAME] (',' labels+=[Label:FLOAT_VARNAME])*) | (lineNumbers+=[Line:INT_NUMBER] (',' lineNumbers+=[Line:INT_NUMBER])*));
+OnGoto: "ON" expr=Expr "GOTO" ((labels+=[Line:FLOAT_VARNAME] (',' labels+=[Line:FLOAT_VARNAME])*) | (lineNumbers+=[Line:INT_NUMBER] (',' lineNumbers+=[Line:INT_NUMBER])*));
 
-OnGoSub: "ON" expr=Expr "GOSUB" ((labels+=[Label:FLOAT_VARNAME] (',' labels+=[Label:FLOAT_VARNAME])*) | (lineNumbers+=[Line:INT_NUMBER] (',' lineNumbers+=[Line:INT_NUMBER])*));
+OnGoSub: "ON" expr=Expr "GOSUB" ((labels+=[Line:FLOAT_VARNAME] (',' labels+=[Line:FLOAT_VARNAME])*) | (lineNumbers+=[Line:INT_NUMBER] (',' lineNumbers+=[Line:INT_NUMBER])*));
 
 DefFn: "DEF" "FN" name=FLOAT_VARNAME '(' param=( FloatVar | IntVar) ')' '=' expr=Expr;
 

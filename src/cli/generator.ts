@@ -1,14 +1,12 @@
-import { isStringLiteral, StringLiteral, type Model, isCmd, isLabel, isPrint, Print, SExprt, isVar, isGoTo, GoTo, 
+import { isStringLiteral, StringLiteral, type Model, isCmd, isPrint, Print, SExprt, isVar, isGoTo, GoTo, 
     isLetStr, LetStr, isLetNum, LetNum, isStringVarRef, isIntVarRef, 
     isIntNumber, IntNumber, isExpr, Expr, isBinExpr, BinExpr, isNegExpr, NegExpr, isGroupExpr, 
-    GroupExpr, Label, isIf, If, isFor, For, isNext, Next, isEnd, 
+    GroupExpr, isIf, If, isFor, For, isNext, Next, isEnd, 
     AllVarRef,
     SExpr,
     isSBinExpr,
     SBinExpr,
     Stmt,
-    isStrLabel,
-    StrLabel,
     GoSub,
     isGoSub,
     isReturn,
@@ -237,6 +235,10 @@ export function generateAssemblerCode(model: Model, filePath: string, opt: Gener
         if (line.linenum && progContext.usedLines.includes(line.linenum)) {
             programmCode += `.line${line.linenum}:\n`;
         }
+        if (line.lineLabel) {
+            const name : string = line.lineLabel.substring(0,line.lineLabel.length-1)
+            programmCode += `.${name}:\n`;
+        }
         programmCode += generateStmts(line.stmts, progContext);
     }
 
@@ -278,20 +280,9 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
     let code = ""
     for (const node of stmts) {
         progContext.currentNode = node
-        if (isStrLabel(node)) {
-            const lNode : StrLabel = node;
-            const name : string = lNode.name.substring(0,lNode.name.length-1)
-            if (progContext.goSubLabels.includes(name)) {
-                code += `.${name}:\n`;
-            } else {
-                code += `.${lNode.name}\n`;
-            }
-        } else if (isCmd(node)) {
+        if (isCmd(node)) {
             code += `\t# ${node.$cstNode?.text}\n`;
-            if (isLabel(node)) {
-                const lNode : Label = node;
-                code += `.${lNode.name}:\n`;
-            } else if (isPrint(node)) {
+            if (isPrint(node)) {
                 const print : Print = node;
                 if (print.exprs.length==0) {
                     code += genCall("printBString",progContext,
@@ -323,10 +314,10 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
             } else if (isGoSub(node)) {
                 const contLabel = `.gosubCont${progContext.goSubLabelCounter++}`
                 code += genCall("pushEntry",progContext,{cmd:"leaq",source:`${contLabel}(%rip)`})
-                code += genOpCode("jmp",getJmpLabel(node.label,node.lineNumber,progContext))
+                code += genOpCode("jmp",getJmpLabel(node.label ? node.label : node.lineNumber,progContext))
                 code += `${contLabel}:\n`
             } else if (isGoTo(node)) {
-                code += genOpCode("jmp",getJmpLabel(node.label,node.lineNumber,progContext))
+                code += genOpCode("jmp",getJmpLabel(node.label ? node.label : node.lineNumber,progContext))
             } else if (isReturn(node)) {
                 code += genCall("popEntry",progContext)
                 code += genOpCode("jmp","*%rax");
@@ -405,7 +396,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 const notIfLabel = `.ifnot${progContext.ifLabelCounter++}`
                 code += conditionToAssembler(ifNode.cond, progContext, notIfLabel);
                 if (ifNode.label) {
-                    const name = ifNode.label.ref?.name
+                    const name = ifNode.label.$refText
                     if (name) {
                         if (name.endsWith(":")) {
                             code += genOpCode("jmp", "."+name.substring(0,name.length-1));
@@ -415,7 +406,7 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                     } else {
                         throw  new CompileError("unsupported goto without name",node.$cstNode)
                     }
-                    code += genOpCode("jmp", "."+ifNode.label.ref?.name);
+                    code += genOpCode("jmp", "."+ifNode.label.$refText);
                 } else if (ifNode.lineNumber) {
                     code += genOpCode("jmp", `.line${ifNode.lineNumber.ref?.linenum}`);
                 } else {
@@ -560,11 +551,11 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 progContext.jmpTables += `${jmpTableLabel}:\n`
                 if (onGotoNode.labels.length>0) {
                     for (const label of onGotoNode.labels) {
-                        progContext.jmpTables += `\t.quad ${getJmpLabel(label,undefined,progContext)}\n`
+                        progContext.jmpTables += `\t.quad ${getJmpLabel(label,progContext)}\n`
                     }
                 } else {
                     for (const lineNumber of onGotoNode.lineNumbers) {
-                        progContext.jmpTables += `\t.quad ${getJmpLabel(undefined, lineNumber, progContext)}\n`
+                        progContext.jmpTables += `\t.quad ${getJmpLabel(lineNumber, progContext)}\n`
                     }
                 }
                 code += `${jumpOverLabel}:\n`
@@ -587,11 +578,11 @@ function generateStmts(stmts: Stmt[], progContext: ProgContext) : string {
                 progContext.jmpTables += `${jmpTableLabel}:\n`
                 if (onGotoNode.labels.length>0) {
                     for (const label of onGotoNode.labels) {
-                        progContext.jmpTables += `\t.quad ${getJmpLabel(label,undefined,progContext)}\n`
+                        progContext.jmpTables += `\t.quad ${getJmpLabel(label,progContext)}\n`
                     }
                 } else {
                     for (const lineNumber of onGotoNode.lineNumbers) {
-                        progContext.jmpTables += `\t.quad ${getJmpLabel(undefined, lineNumber, progContext)}\n`
+                        progContext.jmpTables += `\t.quad ${getJmpLabel(lineNumber, progContext)}\n`
                     }
                 }
                 code += `${jumpOverLabel}:\n`
@@ -702,22 +693,18 @@ function genFor(forNode: For, progContext: ProgContext) : string {
     return new ForGenerator(forNode, progContext).generate()
 }
 
-function getJmpLabel(labelRef: Reference<Label> | undefined, lineRef: Reference<Line> | undefined, progContext: ProgContext) : string {
-    const label = labelRef?.ref
-    if (label) {
-        const name = label.name
-        if (name.endsWith(":")) {
-            return "."+label.name.substring(0,name.length-1);
+function getJmpLabel(lineRef: Reference<Line> | undefined, progContext: ProgContext) : string {
+    const line = lineRef?.ref
+    if (line) {
+        if (line.linenum) {
+            return `.line${line.linenum}`
+        } else if (line.lineLabel) {
+            return `.${line.lineLabel.substring(0,line.lineLabel.length-1)}`
         } else {
-            return  "."+label.name;
+            throw new CompileError("referenced line without number or label",progContext.currentNode?.$cstNode)    
         }
     } else {
-        const line = lineRef?.ref
-        if (line) {
-            return `.line${line.linenum}`
-        } else {
-            throw new CompileError("can not find jmp label",progContext.currentNode?.$cstNode)
-        }
+        throw new CompileError("can not find jmp label",progContext.currentNode?.$cstNode)
     }
 }
 
@@ -1657,7 +1644,7 @@ function generateVariables(model: Model, progContext: ProgContext) {
                 }
             }
             if (gosub.label) {
-                let name = gosub.label.ref?.name
+                let name = gosub.label.$refText
                 if (name?.endsWith(":")) {
                     name = name.substring(0,name.length-1)
                 }

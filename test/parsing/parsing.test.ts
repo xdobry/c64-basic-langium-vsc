@@ -21,7 +21,7 @@ describe('Parsing tests', () => {
     test('parse simple model', async () => {
         document = await parse(`
 LET A$="TEST"
-LABEL P12
+P12:
 PRINT A$ 
 GOTO P12           
         `);
