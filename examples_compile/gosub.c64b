@@ -7,7 +7,7 @@ PRINT A%
 PRINT "END"
 END
 
-mysub:
+mysub: 
 A%=A%+10
 PRINT SIN(1.0)
 PRINT "HA"

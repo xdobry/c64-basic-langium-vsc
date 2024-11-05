@@ -108,6 +108,8 @@
 .LF12:
 	.double 0
 .LF13:
+	.double 0.5
+.LF14:
 	.double 10
 
     .text
@@ -482,7 +484,7 @@ main:
 	call	printBString
 	# S=0.5
 	# float: 0.5
-	movsd	.LF11(%rip), %xmm0
+	movsd	.LF13(%rip), %xmm0
 	movsd	%xmm0, -296(%rbp)
 	# T=3
 	# float: 3
@@ -983,7 +985,7 @@ main:
 	movq	-752(%rbp), %xmm0
 	addsd	.LONE(%rip), %xmm0
 	movq	%xmm0, -752(%rbp)
-	ucomisd	.LF13(%rip), %xmm0
+	ucomisd	.LF14(%rip), %xmm0
 	jbe	.forCont17
 	ret
 .forCont17:

@@ -104,26 +104,32 @@
 .LF4:
 	.double 0.23
 .LF5:
+	.double 10.3
+.LF6:
 	.double 230
+.LF7:
+	.double 10.3
 .pi_const:
 	.double 3.14159265358979323846
-.LF6:
-	.double 3.14
-.LF7:
-	.double 3.15
 .LF8:
-	.double 1.000001
+	.double 3.14
 .LF9:
-	.double 0.9999999
+	.double 3.15
 .LF10:
-	.double 0.003
+	.double 1.000001
 .LF11:
-	.double 0.5
+	.double 0.9999999
 .LF12:
-	.double 1.41422
+	.double 0.003
 .LF13:
-	.double 0.5
+	.double 10.3
 .LF14:
+	.double 0.5
+.LF15:
+	.double 1.41422
+.LF16:
+	.double 0.5
+.LF17:
 	.double 1.41421
 
     .text
@@ -252,7 +258,7 @@ main:
 	call	printBString
 	# A=10.3
 	# float: 10.3
-	movsd	.LF0(%rip), %xmm0
+	movsd	.LF13(%rip), %xmm0
 	movsd	%xmm0, -32(%rbp)
 	# PRINT "A=",A
 	# str: "A=",
@@ -713,7 +719,7 @@ main:
 	movsd	%xmm0, -32(%rbp)
 	# A=2.3E2
 	# float: 2.3E2
-	movsd	.LF5(%rip), %xmm0
+	movsd	.LF6(%rip), %xmm0
 	movsd	%xmm0, -32(%rbp)
 	# IF π<3.14 OR π>3.15 THEN PRINT "ERROR PI"
 	# int: π<3.14 OR π>3.15 - %rsi
@@ -721,7 +727,7 @@ main:
 	# float: π
 	# float: 3.14
 	movsd	.pi_const(%rip), %xmm0
-	movsd	.LF6(%rip), %xmm1
+	movsd	.LF8(%rip), %xmm1
 	comisd	%xmm1, %xmm0
 	setb	%al
 	movzbq	%al, %rsi
@@ -730,7 +736,7 @@ main:
 	# float: π
 	# float: 3.15
 	movsd	.pi_const(%rip), %xmm0
-	movsd	.LF7(%rip), %xmm1
+	movsd	.LF9(%rip), %xmm1
 	comisd	%xmm1, %xmm0
 	seta	%al
 	movzbq	%al, %rdi
@@ -764,7 +770,7 @@ main:
 	movsd	%xmm0, -888(%rbp)
 	# float: 1.000001
 	movsd	-888(%rbp), %xmm0
-	movsd	.LF8(%rip), %xmm1
+	movsd	.LF10(%rip), %xmm1
 	comisd	%xmm1, %xmm0
 	seta	%al
 	movzbq	%al, %rsi
@@ -787,7 +793,7 @@ main:
 	movsd	%xmm0, -880(%rbp)
 	# float: 0.9999999
 	movsd	-880(%rbp), %xmm0
-	movsd	.LF9(%rip), %xmm1
+	movsd	.LF11(%rip), %xmm1
 	comisd	%xmm1, %xmm0
 	setb	%al
 	movzbq	%al, %rdi
@@ -803,7 +809,7 @@ main:
 .ifnot1:
 	# A=.3E-2
 	# float: .3E-2
-	movsd	.LF10(%rip), %xmm0
+	movsd	.LF12(%rip), %xmm0
 	movsd	%xmm0, -32(%rbp)
 	# IF 2^2<>4 THEN PRINT "ERROR 2^2"
 	# int: 2^2<>4 - %rsi
@@ -841,12 +847,12 @@ main:
 	movsd	%xmm0, -880(%rbp)
 	# float: 0.5
 	movsd	-880(%rbp), %xmm0
-	movsd	.LF11(%rip), %xmm1
+	movsd	.LF14(%rip), %xmm1
 	call	pow
 	movsd	%xmm0, -888(%rbp)
 	# float: 1.41422
 	movsd	-888(%rbp), %xmm0
-	movsd	.LF12(%rip), %xmm1
+	movsd	.LF15(%rip), %xmm1
 	comisd	%xmm1, %xmm0
 	seta	%al
 	movzbq	%al, %rsi
@@ -860,12 +866,12 @@ main:
 	movsd	%xmm0, -888(%rbp)
 	# float: 0.5
 	movsd	-888(%rbp), %xmm0
-	movsd	.LF13(%rip), %xmm1
+	movsd	.LF16(%rip), %xmm1
 	call	pow
 	movsd	%xmm0, -880(%rbp)
 	# float: 1.41421
 	movsd	-880(%rbp), %xmm0
-	movsd	.LF14(%rip), %xmm1
+	movsd	.LF17(%rip), %xmm1
 	comisd	%xmm1, %xmm0
 	setb	%al
 	movzbq	%al, %rdi

@@ -37,21 +37,27 @@
 	.ascii "C"
 	.byte 0
 .LC11:
-	.ascii "ABC"
+	.ascii "AB"
 	.byte 0
 .LC12:
-	.ascii "ERROR APPEND"
+	.ascii "ABC"
 	.byte 0
 .LC13:
-	.ascii "D"
+	.ascii "ERROR APPEND"
 	.byte 0
 .LC14:
-	.ascii "DABC"
+	.ascii "D"
 	.byte 0
 .LC15:
-	.ascii "ERROR PREPPEND"
+	.ascii "AB"
 	.byte 0
 .LC16:
+	.ascii "DABC"
+	.byte 0
+.LC17:
+	.ascii "ERROR PREPPEND"
+	.byte 0
+.LC18:
 	.ascii "END"
 	.byte 0
 	.align 8
@@ -61,13 +67,15 @@
 	.double 2.2
 .LF1:
 	.double 2.2
+.LF2:
+	.double 2.2
 
     .text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$688, %rsp
+	subq	$736, %rsp
 	# init variable A$
 	movq	$0, -64(%rbp)
 	movq	$0, -56(%rbp)
@@ -77,30 +85,30 @@ main:
 	movq	$0, -272(%rbp)
 	movq	$0, -264(%rbp)
 	# init variable strtmp0$
-	movq	$0, -496(%rbp)
-	movq	$0, -488(%rbp)
-	movq	$0, -480(%rbp)
-	# init variable strtmp1$
-	movq	$0, -520(%rbp)
-	movq	$0, -512(%rbp)
-	movq	$0, -504(%rbp)
-	# init variable strtmp2$
 	movq	$0, -544(%rbp)
 	movq	$0, -536(%rbp)
 	movq	$0, -528(%rbp)
-	# init variable strtmp3$
+	# init variable strtmp1$
 	movq	$0, -568(%rbp)
 	movq	$0, -560(%rbp)
 	movq	$0, -552(%rbp)
-	# init variable strtmp4$
+	# init variable strtmp2$
 	movq	$0, -592(%rbp)
 	movq	$0, -584(%rbp)
 	movq	$0, -576(%rbp)
+	# init variable strtmp3$
+	movq	$0, -616(%rbp)
+	movq	$0, -608(%rbp)
+	movq	$0, -600(%rbp)
+	# init variable strtmp4$
+	movq	$0, -640(%rbp)
+	movq	$0, -632(%rbp)
+	movq	$0, -624(%rbp)
 	# set rounding mode to floor to be compatible with c64 rounding
-	stmxcsr	-640(%rbp)
-	andl	$0xFFFF9FFF, -640(%rbp)
-	orl	$0x2000, -640(%rbp)
-	ldmxcsr	-640(%rbp)
+	stmxcsr	-688(%rbp)
+	andl	$0xFFFF9FFF, -688(%rbp)
+	orl	$0x2000, -688(%rbp)
+	ldmxcsr	-688(%rbp)
 	 # init bstring constants
 	leaq	-24(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
@@ -129,14 +137,14 @@ main:
 	leaq	-256(%rbp), %rcx
 	leaq	.LC8(%rip), %rdx
 	call	assignFromConst
-	leaq	-304(%rbp), %rcx
-	leaq	.LC9(%rip), %rdx
+	leaq	-448(%rbp), %rcx
+	leaq	.LC15(%rip), %rdx
 	call	assignFromConst
 	leaq	-328(%rbp), %rcx
 	leaq	.LC10(%rip), %rdx
 	call	assignFromConst
-	leaq	-352(%rbp), %rcx
-	leaq	.LC11(%rip), %rdx
+	leaq	-448(%rbp), %rcx
+	leaq	.LC15(%rip), %rdx
 	call	assignFromConst
 	leaq	-376(%rbp), %rcx
 	leaq	.LC12(%rip), %rdx
@@ -153,6 +161,12 @@ main:
 	leaq	-472(%rbp), %rcx
 	leaq	.LC16(%rip), %rdx
 	call	assignFromConst
+	leaq	-496(%rbp), %rcx
+	leaq	.LC17(%rip), %rdx
+	call	assignFromConst
+	leaq	-520(%rbp), %rcx
+	leaq	.LC18(%rip), %rdx
+	call	assignFromConst
 	# PRINT "START"
 	# str: "START"
 	leaq	-24(%rbp), %rcx
@@ -164,17 +178,17 @@ main:
 	movq	%rsi, -32(%rbp)
 	# A=2.2
 	# float: 2.2
-	movsd	.LF0(%rip), %xmm0
+	movsd	.LF1(%rip), %xmm0
 	movsd	%xmm0, -40(%rbp)
 	# A$=STR$(A%)
 	# str: STR$(A%)
 	# int: A% - %rsi
 	movq	-32(%rbp), %rsi
-	leaq	-592(%rbp), %rcx
+	leaq	-640(%rbp), %rcx
 	movq	%rsi, %rdx
 	call	assignInt
 	leaq	-64(%rbp), %rcx
-	leaq	-592(%rbp), %rdx
+	leaq	-640(%rbp), %rdx
 	call	assignBString
 	# PRINT "STR$ INT=",A$
 	# str: "STR$ INT=",
@@ -188,11 +202,11 @@ main:
 	# A$=STR$(A)
 	# str: STR$(A)
 	# float: A
-	leaq	-592(%rbp), %rcx
+	leaq	-640(%rbp), %rcx
 	movsd	-40(%rbp), %xmm1
 	call	assignDouble
 	leaq	-64(%rbp), %rcx
-	leaq	-592(%rbp), %rdx
+	leaq	-640(%rbp), %rdx
 	call	assignBString
 	# PRINT "STR$ FLOAT=",A$
 	# str: "STR$ FLOAT=",
@@ -253,15 +267,15 @@ main:
 	# str: A$
 	lea	-64(%rbp), %rcx
 	call	bstringToDouble
-	movq	%xmm0, -632(%rbp)
-	movsd	-632(%rbp), %xmm0
+	movq	%xmm0, -680(%rbp)
+	movsd	-680(%rbp), %xmm0
 	movsd	%xmm0, -40(%rbp)
 	# IF A<>2.2 THEN PRINT "ERROR VAL FLOAT"
 	# int: A<>2.2 - %rsi
 	# float: A
 	# float: 2.2
 	movsd	-40(%rbp), %xmm0
-	movsd	.LF1(%rip), %xmm1
+	movsd	.LF2(%rip), %xmm1
 	comisd	%xmm1, %xmm0
 	setne	%al
 	movzbq	%al, %rsi
@@ -277,27 +291,27 @@ main:
 	# S1$="AB"
 	# str: "AB"
 	leaq	-280(%rbp), %rcx
-	leaq	-304(%rbp), %rdx
+	leaq	-448(%rbp), %rdx
 	call	assignBString
 	# S1$=S1$+"C"
 	# str: S1$+"C"
 	# str: S1$
-	leaq	-592(%rbp), %rcx
+	leaq	-640(%rbp), %rcx
 	leaq	-280(%rbp), %rdx
 	call	assignBString
 	# str: "C"
-	leaq	-592(%rbp), %rcx
+	leaq	-640(%rbp), %rcx
 	leaq	-328(%rbp), %rdx
 	call	appendBString
 	leaq	-280(%rbp), %rcx
-	leaq	-592(%rbp), %rdx
+	leaq	-640(%rbp), %rdx
 	call	assignBString
 	# IF S1$<>"ABC" THEN PRINT "ERROR APPEND"
 	# int: S1$<>"ABC" - %rsi
 	# str: S1$
 	# str: "ABC"
 	leaq	-280(%rbp), %rcx
-	leaq	-352(%rbp), %rdx
+	leaq	-376(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
@@ -305,29 +319,29 @@ main:
 	je	.ifnot2
 	# PRINT "ERROR APPEND"
 	# str: "ERROR APPEND"
-	leaq	-376(%rbp), %rcx
+	leaq	-400(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot2:
 	# S1$ = "D" + S1$
 	# str: "D" + S1$
 	# str: "D"
-	leaq	-592(%rbp), %rcx
-	leaq	-400(%rbp), %rdx
+	leaq	-640(%rbp), %rcx
+	leaq	-424(%rbp), %rdx
 	call	assignBString
 	# str: S1$
-	leaq	-592(%rbp), %rcx
+	leaq	-640(%rbp), %rcx
 	leaq	-280(%rbp), %rdx
 	call	appendBString
 	leaq	-280(%rbp), %rcx
-	leaq	-592(%rbp), %rdx
+	leaq	-640(%rbp), %rdx
 	call	assignBString
 	# IF S1$<>"DABC" THEN PRINT "ERROR PREPPEND"
 	# int: S1$<>"DABC" - %rsi
 	# str: S1$
 	# str: "DABC"
 	leaq	-280(%rbp), %rcx
-	leaq	-424(%rbp), %rdx
+	leaq	-472(%rbp), %rdx
 	movq	$1, %r8
 	call	bstrCmp
 	movq	%rax, %rsi
@@ -335,13 +349,13 @@ main:
 	je	.ifnot3
 	# PRINT "ERROR PREPPEND"
 	# str: "ERROR PREPPEND"
-	leaq	-448(%rbp), %rcx
+	leaq	-496(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 .ifnot3:
 	# PRINT "END"
 	# str: "END"
-	leaq	-472(%rbp), %rcx
+	leaq	-520(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 

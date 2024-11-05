@@ -1,15 +1,16 @@
-import type { Model } from '../language/generated/ast.js';
+import { isLetNum, type Model } from '../language/generated/ast.js';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import { C64BasicLanguageMetaData } from '../language/module.js';
 import { createC64BasicServices } from '../language/c-64-basic-module.js';
-import { extractAstNode } from './cli-util.js';
+import { extractAstNode, extractDocument } from './cli-util.js';
 import { generateAssemblerCode, CompileError } from './generator.js';
 import { NodeFileSystem } from 'langium/node';
 import * as url from 'node:url';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { exec } from 'child_process';
+import { startCancelableOperation, AstUtils } from 'langium';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const packagePath = path.resolve(__dirname, '..', '..', 'package.json');
@@ -73,6 +74,36 @@ export const tokenizeAction = async (fileName: string): Promise<void> => {
     }
 };
 
+export const playAction = async (fileName: string): Promise<void> => {
+    const services = createC64BasicServices(NodeFileSystem).C64Basic;
+    const refProvider = services.workspace.ReferenceDescriptionProvider
+    const document = await extractDocument(fileName,services)
+    const s = startCancelableOperation()
+    const descriptions = await refProvider.createDescriptions(document,s.token);
+    for (const d of descriptions) {
+        console.log(`d ${d.sourcePath}=>${d.targetPath}`)
+    }
+
+    for (const cnode of AstUtils.streamAllContents(document.parseResult.value)) {
+        if (isLetNum(cnode)) {
+            const refs = services.references.References.findReferences(cnode,{includeDeclaration: true});
+            for (const r of refs) {
+                console.log(`r ${r.sourcePath}=>${r.targetPath}`)
+            }
+        }
+    }
+    if (services.lsp.ReferencesProvider) {
+        const references = await services.lsp.ReferencesProvider.findReferences(document,{
+            //position:{line:2,character:7},
+            position:{line:3,character:0},
+            context:{includeDeclaration:true},
+            textDocument: document.textDocument})
+        for (const r of references) {
+            console.log(`lsp ${r.uri} ${r.range.start.line}:${r.range.start.character}`)
+        }
+    }
+};
+
 export type GenerateOptions = {
     destination?: string;
     suppress_compiling?: boolean;
@@ -105,6 +136,12 @@ export default function(): void {
         .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
         .description('Tokenizes the input file')
         .action(tokenizeAction);
+
+    program
+        .command('playAction')
+        .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
+        .description('run developer play code')
+        .action(playAction);
 
     program.parse(process.argv);
 }

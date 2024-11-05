@@ -3,8 +3,13 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 
-import { type LangiumSharedCoreServices, type LangiumGeneratedSharedCoreServices, type LanguageMetaData, type Module, LangiumDocument, AstNode, MaybePromise, isRootCstNode, isLeafCstNode, LeafCstNode, isCompositeCstNode } from 'langium';
-import { C64BasicAstReflection, isData, isModel, Line } from './generated/ast.js';
+import { type LangiumSharedCoreServices, type LangiumGeneratedSharedCoreServices, 
+    type LanguageMetaData, type Module, LangiumDocument, AstNode, MaybePromise, isRootCstNode, 
+    isLeafCstNode, LeafCstNode, isCompositeCstNode, References, CstNode, FindReferencesOptions, 
+    ReferenceDescription, Stream, LangiumCoreServices, DefaultReferences, DefaultReferenceDescriptionProvider, isLinkingError, interruptAndCheck, 
+    AstUtils,UriUtils,CstUtils,
+    isReference} from 'langium';
+import { C64BasicAstReflection, isData, isDefFn, isDim, isGet, isInput, isLetNum, isLetStr, isModel, isRead, Line } from './generated/ast.js';
 import { C64BasicGrammar } from './generated/grammar.js';
 import { C64BasicScopeProvider } from './scope-provider.js';
 import { FoldingRangeProvider, FoldingRangeAcceptor, LangiumServices, PartialLangiumServices } from 'langium/lsp';
@@ -36,13 +41,160 @@ export const C64BasicGeneratedModule: Module<C64Services, PartialLangiumServices
         Lexer: (services) => new C64Lexer(services)
     },
     references: {
-        ScopeProvider: (services) => new C64BasicScopeProvider(services)
+        ScopeProvider: (services) => new C64BasicScopeProvider(services),
+        References: (services) => new C64BasicReferences(services)
     },
     lsp: {
         Formatter: () => new C64BasicFormatter(),
         FoldingRangeProvider: (services) => new C64FoldingRangeProvider(),
+    },
+    workspace: {
+        ReferenceDescriptionProvider: (services) => new C64ReferanceProvider(services)
     }
 };
+
+// All this special reference handling is because the standard handling assume that the definition is done only once
+// In following code the have 2 definition (line 10,30) and 2 usages (line 20, 40) of variable A
+// Without the specail handling the usage is linked only to 1 definition (line 10).
+// We create additional reference (30 to 10) and also fake 30 (to be isReference) that it can be handled as reference to 10
+// 
+// 10 A = 1
+// 20 PRINT A
+// 30 A = 2
+// 40 PRINT A
+
+class C64ReferanceProvider extends DefaultReferenceDescriptionProvider {
+    override async createDescriptions(document: LangiumDocument, cancelToken = CancellationToken.None): Promise<ReferenceDescription[]> {
+        const descr: ReferenceDescription[] = [];
+        const rootNode = document.parseResult.value;
+        // map of referenced definitions
+        const refMap : Map<string,AstNode[]> = new Map()
+        const addRefMap = (key:string,refNode:AstNode) => {
+            const nentry = refMap.get(key)
+            if (nentry) {
+                if (nentry.find(rnode => rnode.$cstNode?.offset === refNode.$cstNode?.offset)===undefined) {
+                    nentry.push(refNode)
+                }
+            } else {
+                refMap.set(key,[refNode])
+            }
+        }
+        const addDefMap = (key:string,defNode:AstNode) => {
+            defMap.has(key) ? defMap.get(key)!.push(defNode) : defMap.set(key,[defNode])
+        }
+        // map of all definitions
+        const defMap : Map<string,AstNode[]> = new Map()
+        for (const astNode of AstUtils.streamAst(rootNode)) {
+            await interruptAndCheck(cancelToken);
+            if (isLetNum(astNode) || isLetStr(astNode)) {
+                addDefMap(astNode.name.name,astNode)
+            } else if (isInput(astNode) || isRead(astNode) || isDim(astNode)) {
+                for (const vname of astNode.vars) {
+                    addDefMap(vname.name,astNode)
+                }
+            } else if (isGet(astNode)) {
+                addDefMap(astNode.var.name,astNode)
+            } else if (isDefFn(astNode)) {
+                addDefMap("_def_"+astNode.name,astNode)
+            }
+            AstUtils.streamReferences(astNode).filter(refInfo => !isLinkingError(refInfo)).forEach(refInfo => {
+                if (refInfo.reference.ref) {
+                    const ref = refInfo.reference.ref
+                    if (isLetNum(ref) || isLetStr(ref) || isGet(ref) || isInput(ref) || isRead(ref) || isDim(ref)) {
+                        addRefMap(refInfo.reference.$refText,ref)
+                    } else if (isDefFn(ref)) {
+                        addRefMap("_def_"+refInfo.reference.$refText,ref)
+                    }
+                }
+                const description = this.createDescription(refInfo);
+                if (description) {
+                    descr.push(description);
+                }
+            });
+        }
+        defMap.forEach((defNodes,name) => {
+            const refNodes = refMap.get(name)
+            if (refNodes) {
+                const targetNode = refNodes[0]
+                for (const defNode of defNodes) {
+                    const usedAsRef = refNodes.find(refNode => refNode.$cstNode?.offset === defNode.$cstNode?.offset)
+                    // if the definition is not used as reference
+                    // add reference from this definition to primary (used) definition
+                    if (usedAsRef===undefined) {
+                        // console.log("add additional reference def->def")
+                        const description = this.createDescriptionFromTo(defNode,targetNode)
+                        if (description) {
+                            descr.push(description)
+                            if (isLetNum(defNode) || isLetStr(defNode)) {
+                                const defNodeRef = (defNode as any)
+                                defNodeRef.$refText = defNode.name.name
+                                defNodeRef.ref = targetNode
+                                if (isReference(defNodeRef)) {
+                                    // console.log("def to ref successful")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        return descr;
+    }
+
+    createDescriptionFromTo(sourceNode: AstNode, targetNode: AstNode): ReferenceDescription | undefined {
+        const sourceUri = AstUtils.getDocument(sourceNode).uri;
+        const targetUri = AstUtils.getDocument(targetNode).uri;
+        if (sourceUri === undefined || targetUri === undefined || targetNode.$cstNode === undefined) {
+            return undefined
+        }
+        return {
+            sourceUri: sourceUri,
+            sourcePath: this.nodeLocator.getAstNodePath(sourceNode),
+            targetUri: targetUri,
+            targetPath:  this.nodeLocator.getAstNodePath(targetNode),
+            segment: CstUtils.toDocumentSegment(sourceNode.$cstNode!),
+            local: UriUtils.equals(targetUri, sourceUri)
+        };
+    }
+}
+
+class C64BasicReferences implements References {
+    protected readonly defaultReference: References;
+
+    constructor(services: LangiumCoreServices) {
+        this.defaultReference = new DefaultReferences(services)
+    }
+
+    /**
+     * overwritten functionality to handle multiple definition (or redefinition) of veriables as reference to one definition
+     * see C64ReferanceProvider how a fake reference is created for multiple definitions
+     * @param sourceCstNode 
+     * @returns 
+     */
+    findDeclaration(sourceCstNode: CstNode): AstNode | undefined {
+        let d = 0
+        let sourceNode = sourceCstNode.astNode
+        while (d<2) {
+            if (isReference(sourceNode)) {
+                return sourceNode.ref            
+            }
+            if (sourceNode.$container) {
+                sourceNode = sourceNode.$container
+                d++
+            } else {
+                break
+            }
+        }
+        return this.defaultReference.findDeclaration(sourceCstNode)
+    }
+    findDeclarationNode(sourceCstNode: CstNode): CstNode | undefined {
+        return this.defaultReference.findDeclarationNode(sourceCstNode);
+    }
+    findReferences(targetNode: AstNode, options: FindReferencesOptions): Stream<ReferenceDescription> {
+        // console.log(`find references ${targetNode.$cstNode?.text} ${JSON.stringify(options)}`)
+        return this.defaultReference.findReferences(targetNode, options);
+    }
+}
 
 class C64FoldingRangeProvider implements FoldingRangeProvider {
     getFoldingRanges(document: LangiumDocument, params: FoldingRangeParams, cancelToken?: CancellationToken): MaybePromise<FoldingRange[]> {
@@ -80,12 +232,10 @@ class C64FoldingRangeProvider implements FoldingRangeProvider {
                 const commentNodes : LeafCstNode[] = []
                 for (const node of cstNode.content) {
                     if (isLeafCstNode(node) && node.tokenType.name === 'SL_COMMENT') {
-                        console.log("comment found",node.tokenType.name)
                         commentNodes.push(node)
                     } else {
                         if (!isLeafCstNode(node) || node.tokenType.name!=="NEWLINE") {
                             if (!isCompositeCstNode(node) || !node.text.match(/^\d+\s*$/)) {
-                                console.log("no comment",node.text)
                                 if (commentNodes.length>=2) {
                                     acceptor(FoldingRange.create(commentNodes[0].range.start.line,commentNodes[commentNodes.length-1].range.end.line,commentNodes[0].range.start.character,commentNodes[commentNodes.length-1].range.end.character,FoldingRangeKind.Comment))
                                 }

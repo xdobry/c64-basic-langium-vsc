@@ -22,12 +22,15 @@
 	.ascii "EST"
 	.byte 0
 .LC6:
-	.ascii "I% "
+	.ascii "TEST"
 	.byte 0
 .LC7:
-	.ascii "I "
+	.ascii "I% "
 	.byte 0
 .LC8:
+	.ascii "I "
+	.byte 0
+.LC9:
 	.ascii "END"
 	.byte 0
 	.align 8
@@ -43,36 +46,36 @@
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$496, %rsp
+	subq	$512, %rsp
 	# init variable strtmp0$
-	movq	$0, -304(%rbp)
-	movq	$0, -296(%rbp)
-	movq	$0, -288(%rbp)
-	# init variable strtmp1$
 	movq	$0, -328(%rbp)
 	movq	$0, -320(%rbp)
 	movq	$0, -312(%rbp)
-	# init variable strtmp2$
+	# init variable strtmp1$
 	movq	$0, -352(%rbp)
 	movq	$0, -344(%rbp)
 	movq	$0, -336(%rbp)
-	# init variable strtmp3$
+	# init variable strtmp2$
 	movq	$0, -376(%rbp)
 	movq	$0, -368(%rbp)
 	movq	$0, -360(%rbp)
-	# init variable strtmp4$
+	# init variable strtmp3$
 	movq	$0, -400(%rbp)
 	movq	$0, -392(%rbp)
 	movq	$0, -384(%rbp)
+	# init variable strtmp4$
+	movq	$0, -424(%rbp)
+	movq	$0, -416(%rbp)
+	movq	$0, -408(%rbp)
 	# init array A$[] 1
 	lea	-96(%rbp), %rcx
 	movq	$1, %rdx
 	call	c64_init_array
 	# set rounding mode to floor to be compatible with c64 rounding
-	stmxcsr	-448(%rbp)
-	andl	$0xFFFF9FFF, -448(%rbp)
-	orl	$0x2000, -448(%rbp)
-	ldmxcsr	-448(%rbp)
+	stmxcsr	-472(%rbp)
+	andl	$0xFFFF9FFF, -472(%rbp)
+	orl	$0x2000, -472(%rbp)
+	ldmxcsr	-472(%rbp)
 	 # init bstring constants
 	leaq	-40(%rbp), %rcx
 	leaq	.LC0(%rip), %rdx
@@ -83,8 +86,8 @@ main:
 	leaq	-136(%rbp), %rcx
 	leaq	.LC2(%rip), %rdx
 	call	assignFromConst
-	leaq	-160(%rbp), %rcx
-	leaq	.LC3(%rip), %rdx
+	leaq	-232(%rbp), %rcx
+	leaq	.LC6(%rip), %rdx
 	call	assignFromConst
 	leaq	-184(%rbp), %rcx
 	leaq	.LC4(%rip), %rdx
@@ -100,6 +103,9 @@ main:
 	call	assignFromConst
 	leaq	-280(%rbp), %rcx
 	leaq	.LC8(%rip), %rdx
+	call	assignFromConst
+	leaq	-304(%rbp), %rcx
+	leaq	.LC9(%rip), %rdx
 	call	assignFromConst
 	# A=23.8
 	# float: 23.8
@@ -117,10 +123,10 @@ main:
 	movq	$0, %rdx
 	call	printBString
 	# str: A%
-	leaq	-400(%rbp), %rcx
+	leaq	-424(%rbp), %rcx
 	movq	-16(%rbp), %rdx
 	call	assignInt
-	leaq	-400(%rbp), %rcx
+	leaq	-424(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
 	# IF A%<>23 THEN PRINT "ERROR"
@@ -186,7 +192,7 @@ main:
 	lea	-96(%rbp), %rcx
 	call	c64_get_str_item_ptr
 	movq	%rax, %rcx
-	leaq	-160(%rbp), %rdx
+	leaq	-232(%rbp), %rdx
 	call	assignBString
 	# PRINT "=I% ";I%
 	# str: "=I% ";
@@ -194,10 +200,10 @@ main:
 	movq	$0, %rdx
 	call	printBString
 	# str: I%
-	leaq	-400(%rbp), %rcx
+	leaq	-424(%rbp), %rcx
 	movq	-112(%rbp), %rdx
 	call	assignInt
-	leaq	-400(%rbp), %rcx
+	leaq	-424(%rbp), %rcx
 	movq	$12, %rdx
 	call	printBString
 	# A$(I%)="EST"
@@ -212,7 +218,7 @@ main:
 	call	assignBString
 	# PRINT "I% ";A$(I%)
 	# str: "I% ";
-	leaq	-232(%rbp), %rcx
+	leaq	-256(%rbp), %rcx
 	movq	$0, %rdx
 	call	printBString
 	# str: A$(I%)
@@ -221,15 +227,15 @@ main:
 	movq	%rsi, -72(%rbp)
 	lea	-96(%rbp), %rcx
 	call	c64_get_str_item_ptr
-	leaq	-400(%rbp), %rcx
+	leaq	-424(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBStringAsConst
-	leaq	-400(%rbp), %rcx
+	leaq	-424(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 	# PRINT "I ";A$(I)
 	# str: "I ";
-	leaq	-256(%rbp), %rcx
+	leaq	-280(%rbp), %rcx
 	movq	$0, %rdx
 	call	printBString
 	# str: A$(I)
@@ -240,15 +246,15 @@ main:
 	movq	%rsi, -72(%rbp)
 	lea	-96(%rbp), %rcx
 	call	c64_get_str_item_ptr
-	leaq	-400(%rbp), %rcx
+	leaq	-424(%rbp), %rcx
 	movq	%rax, %rdx
 	call	assignBStringAsConst
-	leaq	-400(%rbp), %rcx
+	leaq	-424(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 	# PRINT "END"
 	# str: "END"
-	leaq	-280(%rbp), %rcx
+	leaq	-304(%rbp), %rcx
 	movq	$8, %rdx
 	call	printBString
 

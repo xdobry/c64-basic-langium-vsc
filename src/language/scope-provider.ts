@@ -1,4 +1,4 @@
-import { ReferenceInfo, Scope, ScopeProvider, AstUtils, LangiumCoreServices, AstNodeDescriptionProvider, MapScope, EMPTY_SCOPE, AstNodeDescription } from "langium";
+import { ReferenceInfo, Scope, ScopeProvider, AstUtils, LangiumCoreServices, AstNodeDescriptionProvider, MapScope, EMPTY_SCOPE, AstNodeDescription, AstNode } from "langium";
 import { isModel, isVarRef, isLetNum, LetNum, isLetStr, LetStr, isGoTo, isLabel, Label, isStringVarRef, isGet, isInput, Get, Input, isRead, Read, isFor, For, StrLabel, isStrLabel, isIf, isGoSub, isOnGoSub, isOnGoto, isFnCall, isDefFn, DefFn, isRun, Stmt, If } from "./generated/ast.js";
 
 export class C64BasicScopeProvider implements ScopeProvider {
@@ -14,26 +14,38 @@ export class C64BasicScopeProvider implements ScopeProvider {
             //select all persons from this document
             //transform them into node descriptions
             const descriptions : AstNodeDescription[] = []
+            const names: string[] = []
+            const acceptor = (node: AstNode, name: string) => {
+                if (!names.includes(name)) {
+                    descriptions.push(this.astNodeDescriptionProvider.createDescription(node, name))
+                    names.push(name)
+                }
+            }
+            const deffn = AstUtils.getContainerOfType(context.container, isDefFn);
+            if (deffn) {
+                const l : DefFn = deffn as DefFn;
+                acceptor(l, l.param.name)
+            }
             const scanVars = (p: Stmt) => {
                 if (isLetNum(p) || isLetStr(p)) {
                     const l : LetStr | LetNum = p as LetStr | LetNum;
-                    descriptions.push(this.astNodeDescriptionProvider.createDescription(l, l.name.name))
+                    acceptor(l, l.name.name)
                 } else if (isGet(p)) {
                     const l : Get = p as Get;
-                    descriptions.push(this.astNodeDescriptionProvider.createDescription(l, l.var.name))
+                    acceptor(l, l.var.name)
                 } else if (isInput(p)) {
                     const l : Input = p as Input;
                     for (const varInst of l.vars) {
-                        descriptions.push(this.astNodeDescriptionProvider.createDescription(l, varInst.name))
+                        acceptor(l, varInst.name)
                     }
                 } else if (isRead(p)) {
                     const l : Read = p as Read;
                     for (const varInst of l.vars) {
-                        descriptions.push(this.astNodeDescriptionProvider.createDescription(l, varInst.name))
+                        acceptor(l, varInst.name)
                     }
                 } else if (isFor(p)) {
                     const l : For = p as For;
-                    descriptions.push(this.astNodeDescriptionProvider.createDescription(l, l.name.name))
+                    acceptor(l, l.name.name)
                 } else if (isIf(p)) {
                     const l : If = p as If;
                     if (l.stmts) {
@@ -49,11 +61,6 @@ export class C64BasicScopeProvider implements ScopeProvider {
                 });
             })
             descriptions.push(this.astNodeDescriptionProvider.createDescription(model, 'TI$'));
-            const deffn = AstUtils.getContainerOfType(context.container, isDefFn);
-            if (deffn) {
-                const l : DefFn = deffn as DefFn;
-                descriptions.push(this.astNodeDescriptionProvider.createDescription(l, l.param.name))
-            }
             //create the scope
             return new MapScope(descriptions);
         } else if ((isGoTo(context.container) || isIf(context.container) 

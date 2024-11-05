@@ -47,6 +47,8 @@
 	.double 0.4
 .LF3:
 	.double 0.4
+.LF4:
+	.double 0.4
 
     .text
 	.globl	main
@@ -335,7 +337,7 @@ main:
 	# float: 0.4*LL
 	# float: 0.4
 	# float: LL
-	movsd	.LF2(%rip), %xmm0
+	movsd	.LF4(%rip), %xmm0
 	movsd	-128(%rbp), %xmm1
 	mulsd	%xmm1, %xmm0
 	movsd	%xmm0, -568(%rbp)
