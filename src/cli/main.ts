@@ -6,26 +6,26 @@ import { createC64BasicServices } from '../language/c-64-basic-module.js';
 import { extractAstNode, extractDocument } from './cli-util.js';
 import { generateAssemblerCode, CompileError } from './generator.js';
 import { NodeFileSystem } from 'langium/node';
-import * as url from 'node:url';
-import * as fs from 'node:fs/promises';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { exec } from 'child_process';
 import { startCancelableOperation, AstUtils } from 'langium';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-
-const packagePath = path.resolve(__dirname, '..', '..', 'package.json');
-const packageContent = await fs.readFile(packagePath, 'utf-8');
+import { crunchCode } from './crunch.js';
+import { decrunchCode } from './decrunch.js';
 
 export const generateAction = async (fileName: string, opts: GenerateOptions): Promise<void> => {
+    console.log("compile action")
     const services = createC64BasicServices(NodeFileSystem).C64Basic;
     const model = await extractAstNode<Model>(fileName, services);
     try {
         const generatedFilePath = generateAssemblerCode(model, fileName, opts);
         console.log(chalk.green(`Assembly code generated successfully: ${generatedFilePath}`));
         if (!opts.suppress_compiling) {
+            const gcc = opts.gcc_path ?? 'gcc'
+            const home_path = opts.home_path ?? '.';
             const outPutFile = path.join(path.dirname(generatedFilePath), path.basename(generatedFilePath, path.extname(generatedFilePath)) + '.exe');
             // TODO compute the location of the rtlib.c file
-            const compileCommand = `gcc "${generatedFilePath}" .\\ccode\\rtlib.c -o "${outPutFile}"`;
+            const compileCommand = `${gcc} "${generatedFilePath}" ${home_path}\\ccode\\rtlib.c -o "${outPutFile}"`;
             console.log(compileCommand);
             exec(compileCommand, (error, stdout, stderr) => {
                 console.log(stdout)
@@ -44,7 +44,7 @@ export const generateAction = async (fileName: string, opts: GenerateOptions): P
             let line = 0;
             let pos = 0;
             if (error.cstNode) {
-                const sourceText = (await fs.readFile(fileName, 'utf-8')).toString();
+                const sourceText = fs.readFileSync(fileName, 'utf-8').toString();
                 const frag = sourceText.substring(0, error.cstNode.offset);
                 line = frag.split('\n').length;
                 pos = frag.length - frag.lastIndexOf('\n');
@@ -67,7 +67,7 @@ export const generateAst = async (fileName: string): Promise<void> => {
 export const tokenizeAction = async (fileName: string): Promise<void> => {
     const services = createC64BasicServices(NodeFileSystem).C64Basic;
     const lexer = services.parser.Lexer;
-    const documentString = await fs.readFile(fileName, 'utf-8');
+    const documentString = fs.readFileSync(fileName, 'utf-8');
     const tokens = lexer.tokenize(documentString);
     for (const token of tokens.tokens) {
         console.log(token);
@@ -104,16 +104,39 @@ export const playAction = async (fileName: string): Promise<void> => {
     }
 };
 
+export const crunchAction = async (fileName: string): Promise<void> => {
+    console.log("crunch action")
+    const services = createC64BasicServices(NodeFileSystem).C64Basic;
+    const model = await extractAstNode<Model>(fileName, services);
+    const code = crunchCode(model, {});
+    const crunchFile = path.join(path.dirname(fileName),path.basename(fileName, path.extname(fileName))+ '.crunched.bas');
+    console.log("written to " + crunchFile);
+    fs.writeFileSync(crunchFile, code);
+}
+
+export const decrunchAction = async (fileName: string): Promise<void> => {
+    console.log("decrunch action")
+    const services = createC64BasicServices(NodeFileSystem).C64Basic;
+    const model = await extractAstNode<Model>(fileName, services);
+    const code = decrunchCode(model, {});
+    const crunchFile = path.join(path.dirname(fileName),path.basename(fileName, path.extname(fileName))+ '.decrunched.bas');
+    console.log("written to " + crunchFile);
+    fs.writeFileSync(crunchFile, code);
+}
+
+
 export type GenerateOptions = {
     destination?: string;
     suppress_compiling?: boolean;
     eager_free_memory?: boolean
+    gcc_path?: string
+    home_path?: string
 }
 
 export default function(): void {
     const program = new Command();
 
-    program.version(JSON.parse(packageContent).version);
+    program.version("0.0.1");
 
     const fileExtensions = C64BasicLanguageMetaData.fileExtensions.join(', ');
     program
@@ -122,6 +145,8 @@ export default function(): void {
         .option('-d, --destination <dir>', 'destination directory of generating')
         .option('-s, --suppress_compiling','supress compiling assembler code to executable using mingw')
         .option('--eager_free_memory','eager free memory for temporary string')
+        .option('--gcc_path <path>','path to gcc compiler')
+        .option('--home_path <path>','path to tool home directory (needed for localtion of rtlib.c)')
         .description('generates assembler code')
         .action(generateAction);
 
@@ -137,6 +162,18 @@ export default function(): void {
         .description('Tokenizes the input file')
         .action(tokenizeAction);
 
+    program
+        .command('crunch')
+        .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
+        .description('Crunch basic source to c64 ready version')
+        .action(crunchAction);
+
+    program
+        .command('decrunch')
+        .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
+        .description('Uncrunch c64 basic source to read friendly version')
+        .action(decrunchAction);
+        
     program
         .command('playAction')
         .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)

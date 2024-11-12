@@ -1,13 +1,11 @@
 C = 3
-A = 3
-PRINT A
-A = 4
-INPUT A
+A = 3: REM TEST
+PRINT A,"TEST"
+REM KOMMENT1
+REM KOMMENT2
+LET A = 4
 PRINT A+2
-GOTO loop
 B = A
-
-GOTO loop
 
 DEF FN F(X)=X+1
 PRINT "PAUSE"
@@ -17,6 +15,15 @@ C = FN F(2)
 
 loop:
 PRINT "TEST"
-PRINT C,B
+loop2:
+PRINT C,B+1,1+2+3
 
 PRINT "END"
+END
+
+GOTO loop
+GOSUB loop
+IF A>0 THEN loop
+ON A GOTO loop,loop2
+ON A GOSUB loop,loop2
+

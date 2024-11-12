@@ -1,0 +1,23 @@
+1 c=3
+2 a=3
+3 printa,"test"
+4 a=4
+5 inputa
+6 printa+2
+7 goto15
+8 b=a
+9 goto15
+10 deffnf(x)=x+1
+11 print"pause"
+12 deffnf(x)=x+2
+13 printfnf(3)
+14 c=fnf(2)
+15 print"test"
+16 printc,b+1,1+2+3
+17 print"END":end
+18 gosub15
+19 ifa>0thengoto15
+20 onagoto 15,16
+21 onagosub 15,16
+22 fora=2to20:printa:next
+23 ifathenprint"true"

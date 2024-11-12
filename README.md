@@ -84,9 +84,23 @@ There is quite a lot alternatives to cross develop C64 Basic on modern platforms
 Please check them first.
 This project is in early state.
 
-*  
-* [FreeBasic]() - free basic compiler for many platforms
-*
+## Visual Studion c64 basic plugins
+
+* [VS64](https://marketplace.visualstudio.com/items?itemName=rosc.vs64) - The C64 Development Environment (basic, assempler and other).
+* [COMMODORE 64 BASIC V2](https://marketplace.visualstudio.com/items?itemName=gverduci.c64basicv2) - This extension helps you to write Commodore 64 basic v2 programs (.prg or .bas extension). It provides you: syntax highlighting, snippets, file icons, a theme, tasks, rulers, commands, different views in the Primary Sidebar, and a simple preview.
+
+## Other C64 Basic IDEs
+
+* [CBM .prg Studio](https://www.ajordison.co.uk/index.html)
+* C64_Studio
+* [XC-BASIC](https://github.com/neilsf/XC-BASIC) - Basic cross compiler (works on window compiles to c64 assembly)
+
+## Basic compiler and interpreter
+
+* [VintageBasic](http://www.vintage-basic.net/) - interpreter for old basic programs compatible with early microsoft basic which was the reference for c64 basic (cbm basic). includes collection of basic source code from the book "Basic Computer Games" 
+  that can be compiled with this compiler without problems.
+* [FreeBasic](https://www.freebasic.net/) - free basic compiler for many platforms oriented for QuickBasic
+* [cbmbasic](https://github.com/mist64/cbmbasic) - cbmbasic, a portable version of Commodore's version of Microsoft BASIC 6502 as found on the Commodore 64
 
 # Project Structure
 
@@ -127,6 +141,7 @@ Additional checks
 * never read variables
 * GOSUB without RETURN
 * inconsistent variable dimensions - OPEN
+* lines and number duplicates, lines ordering
 
 # Compilation to 64 bit GAS
 
@@ -172,6 +187,17 @@ The compiler will break with error if some unsupported keyword is used
   - check division by zero
   - own float and str tmp stack for DEF FN (own local ebp pointer needed?)
   - optimize reusing of str memory
+  - validation do not allow to use same label and same line number
+
+## Visual Studio Extension TODO
+
+* run compile as task
+* run crunch and uncrunch as task
+* integrate vice (prg compilation, run)
+* rename does not work for labels
+* rename does not work for veriables if renaming from definition (let)
+* show references does not show label definition
+
 
 # Optimization
 

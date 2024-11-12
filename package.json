@@ -1,105 +1,160 @@
 {
-    "name": "c64basic-x64compiler",
-    "description": "c64 basic visual studio code extension and basic compiler to target win64",
-    "icon": "c64basic.png",
-    "publisher": "xdobry",
-    "version": "0.0.1",
-    "type": "module",
-    "repository": {
-        "type": "git",
-        "url": "git@github.com:xdobry/c64-basic-langium-vsc.git"
-    },
-    "scripts": {
-        "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
-        "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
-        "lint": "eslint src --ext ts",
-        "langium:generate": "langium generate",
-        "langium:watch": "langium generate --watch",
-        "vscode:prepublish": "npm run build && npm run lint",
-        "build:web": "npm run build",
-        "bundle": "vite build",
-        "bundle:serve": "http-server ./dist --port 5175",
-        "dev": "vite",
-        "dev:debug": "vite --debug --force",
-        "serve": "npm run dev",
-        "test": "vitest run",
-        "clitest": "node ./bin/cli.js generate ./examples_compile/compile.c64b --destination generated",
-        "gcc": "gcc .\\generated\\compile.s .\\ccode\\rtlib_asm.s .\\ccode\\rtlib.c -o .\\generated\\compile.exe",
-        "testexe": ".\\generated\\compile.exe",
-        "devtrip": "npm run build && npm run clitest && npm run gcc && npm run testexe",
-        "cliast": "node ./bin/cli.js ast",
-        "clitokenize": "node ./bin/cli.js tokenize",
-        "c64compile": "node ./bin/cli.js generate"
-    },
-    "dependencies": {
-        "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
-        "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
-        "chalk": "~5.3.0",
-        "commander": "~11.0.0",
-        "langium": "~3.1.0",
-        "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
-        "monaco-editor-wrapper": "~4.0.2",
-        "monaco-languageclient": "~8.1.1",
-        "vscode-languageclient": "~9.0.1",
-        "vscode-languageserver": "~9.0.1"
-    },
-    "devDependencies": {
-        "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
-        "@types/node": "^18.0.0",
-        "@types/vscode": "~1.67.0",
-        "@typescript-eslint/eslint-plugin": "~7.3.1",
-        "@typescript-eslint/parser": "~7.3.1",
-        "concurrently": "~8.2.1",
-        "esbuild": "~0.20.2",
-        "eslint": "~8.57.0",
-        "http-server": "~14.1.1",
-        "langium-cli": "~3.1.0",
-        "typescript": "~5.1.6",
-        "vite": "~5.2.7",
-        "vitest": "~1.4.0",
-        "@vscode/vsce": "^3.1.1",
-        "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
-    },
-    "volta": {
-        "node": "18.19.1",
-        "npm": "10.2.4"
-    },
-    "displayName": "c64basic",
-    "engines": {
-        "vscode": "^1.67.0",
-        "node": ">=18.0.0"
-    },
-    "categories": [
-        "Programming Languages"
-    ],
-    "contributes": {
-        "languages": [
-            {
-                "id": "c-64-basic",
-                "aliases": [
-                    "c64basic",
-                    "c-64-basic"
-                ],
-                "extensions": [
-                    ".c64b",
-                    ".bas"
-                ],
-                "configuration": "./language-configuration.json"
-            }
+  "name": "c64basic-x64compiler",
+  "description": "c64 basic visual studio code extension and basic compiler to target win64",
+  "icon": "c64basic.png",
+  "publisher": "xdobry",
+  "version": "0.0.1",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:xdobry/c64-basic-langium-vsc.git"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
+    "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
+    "lint": "eslint src --ext ts",
+    "langium:generate": "langium generate",
+    "langium:watch": "langium generate --watch",
+    "vscode:prepublish": "npm run build && npm run lint",
+    "build:web": "npm run build",
+    "bundle": "vite build",
+    "bundle:serve": "http-server ./dist --port 5175",
+    "dev": "vite",
+    "dev:debug": "vite --debug --force",
+    "serve": "npm run dev",
+    "test": "vitest run",
+    "clitest": "node ./bin/cli.js generate ./examples_compile/compile.c64b --destination generated",
+    "gcc": "gcc .\\generated\\compile.s .\\ccode\\rtlib_asm.s .\\ccode\\rtlib.c -o .\\generated\\compile.exe",
+    "testexe": ".\\generated\\compile.exe",
+    "devtrip": "npm run build && npm run clitest && npm run gcc && npm run testexe",
+    "cliast": "node ./bin/cli.js ast",
+    "clitokenize": "node ./bin/cli.js tokenize",
+    "c64compile": "node ./bin/cli.js generate"
+  },
+  "dependencies": {
+    "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
+    "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
+    "chalk": "~5.3.0",
+    "commander": "~11.0.0",
+    "langium": "~3.1.0",
+    "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
+    "monaco-editor-wrapper": "~4.0.2",
+    "monaco-languageclient": "~8.1.1",
+    "vscode-languageclient": "~9.0.1",
+    "vscode-languageserver": "~9.0.1"
+  },
+  "devDependencies": {
+    "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "~1.67.0",
+    "@typescript-eslint/eslint-plugin": "~7.3.1",
+    "@typescript-eslint/parser": "~7.3.1",
+    "concurrently": "~8.2.1",
+    "esbuild": "~0.20.2",
+    "eslint": "~8.57.0",
+    "http-server": "~14.1.1",
+    "langium-cli": "~3.1.0",
+    "typescript": "~5.1.6",
+    "vite": "~5.2.7",
+    "vitest": "~1.4.0",
+    "@vscode/vsce": "^3.1.1",
+    "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
+  },
+  "volta": {
+    "node": "18.19.1",
+    "npm": "10.2.4"
+  },
+  "displayName": "c64basic",
+  "engines": {
+    "vscode": "^1.67.0",
+    "node": ">=18.0.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "c-64-basic",
+        "aliases": [
+          "c64basic",
+          "c-64-basic"
         ],
-        "grammars": [
-            {
-                "language": "c-64-basic",
-                "scopeName": "source.c-64-basic",
-                "path": "syntaxes/c-64-basic.tmLanguage.json"
-            }
-        ]
-    },
-    "activationEvents": [
-        "onLanguage:c-64-basic"
+        "extensions": [
+          ".c64b",
+          ".bas"
+        ],
+        "configuration": "./language-configuration.json"
+      }
     ],
-    "main": "./out/extension/main.cjs",
-    "bin": {
-        "c-64-basic-cli": "./bin/cli.js"
-    }
+    "grammars": [
+      {
+        "language": "c-64-basic",
+        "scopeName": "source.c-64-basic",
+        "path": "syntaxes/c-64-basic.tmLanguage.json"
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "c64basic",
+        "required": [
+          "task"
+        ],
+        "properties": {
+          "task": {
+            "type": "string",
+            "enum": [
+              "compile",
+              "crunch",
+              "makeprg"
+            ],
+            "description": "The task to run (e.g. 'compile', 'crunch', 'makeprg')"
+          },
+          "file": {
+            "type": "string",
+            "description": "bas file that should be processed"
+          }
+        }
+      }
+    ],
+    "configuration": {
+      "title": "c64basic compiler configuration",
+      "properties": {
+        "compilerPath": {
+          "type": "string",
+          "default": "gcc",
+          "description": "The path to the GCC mingw compiler"
+        },
+        "emulatorBinPath": {
+          "type": "string",
+          "default": "x64sc",
+          "description": "The path to the VICE emulator bin path (x64sc is in it)"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "c64basic.compile",
+        "title": "Compile c64 basic to windows 64 bit executable",
+        "category": "c64basic"
+      },
+      {
+        "command": "c64basic.crunch",
+        "title": "Convert c64 basic to crunched c64 ready basic version.",
+        "category": "c64basic"
+      },
+      {
+        "command": "c64basic.decrunch",
+        "title": "Convert c64 basic to uncrunched read friendly version",
+        "category": "c64basic"
+      }
+    ]
+  },
+  "activationEvents": [
+    "onLanguage:c-64-basic"
+  ],
+  "main": "./out/extension/main.cjs",
+  "bin": {
+    "c-64-basic-cli": "./bin/cli.js"
+  }
 }

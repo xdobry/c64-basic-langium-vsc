@@ -1,13 +1,24 @@
 import type { LanguageClientOptions, ServerOptions} from 'vscode-languageclient/node.js';
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import * as path from 'node:path';
+import * as fs from 'node:fs';
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node.js';
+import { crunchAction, decrunchAction, generateAction } from '../cli/main.js';
 
 let client: LanguageClient;
 
 // This function is called when the extension is activated.
 export function activate(context: vscode.ExtensionContext): void {
     client = startLanguageClient(context);
+    context.subscriptions.push(
+        vscode.commands.registerCommand('c64basic.compile', () => compile(context))
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('c64basic.crunch', () => crunch(context))
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('c64basic.decrunch', () => decrunch(context))
+    );
 }
 
 // This function is called when the extension is deactivated.
@@ -48,4 +59,61 @@ function startLanguageClient(context: vscode.ExtensionContext): LanguageClient {
     // Start the client. This will also launch the server
     client.start();
     return client;
+}
+
+async function compile(context: vscode.ExtensionContext) {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+        const fileName = activeEditor.document.fileName;
+        // const content = activeEditor.document.getText();
+        // Use the fileName and content as needed
+        console.log("Compiling..."+fileName);
+        try {
+            const config = vscode.workspace.getConfiguration();
+            const gccPath = config.get('compilerPath') as string;
+            if (!fs.existsSync(gccPath)) {
+                vscode.window.showErrorMessage('GCC path does not exist: ' + gccPath+ ' please configure the "compiler Path" in c64basic extension settings');
+                return;
+            }
+            const extensionPath = context.extensionPath;
+            await generateAction(fileName, { suppress_compiling: false, gcc_path: gccPath, home_path: extensionPath });
+            vscode.window.showInformationMessage('Compiling finished');
+        } catch (e) {
+            vscode.window.showErrorMessage('Error compiling: ' + e);
+        }
+    } else {
+        vscode.window.showErrorMessage('No active editor available.');
+    }
+}
+
+async function crunch(context: vscode.ExtensionContext) {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+        const fileName = activeEditor.document.fileName;
+        console.log("Crunching..."+fileName);
+        try {
+            await crunchAction(fileName);
+            vscode.window.showInformationMessage('Crunching finished');
+        } catch (e) {
+            vscode.window.showErrorMessage('Error crunching: ' + e);
+        }
+    } else {
+        vscode.window.showErrorMessage('No active editor available.');
+    }
+}
+
+async function decrunch(context: vscode.ExtensionContext) {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+        const fileName = activeEditor.document.fileName;
+        console.log("Decrunching..."+fileName);
+        try {
+            await decrunchAction(fileName);
+            vscode.window.showInformationMessage('Decrunching finished');
+        } catch (e) {
+            vscode.window.showErrorMessage('Error decrunching: ' + e);
+        }
+    } else {
+        vscode.window.showErrorMessage('No active editor available.');
+    }
 }
