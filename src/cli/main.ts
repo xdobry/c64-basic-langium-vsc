@@ -140,14 +140,14 @@ export default function(): void {
 
     const fileExtensions = C64BasicLanguageMetaData.fileExtensions.join(', ');
     program
-        .command('generate')
+        .command('compile')
         .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
         .option('-d, --destination <dir>', 'destination directory of generating')
         .option('-s, --suppress_compiling','supress compiling assembler code to executable using mingw')
         .option('--eager_free_memory','eager free memory for temporary string')
         .option('--gcc_path <path>','path to gcc compiler')
         .option('--home_path <path>','path to tool home directory (needed for localtion of rtlib.c)')
-        .description('generates assembler code')
+        .description('generates assembler code from c64 basic and compile it to executable using gcc compile')
         .action(generateAction);
 
     program

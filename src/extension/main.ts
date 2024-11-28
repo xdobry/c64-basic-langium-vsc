@@ -19,6 +19,41 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand('c64basic.decrunch', () => decrunch(context))
     );
+    context.subscriptions.push(
+        vscode.tasks.registerTaskProvider('c64basic', {
+            provideTasks: () => {
+                return [
+                    new vscode.Task(
+                        { type: 'c64basic', task: 'compile', file:'${file}' },
+                        vscode.TaskScope.Workspace,
+                        'Compile',
+                        'c64basic',
+                        new vscode.ShellExecution('echo Compiling... && sleep 1 && echo Done'),
+                        []
+                    ),
+                    new vscode.Task(
+                        { type: 'c64basic', task: 'crunch', file:'${file}' },
+                        vscode.TaskScope.Workspace,
+                        'Crunch',
+                        'c64basic',
+                        new vscode.ShellExecution('echo Crunching... && sleep 1 && echo Done'),
+                        []
+                    ),
+                    new vscode.Task(
+                        { type: 'c64basic', task: 'decrunch', file:'${file}' },
+                        vscode.TaskScope.Workspace,
+                        'Decrunch',
+                        'c64basic',
+                        new vscode.ShellExecution('echo Decrunching... && sleep 1 && echo Done'),
+                        []
+                    )
+                ];
+            },
+            resolveTask(_task: vscode.Task): vscode.Task | undefined {
+                return undefined;
+            }
+        })
+    );
 }
 
 // This function is called when the extension is deactivated.

@@ -56,8 +56,52 @@ You have to be in working directory of the project or pass the location of c64ba
 
 If you have the basic program as original prj file. You will need to convert it to the text first using for example [petcat tool](https://www.c64-wiki.de/wiki/Petcat) from VICE.
 
+# Using c64basic standalone
 
-# Installing the Visual Studio Code c64basic plugin
+After building the project you can use the tool standalone as command.
+
+    node .\bin\cli.js help
+
+Get all options
+
+    node .\bin\cli.js help compile
+
+Output
+
+    Usage: cli compile [options] <file>
+
+    generates assembler code from c64 basic and compile it to executable using gcc compile
+
+    Arguments:
+    file                      source file (possible file extensions: .c64b, .bas)
+
+    Options:
+    -d, --destination <dir>   destination directory of generating
+    -s, --suppress_compiling  supress compiling assembler code to executable using mingw
+    --eager_free_memory       eager free memory for temporary string
+    --gcc_path <path>         path to gcc compiler
+    --home_path <path>        path to tool home directory (needed for localtion of rtlib.c)
+    -h, --help                display help for command
+
+For example you may use it to compile the example basic program
+
+    node .\bin\cli.js compile .\examples_compile\compile.c64b
+
+If the command fails with the message that command "gcc" could not be found. Ensure that gcc is in your PATH
+or pass it with --gcc_path options. After it you will find the executable in the same directory as input file
+
+   node .\bin\cli.js compile --gcc_path C:\devsoft\mingw64win\mingw64\bin\gcc.exe .\examples_compile\compile.c64b 
+   compile action
+   Assembly code generated successfully: examples_compile\compile.s
+   C:\devsoft\mingw64win\mingw64\bin\gcc.exe "examples_compile\compile.s" .\ccode\rtlib.c -o "examples_compile\compile.exe"
+   run mingw compiler to generate executable
+
+There are also another commands avaiable
+
+ * crunch - prepare the basic program to use on c64. It creates line number. Removes spaces, commands and truncate the variable names.
+ * decrunch - convert c64 basic programm to be more readable by adding spaces, removing unnecessera lines and adding empty lines.
+
+# Building and installing the Visual Studio Code c64basic extension
 
 You need to install the [vsce visual studio code extension](https://github.com/microsoft/vscode-vsce) first.
 
@@ -65,6 +109,7 @@ You need to install the [vsce visual studio code extension](https://github.com/m
 
 After bilding the system with `npm run build` you can install the c64basic as visual studio plugin.
 
+    npm run langium:generate
     npm run build
     vsce package --baseContentUrl https://github.com/xdobry/c64-basic-langium-vsc/tree/main/
 
@@ -210,8 +255,21 @@ Posible areas
   * remove unnecessary code (variables that are only set but never read)
   * on assembly level (reduce unnecerry moving register to tmp storage and back to register)
 
+# Extension of C64 Basic
 
-# Incompatibilities to C64 Basic
+* line number are not necessery
+* empty lines are allowed
+* line labels can be used (label is name with colong)
+
+    print "hallo"
+    label1:
+    print "hallo2"
+    goto label1
+
+* all unused variables are reported as warnings
+* whole variable name is significant not only 2 letters. The variable names may be replaced during cruning if not unique
+
+# Incompatibilities to C64 Basic for Compiling to Exceutable
 
 I tried that the compiler produces code that behavious same as possible as original basic 64 interpereter
 without the limitations of c64 basic.

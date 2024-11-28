@@ -23,13 +23,13 @@
     "dev:debug": "vite --debug --force",
     "serve": "npm run dev",
     "test": "vitest run",
-    "clitest": "node ./bin/cli.js generate ./examples_compile/compile.c64b --destination generated",
+    "clitest": "node ./bin/cli.js compile ./examples_compile/compile.c64b --destination generated",
     "gcc": "gcc .\\generated\\compile.s .\\ccode\\rtlib_asm.s .\\ccode\\rtlib.c -o .\\generated\\compile.exe",
     "testexe": ".\\generated\\compile.exe",
     "devtrip": "npm run build && npm run clitest && npm run gcc && npm run testexe",
     "cliast": "node ./bin/cli.js ast",
     "clitokenize": "node ./bin/cli.js tokenize",
-    "c64compile": "node ./bin/cli.js generate"
+    "c64compile": "node ./bin/cli.js compile"
   },
   "dependencies": {
     "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
@@ -106,6 +106,7 @@
             "enum": [
               "compile",
               "crunch",
+              "decrunch",
               "makeprg"
             ],
             "description": "The task to run (e.g. 'compile', 'crunch', 'makeprg')"

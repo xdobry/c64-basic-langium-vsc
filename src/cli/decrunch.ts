@@ -1,4 +1,4 @@
-import { AstUtils, CstNode, isCompositeCstNode, isLeafCstNode, isReference } from "langium"
+import { AstUtils, CstNode, isCompositeCstNode, isLeafCstNode, isReference, LeafCstNode } from "langium"
 import { Model,Cmd, Line, isLine } from "../language/generated/ast.js"
 import { GenerateOptions } from "./main.js"
 import { reflection } from "../language/generated/ast.js"
@@ -7,6 +7,8 @@ interface DeCrunchContext {
     lineMap: Map<Line,number>
     wasKeyword: boolean
     stmtBegin: boolean
+    wasDataItem: boolean
+    comments: LeafCstNode[]
 }
 
 /*
@@ -24,10 +26,12 @@ export function decrunchCode(model: Model, opt: GenerateOptions): string {
     const crunchContext : DeCrunchContext = {
         lineMap: new Map<Line,number>(),
         wasKeyword: false,
-        stmtBegin: false
+        stmtBegin: false,
+        wasDataItem: false,
+        comments: []
     }
+    searchHidden(model.$cstNode!,crunchContext.comments)
     for (const node of AstUtils.streamAllContents(model)) {
-        console.log(`node: ${node.$type} text: ${node.$cstNode?.text}`)
         const meta = reflection.getTypeMetaData(node.$type)
         if (meta) {
             for (const prop of meta.properties) {
@@ -66,6 +70,17 @@ export function decrunchCode(model: Model, opt: GenerateOptions): string {
     return code
 }
 
+function searchHidden(cstNode: CstNode, comments: LeafCstNode[]) {
+    if (cstNode.hidden && isLeafCstNode(cstNode) && cstNode.tokenType.name === "SL_COMMENT") {
+        comments.push(cstNode)
+    }
+    if (isCompositeCstNode(cstNode)) {
+        cstNode.content.forEach(child => {
+            searchHidden(child, comments)
+        })
+    }
+}
+
 function decrunchStmts(stmts: Cmd[], crunchContext: DeCrunchContext) : string {
     return stmts.map(stmt => decrunchStmt(stmt,crunchContext)).join(": ")
 }
@@ -89,7 +104,7 @@ function decrunchCst(cstNode: CstNode,crunchContext: DeCrunchContext, level: num
         })
     } else {
         if (isLeafCstNode(cstNode) && !alreadyPrinted.includes(cstNode)) {
-            // console.log(`${' '.repeat(level)}cstnode ${cstNode.text} hidden=${cstNode.hidden} grammsource ${cstNode.grammarSource.$type} astnode type ${cstNode.astNode.$type}`)
+            console.log(`${' '.repeat(level)}cstnode ${cstNode.text} hidden=${cstNode.hidden} tokenType=${cstNode.tokenType.name} grammsource ${cstNode.grammarSource.$type} astnode type ${cstNode.astNode.$type}`)
             if (crunchContext.wasKeyword) {
                 code += " "
                 crunchContext.wasKeyword = false
@@ -99,12 +114,26 @@ function decrunchCst(cstNode: CstNode,crunchContext: DeCrunchContext, level: num
             if (cstNode.grammarSource.$type === "Keyword" && (cstNode.text.length>1 || cstNode.text==="," || cstNode.text===";")) {
                 crunchContext.wasKeyword = true
             }
+            if (cstNode.tokenType.name === "DATA_ITEM") {
+                if (crunchContext.wasDataItem) {
+                    code += ","
+                }
+                crunchContext.wasDataItem = true
+            } else {
+                crunchContext.wasDataItem = false
+            }
             code += cstNode.text
             crunchContext.stmtBegin = false
             if (cstNode.text === "=" && cstNode.grammarSource.$type === "Keyword") {
                 crunchContext.stmtBegin = true
             }
             alreadyPrinted.push(cstNode)
+            const lastPosition = cstNode.offset + cstNode.length
+            for (const comment of crunchContext.comments) {
+                if (comment.offset > lastPosition && comment.offset < lastPosition + 1) {
+                    code += comment.text
+                }
+            }
         }
     }
     return code
